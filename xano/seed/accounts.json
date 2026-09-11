@@ -1,0 +1,375 @@
+[
+  {
+    "id": "central",
+    "code": "FC",
+    "name": "Farmacia Central",
+    "city": "Valencia",
+    "owner": "Laura Vidal",
+    "plan": "Pro",
+    "seatsUsed": 3,
+    "seats": 5,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "mar 2023",
+    "cif": "B-98 112 447",
+    "address": "C/ Colón 18",
+    "postal": "Valencia · 46004",
+    "email": "laura@fcentral.es",
+    "phone": "963 512 044",
+    "people": [
+      {
+        "initials": "LV",
+        "name": "Laura Vidal",
+        "email": "laura@fcentral.es",
+        "role": "Titular",
+        "last": "hace 2 h",
+        "state": "Activo"
+      },
+      {
+        "initials": "MO",
+        "name": "Marc Oliver",
+        "email": "marc@fcentral.es",
+        "role": "Farmacéutico",
+        "last": "ayer",
+        "state": "Activo"
+      },
+      {
+        "initials": "SB",
+        "name": "Sara Beneito",
+        "email": "sara@fcentral.es",
+        "role": "Auxiliar",
+        "last": "hace 4 d",
+        "state": "Activo"
+      },
+      {
+        "initials": "PS",
+        "name": "Pau Server",
+        "email": "pau@fcentral.es",
+        "role": "Auxiliar",
+        "last": "invitado hace 3 d",
+        "state": "Invitado"
+      },
+      {
+        "initials": "NG",
+        "name": "Nuria Gil",
+        "email": "nuria@fcentral.es",
+        "role": "Auxiliar",
+        "last": "retirado el 2 jun",
+        "state": "Retirado"
+      }
+    ],
+    "usage": {
+      "chat": "128 este mes",
+      "courses": "2 de 6",
+      "order": "hace 9 días",
+      "plv": "14 unidades"
+    },
+    "activity": [
+      {
+        "title": "Pau Server invitado por Kevin",
+        "meta": "hace 3 días · sin aceptar",
+        "live": true
+      },
+      {
+        "title": "Sara Beneito entró por primera vez",
+        "meta": "hace 4 días"
+      },
+      {
+        "title": "Pedido de 4 referencias",
+        "meta": "2 de septiembre · 1.840 €"
+      },
+      {
+        "title": "Nuria Gil retirada del equipo",
+        "meta": "2 de junio · por Laura Vidal"
+      },
+      {
+        "title": "Plan cambiado de Básico a Pro",
+        "meta": "2 de junio · por Kevin Steenbock"
+      },
+      {
+        "title": "Alta de la cuenta",
+        "meta": "14 de marzo de 2023 · alta directa"
+      }
+    ]
+  },
+  {
+    "id": "blasco",
+    "code": "BI",
+    "name": "Farmacia Blasco Ibáñez",
+    "city": "Valencia",
+    "owner": "Rosa Ten",
+    "plan": "Pro",
+    "seatsUsed": 2,
+    "seats": 5,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "ene 2023",
+    "cif": "B-97 220 118",
+    "address": "Av. Blasco Ibáñez 42",
+    "postal": "Valencia · 46021",
+    "email": "rosa@fblasco.es",
+    "phone": "963 610 220",
+    "people": [
+      {
+        "initials": "RT",
+        "name": "Rosa Ten",
+        "email": "rosa@fblasco.es",
+        "role": "Titular",
+        "last": "hoy",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "64 este mes",
+      "courses": "6 de 6",
+      "order": "hace 2 días",
+      "plv": "9 unidades"
+    },
+    "activity": [
+      {
+        "title": "Alta de la cuenta",
+        "meta": "10 de enero de 2023"
+      }
+    ]
+  },
+  {
+    "id": "alboraya",
+    "code": "AM",
+    "name": "Farmacia Alboraya Mar",
+    "city": "Alboraya",
+    "owner": "Vicent Gil",
+    "plan": "Básico",
+    "seatsUsed": 4,
+    "seats": 4,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "sep 2024",
+    "cif": "B-98 401 090",
+    "address": "Passeig Aragó 3",
+    "postal": "Alboraya · 46120",
+    "email": "vicent@falboraya.es",
+    "phone": "961 850 331",
+    "people": [
+      {
+        "initials": "VG",
+        "name": "Vicent Gil",
+        "email": "vicent@falboraya.es",
+        "role": "Titular",
+        "last": "ayer",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "21 este mes",
+      "courses": "1 de 6",
+      "order": "hace 20 días",
+      "plv": "3 unidades"
+    },
+    "activity": [
+      {
+        "title": "Alta de la cuenta",
+        "meta": "2 de septiembre de 2024"
+      }
+    ]
+  },
+  {
+    "id": "ruzafa",
+    "code": "RS",
+    "name": "Farmacia Ruzafa Salud",
+    "city": "Valencia",
+    "owner": "Inés Prats",
+    "plan": "Básico",
+    "seatsUsed": 3,
+    "seats": 4,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "feb 2025",
+    "cif": "B-98 511 237",
+    "address": "C/ Sueca 7",
+    "postal": "Valencia · 46006",
+    "email": "ines@fruzafa.es",
+    "phone": "963 290 118",
+    "people": [
+      {
+        "initials": "IP",
+        "name": "Inés Prats",
+        "email": "ines@fruzafa.es",
+        "role": "Titular",
+        "last": "hace 6 d",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "9 este mes",
+      "courses": "0 de 6",
+      "order": "hace 31 días",
+      "plv": "2 unidades"
+    },
+    "activity": [
+      {
+        "title": "Alta de la cuenta",
+        "meta": "3 de febrero de 2025"
+      }
+    ]
+  },
+  {
+    "id": "carmen",
+    "code": "EC",
+    "name": "Farmacia El Carmen",
+    "city": "Valencia",
+    "owner": "Pau Server",
+    "plan": "Básico",
+    "seatsUsed": 2,
+    "seats": 4,
+    "rep": "Á. Ferrer",
+    "status": "Suspendida",
+    "since": "jun 2022",
+    "cif": "B-96 887 001",
+    "address": "Plaza del Carmen 3",
+    "postal": "Valencia · 46003",
+    "email": "pau@fcarmen.es",
+    "phone": "963 915 002",
+    "people": [
+      {
+        "initials": "PS",
+        "name": "Pau Server",
+        "email": "pau@fcarmen.es",
+        "role": "Titular",
+        "last": "hace 64 d",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "0 este mes",
+      "courses": "0 de 6",
+      "order": "—",
+      "plv": "0"
+    },
+    "activity": [
+      {
+        "title": "Cuenta suspendida por impago",
+        "meta": "hace 12 días"
+      }
+    ]
+  },
+  {
+    "id": "port-sapla",
+    "code": "PS",
+    "name": "Farmacia Port Saplà",
+    "city": "Valencia",
+    "owner": "Nuria Esteve",
+    "plan": "Básico",
+    "seatsUsed": 1,
+    "seats": 4,
+    "rep": "Sin asignar",
+    "status": "Invitada",
+    "since": "sep 2025",
+    "cif": "B-98 733 410",
+    "address": "C/ Port Saplà 12",
+    "postal": "Valencia · 46011",
+    "email": "nuria@fportsapla.es",
+    "phone": "963 720 411",
+    "people": [
+      {
+        "initials": "NE",
+        "name": "Nuria Esteve",
+        "email": "nuria@fportsapla.es",
+        "role": "Titular",
+        "last": "invitada hace 9 d",
+        "state": "Invitado"
+      }
+    ],
+    "usage": {
+      "chat": "—",
+      "courses": "—",
+      "order": "—",
+      "plv": "—"
+    },
+    "activity": [
+      {
+        "title": "Invitación enviada",
+        "meta": "hace 9 días"
+      }
+    ]
+  },
+  {
+    "id": "benimaclet",
+    "code": "BM",
+    "name": "Farmacia Benimaclet",
+    "city": "Valencia",
+    "owner": "Clara Ibáñez",
+    "plan": "Básico",
+    "seatsUsed": 2,
+    "seats": 4,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "jul 2025",
+    "cif": "B-98 660 902",
+    "address": "C/ Barón de San Petrillo 22",
+    "postal": "Valencia · 46020",
+    "email": "clara@fbenimaclet.es",
+    "phone": "963 693 210",
+    "people": [
+      {
+        "initials": "CI",
+        "name": "Clara Ibáñez",
+        "email": "clara@fbenimaclet.es",
+        "role": "Titular",
+        "last": "hace 1 d",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "12 este mes",
+      "courses": "0 de 6",
+      "order": "hace 6 días",
+      "plv": "5 unidades"
+    },
+    "activity": [
+      {
+        "title": "Alta de la cuenta",
+        "meta": "5 de julio de 2025"
+      }
+    ]
+  },
+  {
+    "id": "gran-via",
+    "code": "GM",
+    "name": "Farmacia Gran Vía Marqués",
+    "city": "Valencia",
+    "owner": "Sergio Bonet",
+    "plan": "Pro",
+    "seatsUsed": 5,
+    "seats": 5,
+    "rep": "Á. Ferrer",
+    "status": "Activa",
+    "since": "nov 2021",
+    "cif": "B-96 411 550",
+    "address": "Gran Vía Marqués del Turia 44",
+    "postal": "Valencia · 46005",
+    "email": "sergio@fgranvia.es",
+    "phone": "963 340 771",
+    "people": [
+      {
+        "initials": "SB",
+        "name": "Sergio Bonet",
+        "email": "sergio@fgranvia.es",
+        "role": "Titular",
+        "last": "hoy",
+        "state": "Activo"
+      }
+    ],
+    "usage": {
+      "chat": "88 este mes",
+      "courses": "5 de 6",
+      "order": "hace 3 días",
+      "plv": "11 unidades"
+    },
+    "activity": [
+      {
+        "title": "Alta de la cuenta",
+        "meta": "18 de noviembre de 2021"
+      }
+    ]
+  }
+]

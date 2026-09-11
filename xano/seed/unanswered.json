@@ -1,0 +1,83 @@
+[
+  {
+    "id": "niebla",
+    "text": "«algo para la niebla mental de la quimio»",
+    "meta": "y 63 consultas más parecidas este mes",
+    "pharmacy": "Farmacia Montoro",
+    "when": "hace 2 h",
+    "what": "No entendí el síntoma",
+    "tone": "danger",
+    "action": "Enseñarle",
+    "hot": true
+  },
+  {
+    "id": "nino",
+    "text": "«mi hijo de 7 años no come nada»",
+    "meta": "y 28 consultas más parecidas",
+    "pharmacy": "Farmacia Salas",
+    "when": "hace 5 h",
+    "what": "No hay regla para niños",
+    "tone": "warn",
+    "action": "Enseñarle"
+  },
+  {
+    "id": "manos",
+    "text": "«se me duermen las manos por la noche»",
+    "meta": "contestamos magnesio y nos pusieron pulgar abajo",
+    "pharmacy": "Farmacia del Carmen",
+    "when": "ayer",
+    "what": "Contestó mal",
+    "tone": "danger",
+    "action": "Corregir"
+  },
+  {
+    "id": "embarazo",
+    "text": "«para el cansancio del embarazo»",
+    "meta": "el aviso de embarazo lo bloqueó todo y no quedó nada",
+    "pharmacy": "Farmacia Rosales",
+    "when": "ayer",
+    "what": "Se quedó sin opciones",
+    "tone": "warn",
+    "action": "Enseñarle"
+  },
+  {
+    "id": "diabetico",
+    "text": "«qué le doy a un diabético para el colesterol»",
+    "meta": "la regla existe pero el producto no está en el catálogo",
+    "pharmacy": "Farmacia Luján",
+    "when": "hace 2 d",
+    "what": "Falta el producto",
+    "tone": "warn",
+    "action": "Al catálogo"
+  },
+  {
+    "id": "rodillas",
+    "text": "«colágeno o magnesio para las rodillas»",
+    "meta": "dos reglas empataron y salió una respuesta rara",
+    "pharmacy": "Farmacia Pardo",
+    "when": "hace 2 d",
+    "what": "Dos reglas empatadas",
+    "tone": "warn",
+    "action": "Desempatar"
+  },
+  {
+    "id": "opositores",
+    "text": "«vitaminas para opositores»",
+    "meta": "y 19 consultas más parecidas",
+    "pharmacy": "Farmacia Aribau",
+    "when": "hace 3 d",
+    "what": "No entendí el síntoma",
+    "tone": "danger",
+    "action": "Enseñarle"
+  },
+  {
+    "id": "resaca",
+    "text": "«algo para la resaca»",
+    "meta": "no tenemos nada y quizá tampoco toca",
+    "pharmacy": "Farmacia Nou",
+    "when": "hace 4 d",
+    "what": "Fuera de lo nuestro",
+    "tone": "neutral",
+    "action": "Descartar"
+  }
+]

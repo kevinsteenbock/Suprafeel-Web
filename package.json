@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist -m \"deploy: Suprafeel Soft front\"",
-    "smoke": "esbuild scripts/smoke.tsx --bundle --platform=node --format=esm --outfile=./.smoke.mjs --jsx=automatic --loader:.jpg=dataurl --define:import.meta.env.BASE_URL='\"/\"' --alias:@=./src --external:react --external:react-dom --external:react-router --log-level=error && node ./.smoke.mjs"
+    "smoke": "esbuild scripts/smoke.tsx --bundle --platform=node --format=esm --outfile=./.smoke.mjs --jsx=automatic --loader:.jpg=dataurl --define:import.meta.env.BASE_URL='\"/\"' --alias:@=./src --external:react --external:react-dom --external:react-router --log-level=error && node ./.smoke.mjs",
+    "xano:seed": "esbuild scripts/dump-seed.mjs --bundle --platform=node --format=esm --outfile=./.dump-seed.mjs --loader:.jpg=dataurl --define:import.meta.env.BASE_URL='\"/Suprafeel-Web/\"' --packages=external --log-level=error && node ./.dump-seed.mjs && rm -f ./.dump-seed.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.475.0",

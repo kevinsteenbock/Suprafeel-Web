@@ -1,0 +1,220 @@
+[
+  {
+    "id": "insomnio-adulto",
+    "name": "Insomnio · adulto sin medicación para dormir",
+    "conditions": "Insomnio + no toma hipnóticos + 18 a 70 años",
+    "used": 412,
+    "useful": 94,
+    "state": "Activa",
+    "extra": 1,
+    "products": [
+      {
+        "code": "MEL",
+        "tone": "sand",
+        "name": "Melatonina 1,9 mg retard",
+        "dose": "1 comprimido 30 min antes de acostarse",
+        "why": "Acorta el tiempo que se tarda en dormirse y no genera dependencia. La forma retard aguanta la noche entera.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "VAL",
+        "tone": "ok",
+        "name": "Valeriana + pasiflora Noche",
+        "dose": "2 cápsulas una hora antes",
+        "why": "Para quien no quiere melatonina. Tarda dos semanas en notarse, hay que decírselo.",
+        "tag": "SI PREFIERE PLANTA"
+      },
+      {
+        "code": "MG",
+        "tone": "violet",
+        "name": "Magnesio bisglicinato 300 mg",
+        "dose": "1 cápsula por la noche · se puede juntar con la 1ª",
+        "why": "Relaja el músculo y baja los despertares de madrugada. El bisglicinato no suelta el vientre.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Si lleva más de un mes sin dormir, que lo hable con su médico."
+  },
+  {
+    "id": "insomnio-hipnoticos",
+    "name": "Insomnio · ya toma lorazepam o zolpidem",
+    "conditions": "No recomienda nada · manda hablar con el médico",
+    "derive": true,
+    "products": [],
+    "used": 38,
+    "useful": 88,
+    "state": "Activa",
+    "notice": "Deriva al médico."
+  },
+  {
+    "id": "cansancio-mujer",
+    "name": "Cansancio · mujer con reglas abundantes",
+    "conditions": "Cansancio + mujer + menciona regla o anemia",
+    "used": 201,
+    "useful": 91,
+    "state": "Activa",
+    "products": [
+      {
+        "code": "FE",
+        "tone": "accent",
+        "name": "Hierro Bisglicinato",
+        "dose": "1 cápsula en ayunas",
+        "why": "Hierro quelado que no estriñe.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "B12",
+        "tone": "violet",
+        "name": "Complejo B activado",
+        "dose": "1 por la mañana",
+        "why": "Cubre el folato y la B12.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Si el cansancio dura más de un mes, analítica."
+  },
+  {
+    "id": "cansancio",
+    "name": "Cansancio · sin más datos",
+    "conditions": "Cansancio y nada más · es la red de seguridad",
+    "used": 187,
+    "useful": 76,
+    "state": "Activa",
+    "products": [
+      {
+        "code": "MUL",
+        "tone": "sand",
+        "name": "Multivitamínico",
+        "dose": "1 al día",
+        "why": "Cubre carencias generales.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "Q10",
+        "tone": "ok",
+        "name": "Coenzima Q10",
+        "dose": "1 con la comida",
+        "why": "Energía celular.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Preguntar por sueño y alimentación antes de recomendar."
+  },
+  {
+    "id": "digestion",
+    "name": "Digestión pesada · después de comer",
+    "conditions": "Digestión pesada + hinchazón o gases",
+    "used": 264,
+    "useful": 74,
+    "state": "Activa",
+    "products": [
+      {
+        "code": "ENZ",
+        "tone": "ok",
+        "name": "Enzimas digestivas",
+        "dose": "1 antes de las comidas",
+        "why": "Ayuda a digerir.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "ALC",
+        "tone": "sand",
+        "name": "Alcachofa",
+        "dose": "1 antes de comer",
+        "why": "Estimula la bilis.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Si hay pérdida de peso o sangre, derivar."
+  },
+  {
+    "id": "pelo",
+    "name": "Caída del pelo · otoño y primavera",
+    "conditions": "Caída del pelo + de septiembre a noviembre",
+    "used": 231,
+    "useful": 88,
+    "state": "Activa",
+    "products": [
+      {
+        "code": "BIO",
+        "tone": "accent",
+        "name": "Biotina",
+        "dose": "1 al día",
+        "why": "Fortalece el pelo.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "ZN",
+        "tone": "violet",
+        "name": "Zinc",
+        "dose": "1 al día",
+        "why": "Cofactor del folículo.",
+        "tag": "ACOMPAÑA"
+      },
+      {
+        "code": "COL",
+        "tone": "sand",
+        "name": "Colágeno",
+        "dose": "1 cacito",
+        "why": "Aporta aminoácidos.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Tres meses de pauta mínimo."
+  },
+  {
+    "id": "articular",
+    "name": "Dolor articular · más de 55 años",
+    "conditions": "Dolor articular + edad 55+ · no sustituye al médico",
+    "used": 198,
+    "useful": 82,
+    "state": "Activa",
+    "products": [
+      {
+        "code": "COL",
+        "tone": "sand",
+        "name": "Colágeno",
+        "dose": "1 cacito",
+        "why": "Cartílago.",
+        "tag": "1ª OPCIÓN"
+      },
+      {
+        "code": "MG",
+        "tone": "violet",
+        "name": "Magnesio",
+        "dose": "1 por la noche",
+        "why": "Músculo.",
+        "tag": "ACOMPAÑA"
+      },
+      {
+        "code": "CUR",
+        "tone": "accent",
+        "name": "Cúrcuma",
+        "dose": "1 con comida",
+        "why": "Antiinflamatoria.",
+        "tag": "ACOMPAÑA"
+      }
+    ],
+    "notice": "Con anticoagulantes, cuidado con la cúrcuma."
+  },
+  {
+    "id": "sofocos",
+    "name": "Sofocos de menopausia",
+    "conditions": "Falta el «por qué» y la fuente · no se puede publicar",
+    "used": null,
+    "useful": null,
+    "state": "Borrador",
+    "warn": "Falta el «por qué»",
+    "products": [
+      {
+        "code": "ISO",
+        "tone": "ok",
+        "name": "Isoflavonas de soja",
+        "dose": "",
+        "why": "",
+        "tag": "1ª OPCIÓN"
+      }
+    ],
+    "notice": ""
+  }
+]

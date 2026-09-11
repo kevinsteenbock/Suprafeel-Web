@@ -1,0 +1,37 @@
+[
+  {
+    "time": "09:30",
+    "id": "blasco",
+    "name": "Farmacia Blasco Ibáñez",
+    "meta": "Av. Blasco Ibáñez 42 · formación al 100 %",
+    "state": "Visitada"
+  },
+  {
+    "time": "11:00",
+    "id": "central",
+    "name": "Farmacia Central",
+    "meta": "C/ Colón 18 · última visita el 22 de julio",
+    "state": "Ahora"
+  },
+  {
+    "time": "12:30",
+    "id": "ruzafa",
+    "name": "Farmacia Ruzafa Salud",
+    "meta": "C/ Sueca 7 · formación al 20 %",
+    "state": "Pendiente"
+  },
+  {
+    "time": "16:00",
+    "id": "carmen",
+    "name": "Farmacia El Carmen",
+    "meta": "Plaza del Carmen 3 · 64 días sin visita",
+    "state": "En riesgo"
+  },
+  {
+    "time": "17:30",
+    "id": "benimaclet",
+    "name": "Farmacia Benimaclet",
+    "meta": "C/ Barón de San Petrillo 22 · alta reciente",
+    "state": "Pendiente"
+  }
+]

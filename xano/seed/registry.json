@@ -1,0 +1,14 @@
+[
+  {
+    "code": "SJ",
+    "name": "Farmacia San Jaume",
+    "meta": "C/ Sant Jaume 4 · 46011 Valencia · F-0871-V",
+    "client": false
+  },
+  {
+    "code": "SJ",
+    "name": "Farmacia Sant Jaume Xirivella",
+    "meta": "Av. Blasco Ibáñez 91 · Xirivella · F-1330-V",
+    "client": true
+  }
+]

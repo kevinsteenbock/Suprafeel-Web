@@ -1,0 +1,44 @@
+[
+  {
+    "kind": "PDF",
+    "name": "Ficha técnica Melatonina retard",
+    "meta": "Suprafeel Labs · 2025 · 12 págs",
+    "used": 3,
+    "updated": "3 sep"
+  },
+  {
+    "kind": "DOC",
+    "name": "Interacciones con anticoagulantes",
+    "meta": "Guía interna · revisada por Dra. Sanz",
+    "used": 9,
+    "updated": "12 ago"
+  },
+  {
+    "kind": "PDF",
+    "name": "Magnesio: formas y biodisponibilidad",
+    "meta": "Revisión 2024 · 28 págs",
+    "used": 4,
+    "updated": "3 sep"
+  },
+  {
+    "kind": "URL",
+    "name": "AEMPS · vitamina D en adultos",
+    "meta": "Enlace externo · consultado ayer",
+    "used": 2,
+    "updated": "ayer"
+  },
+  {
+    "kind": "PDF",
+    "name": "Probióticos: cepas con evidencia",
+    "meta": "Dra. Elena Sanz · 2025",
+    "used": 2,
+    "updated": "28 ago"
+  },
+  {
+    "kind": "DOC",
+    "name": "Qué no se puede prometer (normativa)",
+    "meta": "Legal · declaraciones autorizadas",
+    "used": 24,
+    "updated": "14 jul"
+  }
+]

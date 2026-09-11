@@ -1,0 +1,252 @@
+[
+  {
+    "id": "insomnio",
+    "name": "Insomnio",
+    "category": "Descanso",
+    "consultations": 412,
+    "rules": 3,
+    "accuracy": 96,
+    "state": "Entrenado",
+    "expressions": [
+      {
+        "text": "no duermo",
+        "count": 127
+      },
+      {
+        "text": "me despierto a las 3 y ya no vuelvo a dormirme",
+        "count": 81
+      },
+      {
+        "text": "me cuesta coger el sueño",
+        "count": 64
+      },
+      {
+        "text": "duermo fatal desde que cambié de turno",
+        "count": 43
+      },
+      {
+        "text": "insomnio",
+        "count": 39
+      },
+      {
+        "text": "me desvelo a media noche",
+        "count": 22
+      },
+      {
+        "text": "no descanso",
+        "count": 18
+      },
+      {
+        "text": "sueño ligero",
+        "count": 11
+      },
+      {
+        "text": "no pego ojo",
+        "count": 9
+      },
+      {
+        "text": "me levanto cansada",
+        "count": 7
+      },
+      {
+        "text": "duermo a ratos",
+        "count": 5
+      }
+    ],
+    "pending": [
+      {
+        "text": "me paso la noche dando vueltas",
+        "meta": "escrito 12 veces · 9 farmacias"
+      },
+      {
+        "text": "me desvelo",
+        "meta": "escrito 8 veces · 6 farmacias"
+      },
+      {
+        "text": "tomo lorazepam y quiero dejarlo",
+        "meta": "7 veces · ojo, esto pide derivar al médico",
+        "danger": true
+      }
+    ]
+  },
+  {
+    "id": "cansancio",
+    "name": "Cansancio",
+    "category": "Energía",
+    "consultations": 388,
+    "rules": 4,
+    "accuracy": 91,
+    "state": "Entrenado",
+    "expressions": [
+      {
+        "text": "estoy sin fuerzas",
+        "count": 96
+      },
+      {
+        "text": "me arrastro",
+        "count": 71
+      },
+      {
+        "text": "fatiga",
+        "count": 60
+      }
+    ],
+    "pending": [
+      {
+        "text": "no llego al final del día",
+        "meta": "escrito 9 veces"
+      }
+    ]
+  },
+  {
+    "id": "digestion",
+    "name": "Digestión pesada",
+    "category": "Digestivo",
+    "consultations": 264,
+    "rules": 2,
+    "accuracy": 74,
+    "state": "Flojo",
+    "expressions": [
+      {
+        "text": "me sienta mal la comida",
+        "count": 88
+      },
+      {
+        "text": "hinchazón",
+        "count": 64
+      }
+    ],
+    "pending": [
+      {
+        "text": "me hincho como un globo",
+        "meta": "escrito 14 veces"
+      }
+    ]
+  },
+  {
+    "id": "pelo",
+    "name": "Caída del pelo",
+    "category": "Belleza",
+    "consultations": 231,
+    "rules": 2,
+    "accuracy": 88,
+    "state": "Entrenado",
+    "expressions": [
+      {
+        "text": "se me cae a puñados",
+        "count": 90
+      },
+      {
+        "text": "alopecia",
+        "count": 41
+      }
+    ],
+    "pending": []
+  },
+  {
+    "id": "articular",
+    "name": "Dolor articular",
+    "category": "Movilidad",
+    "consultations": 198,
+    "rules": 3,
+    "accuracy": 82,
+    "state": "Entrenado",
+    "expressions": [
+      {
+        "text": "me crujen las rodillas",
+        "count": 60
+      },
+      {
+        "text": "artrosis",
+        "count": 52
+      }
+    ],
+    "pending": []
+  },
+  {
+    "id": "estres",
+    "name": "Estrés y nervios",
+    "category": "Descanso",
+    "consultations": 187,
+    "rules": 2,
+    "accuracy": 69,
+    "state": "Flojo",
+    "expressions": [
+      {
+        "text": "voy acelerada",
+        "count": 58
+      },
+      {
+        "text": "ansiedad",
+        "count": 50
+      }
+    ],
+    "pending": [
+      {
+        "text": "tengo un nudo en el estómago",
+        "meta": "escrito 6 veces"
+      }
+    ]
+  },
+  {
+    "id": "defensas",
+    "name": "Defensas bajas",
+    "category": "Inmunidad",
+    "consultations": 154,
+    "rules": 2,
+    "accuracy": 90,
+    "state": "Entrenado",
+    "expressions": [
+      {
+        "text": "me cojo todo",
+        "count": 71
+      },
+      {
+        "text": "catarros seguidos",
+        "count": 39
+      }
+    ],
+    "pending": []
+  },
+  {
+    "id": "sofocos",
+    "name": "Sofocos de menopausia",
+    "category": "Mujer",
+    "consultations": 121,
+    "rules": 1,
+    "accuracy": 58,
+    "state": "Flojo",
+    "expressions": [
+      {
+        "text": "calores de repente",
+        "count": 44
+      },
+      {
+        "text": "sudores de noche",
+        "count": 31
+      }
+    ],
+    "pending": []
+  },
+  {
+    "id": "niebla",
+    "name": "Niebla mental",
+    "category": "Detectado solo · aún sin clasificar",
+    "consultations": 64,
+    "rules": 0,
+    "accuracy": null,
+    "state": "Sin regla",
+    "detected": true,
+    "expressions": [
+      {
+        "text": "no me concentro",
+        "count": 29
+      },
+      {
+        "text": "voy espesa",
+        "count": 18
+      }
+    ],
+    "pending": []
+  }
+]
