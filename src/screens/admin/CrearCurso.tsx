@@ -79,7 +79,7 @@ export function CrearCurso() {
           <div className="mt-7 flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Lecciones</h2><span className="text-sm text-faint">Arrastra para reordenar</span></div>
           <div className="mt-3 flex-1 rounded-xl bg-surface border border-line shadow-card flex flex-col min-h-[420px]">
             {lessons.length === 0 && <div className="flex-1 flex flex-col items-center justify-center text-center px-10 text-muted"><span className="text-base font-medium text-ink">Este curso aún no tiene lecciones</span><span className="text-sm mt-1">Añade la primera abajo: puede llevar vídeo, texto y archivos a la vez.</span></div>}
-            {lessons.map((l, i) => (
+            {lessons.map((l) => (
               <button key={l.n} onClick={() => navigate(`/admin/cursos/${courseId}/leccion/${l.n}`)} className={cn('h-[58px] px-3.5 flex items-center gap-3 text-left border-b border-line-soft hover:bg-canvas', l.processing !== undefined && l.processing < 100 && 'bg-accent-wash border-accent-line')}>
                 <GripVertical size={14} className="text-faint" />
                 <span className={cn('h-7 w-7 rounded-[7px] inline-flex items-center justify-center shrink-0', l.type === 'video' ? 'bg-accent-wash text-accent' : 'bg-chrome-deep text-ink-soft')}>{l.type === 'video' ? <Play size={11} fill="currentColor" /> : <AlignLeft size={12} />}</span>

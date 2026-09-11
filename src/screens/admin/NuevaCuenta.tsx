@@ -4,8 +4,9 @@ import { Screen, FooterBar } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Field, Input, Select, Segmented, Textarea } from '@/ui/Field'
+import { Field, Input, Picker, Textarea } from '@/ui/Field'
 import { Toggle } from '@/ui/Toggle'
+import { repNames, addRep } from '@/data/accounts'
 
 const L = 'label'
 
@@ -26,7 +27,7 @@ export function Steps({ title, steps }: { title: string; steps: { t: string; d: 
 export function NuevaCuenta() {
   const navigate = useNavigate()
   const { notify } = useStore()
-  const [f, setF] = useState({ name: 'Farmacia Campanar', cif: 'B-97 004 512', city: 'Valencia · 46015', col: '46 / 2907', dir: 'Av. de Campanar 88, bajo', owner: 'Irene Camps', email: 'irene@fcampanar.es', phone: '963 470 118', plan: 'Básico', notes: 'Alta pactada en la visita del 9 de septiembre. Irene pidió empezar con el plan Básico y subir a Pro en enero si el mostrador lo usa. No la ve la farmacia.' })
+  const [f, setF] = useState({ name: 'Farmacia Campanar', cif: 'B-97 004 512', city: 'Valencia · 46015', col: '46 / 2907', dir: 'Av. de Campanar 88, bajo', owner: 'Irene Camps', email: 'irene@fcampanar.es', phone: '963 470 118', rep: 'Álvaro Ferrer', notes: 'Alta pactada en la visita del 9 de septiembre. No la ve la farmacia.' })
   const [invite, setInvite] = useState(true)
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v })
   const dirty = true
@@ -58,9 +59,7 @@ export function NuevaCuenta() {
             <Field label="Teléfono" labelClass={L}><Input value={f.phone} onChange={set('phone')} /></Field>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <Field label="Plan" required labelClass={L}><Segmented options={['Básico', 'Pro']} value={f.plan} onChange={set('plan')} /></Field>
-            <Field label="Accesos contratados" labelClass={L}><Select value={f.plan === 'Pro' ? '5' : '4'} chevron="down" /></Field>
-            <Field label="Comercial asignado" labelClass={L}><Select value="Á. Ferrer" chevron="down" /></Field>
+            <Field label="Comercial asignado" labelClass={L}><Picker value={f.rep} options={repNames()} onChange={set("rep")} onCreate={(v) => { addRep(v); notify(`Comercial «${v}» creado · sin zona asignada todavía`) }} createLabel="Crear nuevo comercial" /></Field>
           </div>
           <Field label="Notas internas" labelClass={L}><Textarea rows={3} value={f.notes} onChange={set('notes')} /></Field>
           <div className="pt-4 border-t border-line-soft flex items-center justify-between">

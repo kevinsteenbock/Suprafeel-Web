@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
-import { Toolbar, PageHeader } from '@/ui/Page'
+import { Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Toggle } from '@/ui/Toggle'
 import { Avatar } from '@/ui/Avatar'

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
-import { requests as all, type SignupRequest } from '@/data/accounts'
+import { requests as all, repNames, addRep, type SignupRequest } from '@/data/accounts'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Chip, ChipRow } from '@/ui/Chip'
@@ -9,6 +9,7 @@ import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
 import { VistaButton, useVista } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
+import { Picker } from '@/ui/Field'
 import { cn } from '@/lib/cn'
 
 export function Solicitudes() {
@@ -16,9 +17,11 @@ export function Solicitudes() {
   const [reqs, setReqs] = useState<SignupRequest[]>(all)
   const [filter, setFilter] = useState('pending')
   const [sel, setSel] = useState(all[0].id)
+  const [assigned, setAssigned] = useState<Record<string, string>>({})
   const { vista, setVista, resetVista } = useVista({ mode: 'list' })
   const list = reqs.filter((r) => (filter === 'pending' ? r.state === 'Pendiente' : filter === 'ok' ? r.state === 'Aceptada' : filter === 'ko' ? r.state === 'Rechazada' : !!r.blocked))
   const cur = reqs.find((r) => r.id === sel) ?? list[0]
+  const repFor = (r: SignupRequest) => assigned[r.id] ?? (r.via !== 'Formulario web' ? r.via : 'Álvaro Ferrer')
   const decide = (id: string, state: 'Aceptada' | 'Rechazada') => {
     setReqs((rs) => rs.map((r) => (r.id === id ? { ...r, state } : r)))
     const r = reqs.find((x) => x.id === id)!
@@ -69,8 +72,8 @@ export function Solicitudes() {
             </div>
             {cur.blocked && <div className="mx-4 mb-3 rounded-lg bg-danger-wash border border-danger-line px-3 py-2.5 text-sm text-[#7E2323]">Este CIF ya está en otra cuenta (Farmacia Paterna Nord). Pide más datos antes de aceptar.</div>}
             <div className="mt-auto p-4 border-t border-line-soft flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-sm"><span className="text-muted">Comercial que se le asigna</span><span className="font-medium text-ink">Á. Ferrer <button className="text-accent ml-1" onClick={() => notify('Elige otro comercial')}>Cambiar</button></span></div>
-              <p className="text-sm text-muted leading-4">Al aceptar se crea la cuenta con plan {cur.plan}, se envía la invitación a {cur.owner.split(' ')[0]} y entra en la zona de Álvaro.</p>
+              <div className="flex items-center justify-between gap-3 text-sm"><span className="text-muted shrink-0">Comercial que se le asigna</span><Picker size="sm" className="w-[168px]" value={repFor(cur)} options={repNames()} onChange={(v) => setAssigned((a) => ({ ...a, [cur.id]: v }))} onCreate={(v) => { addRep(v); notify(`Comercial «${v}» creado`) }} createLabel="Crear nuevo comercial" /></div>
+              <p className="text-sm text-muted leading-4">Al aceptar se crea la cuenta con plan {cur.plan}, se envía la invitación a {cur.owner.split(' ')[0]} y entra en la zona de {repFor(cur).split(' ')[0]}.</p>
               <Button variant="primary" size="lg" className="w-full h-9 mt-1" disabled={cur.state !== 'Pendiente' || cur.blocked} onClick={() => decide(cur.id, 'Aceptada')}>Aceptar y dar de alta</Button>
               <div className="flex gap-2"><Button size="lg" className="flex-1" onClick={() => notify(`Pedidos más datos a ${cur.owner}`)}>Pedir más datos</Button><Button variant="danger" size="lg" className="flex-1" disabled={cur.state !== 'Pendiente'} onClick={() => decide(cur.id, 'Rechazada')}>Rechazar</Button></div>
             </div>

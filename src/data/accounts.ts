@@ -88,3 +88,11 @@ export const reps = [
   { initials: 'IB', name: 'Iker Bengoa', zone: 'Zona Norte', pharmacies: 63, coverage: 70, visits: 36 },
   { initials: 'PM', name: 'Paula Martín', zone: 'Zona Galicia', pharmacies: 49, coverage: 66, visits: 29 },
 ]
+
+/** Nombres de comerciales para los desplegables de asignación (CRM, alta, solicitudes). */
+export const repNames = () => reps.map((r) => r.name)
+export function addRep(name: string) {
+  if (reps.some((r) => r.name === name)) return
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase() || '··'
+  reps.push({ initials, name, zone: 'Sin zona asignada', pharmacies: 0, coverage: 0, visits: 0 })
+}

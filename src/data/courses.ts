@@ -13,7 +13,6 @@ export interface Course {
   id: string
   title: string
   itinerary: string
-  itineraryId: string
   teacher: string
   lessons: Lesson[]
   minutes: number
@@ -34,7 +33,7 @@ const img = (n: string) => `${import.meta.env.BASE_URL}img/cursos/${n}.jpg`
 
 export const courses: Course[] = [
   {
-    id: 'magnesio', title: 'Cómo recomendar magnesio en el mostrador', itinerary: 'Vitaminas y minerales', itineraryId: 'vitaminas', teacher: 'Álvaro Ferrer', minutes: 48, cover: img('magnesio'),
+    id: 'magnesio', title: 'Cómo recomendar magnesio en el mostrador', itinerary: 'Vitaminas y minerales', teacher: 'Álvaro Ferrer', minutes: 48, cover: img('magnesio'),
     progress: 40, state: 'progress', stateLabel: '40 % completado', enrolled: 5, finish: '48 min', published: true, certificate: true, updated: 'actualizado el 3 sep',
     description: 'Qué forma de magnesio elegir según lo que cuenta el cliente, cómo explicar la dosis y qué decir cuando ya toma otra medicación.',
     lessons: [
@@ -60,7 +59,7 @@ export const courses: Course[] = [
     ],
   },
   {
-    id: 'insomnio', title: 'Insomnio de conciliación y de mantenimiento', itinerary: 'Descanso y ánimo', itineraryId: 'descanso', teacher: 'Dra. Elena Sanz', minutes: 26, cover: img('insomnio'),
+    id: 'insomnio', title: 'Insomnio de conciliación y de mantenimiento', itinerary: 'Descanso y ánimo', teacher: 'Dra. Elena Sanz', minutes: 26, cover: img('insomnio'),
     progress: 100, state: 'done', stateLabel: 'Completado en julio', enrolled: 3, finish: '26 min', published: true, certificate: true, updated: 'actualizado el 12 ago',
     description: 'Distinguir en treinta segundos si el cliente tarda en dormirse o se despierta, y qué recomendar en cada caso sin pisar al médico.',
     lessons: [
@@ -74,7 +73,7 @@ export const courses: Course[] = [
     ],
   },
   {
-    id: 'microbiota', title: 'Microbiota: cuándo un probiótico sí y cuándo no', itinerary: 'Digestivo', itineraryId: 'digestivo', teacher: 'Dra. Elena Sanz', minutes: 35, cover: img('microbiota'),
+    id: 'microbiota', title: 'Microbiota: cuándo un probiótico sí y cuándo no', itinerary: 'Digestivo', teacher: 'Dra. Elena Sanz', minutes: 35, cover: img('microbiota'),
     progress: 0, state: 'todo', stateLabel: 'Sin empezar', enrolled: 4, finish: '35 min', published: true, certificate: true, updated: 'nuevo este mes',
     description: 'Qué cepas importan, cuánto dura una pauta y cómo no venderlo para todo.',
     lessons: [
@@ -86,7 +85,7 @@ export const courses: Course[] = [
     materials: [{ kind: 'PDF', name: 'Cepas y evidencia', meta: 'PDF · 510 KB' }],
   },
   {
-    id: 'deporte', title: 'Qué pide el cliente deportista y qué necesita', itinerary: 'Deporte', itineraryId: 'deporte', teacher: 'Javier Ortí', minutes: 18, cover: img('deporte'),
+    id: 'deporte', title: 'Qué pide el cliente deportista y qué necesita', itinerary: 'Deporte', teacher: 'Javier Ortí', minutes: 18, cover: img('deporte'),
     progress: 100, state: 'done', stateLabel: 'Completado en mayo', enrolled: 2, finish: '18 min', published: true, certificate: true, updated: 'actualizado en mayo',
     description: 'Proteína, creatina, magnesio y electrolitos: qué tiene sentido en una farmacia y qué no.',
     lessons: [
@@ -96,7 +95,7 @@ export const courses: Course[] = [
     materials: [{ kind: 'A5', name: 'Chuleta deportista', meta: 'Imprimible A5 · 90 KB' }],
   },
   {
-    id: 'colageno', title: 'Colágeno: separar la evidencia del marketing', itinerary: 'Belleza y piel', itineraryId: 'belleza', teacher: 'Dra. Elena Sanz', minutes: 22, cover: img('colageno'),
+    id: 'colageno', title: 'Colágeno: separar la evidencia del marketing', itinerary: 'Belleza y piel', teacher: 'Dra. Elena Sanz', minutes: 22, cover: img('colageno'),
     progress: 0, state: 'todo', stateLabel: 'Sin empezar', enrolled: 3, finish: '22 min', published: true, certificate: true, updated: 'nuevo este mes',
     description: 'Tipos de colágeno, dosis con evidencia y qué contestar cuando preguntan si «se nota».',
     lessons: [
@@ -107,7 +106,17 @@ export const courses: Course[] = [
     materials: [{ kind: 'PDF', name: 'Resumen de estudios', meta: 'PDF · 280 KB' }],
   },
   {
-    id: 'mostrador', title: 'Preguntas incómodas y cuándo derivar al médico', itinerary: 'Mostrador', itineraryId: 'mostrador', teacher: 'Dra. Elena Sanz', minutes: 20, cover: img('mostrador'),
+    id: 'hierro', title: 'Hierro: cuándo sí y con qué no mezclarlo', itinerary: 'Vitaminas y minerales', teacher: 'Dra. Elena Sanz', minutes: 16, cover: img('magnesio'),
+    progress: 0, state: 'todo', stateLabel: 'Sin empezar', enrolled: 2, finish: '16 min', published: true, certificate: true, updated: 'actualizado',
+    description: 'Quién tiene ferropenia de verdad, por qué el bisglicinato no estriñe como el sulfato y con qué no se puede tomar en la misma toma.',
+    lessons: [
+      { n: 1, title: 'Cansancio no siempre es anemia', meta: 'Vídeo · cuándo tiene sentido ofrecerlo', minutes: 9, type: 'video', state: 'todo' },
+      { n: 2, title: 'Café, té y lácteos: por qué separarlo', meta: 'Vídeo', minutes: 7, type: 'video', state: 'todo' },
+    ],
+    materials: [{ kind: 'A5', name: 'Chuleta de hierro y absorción', meta: 'Imprimible A5 · 100 KB' }],
+  },
+  {
+    id: 'mostrador', title: 'Preguntas incómodas y cuándo derivar al médico', itinerary: 'Mostrador', teacher: 'Dra. Elena Sanz', minutes: 20, cover: img('mostrador'),
     progress: 0, state: 'new', stateLabel: 'Nuevo este mes', enrolled: 3, finish: '20 min', published: true, certificate: false, updated: 'nuevo este mes',
     description: 'Las frases que sacan al farmacéutico del apuro y las señales que obligan a derivar.',
     lessons: [
@@ -120,14 +129,6 @@ export const courses: Course[] = [
 ]
 
 export const courseById = (id?: string) => courses.find((c) => c.id === id)
-
-export const itineraries = [
-  { id: 'vitaminas', name: 'Vitaminas y minerales', modules: 5, minutes: 48, meta: 'último acceso ayer', state: 'En curso · 40 %', progress: 40, tone: 'accent' as const },
-  { id: 'descanso', name: 'Descanso y estrés', modules: 3, minutes: 26, meta: 'completado en julio', state: 'Completado', progress: 100, tone: 'ok' as const },
-  { id: 'digestivo', name: 'Digestivo y microbiota', modules: 4, minutes: 35, meta: 'nuevo este mes', state: 'Sin empezar', progress: 0, tone: 'neutral' as const },
-  { id: 'deporte', name: 'Deporte y rendimiento', modules: 2, minutes: 18, meta: 'completado en mayo', state: 'Completado', progress: 100, tone: 'ok' as const },
-  { id: 'belleza', name: 'Consejo en piel y belleza', modules: 3, minutes: 22, meta: 'nuevo este mes', state: 'Sin empezar', progress: 0, tone: 'neutral' as const },
-]
 
 export const courseFilters = [
   { key: 'all', label: 'Todos' },

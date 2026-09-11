@@ -11,7 +11,7 @@ portado desde el archivo Paper «Suprafeel Soft». Solo front: los datos son de 
 npm install
 npm run dev      # http://localhost:5173/Suprafeel-Web/
 npm run build    # genera dist/ (+ 404.html para el enrutado del SPA)
-npm run smoke    # renderiza las 53 rutas y avisa si alguna se rompe
+npm run smoke    # renderiza las 52 rutas y avisa si alguna se rompe
 npm run deploy   # build + publica dist/ en la rama gh-pages
 ```
 
@@ -34,12 +34,16 @@ consejo › producto · formación · cursos · curso · clase · materiales PLV
 mi comercial · ajustes (perfil, farmacia, equipo, notificaciones, privacidad, apariencia).
 
 **Comercial** (`/comercial`) — hoy · mis farmacias (+ panel de alta y alta manual) · ficha de farmacia
-(+ registrar visita) · mensajes · ajustes, y todo lo de farmacia (catálogo, consejo, formación, PLV).
+(+ registrar visita) · ajustes, y todo lo de farmacia (catálogo, consejo, formación, PLV).
 
 **Superadmin** (`/admin`) — resumen · cuentas y accesos · solicitudes de alta · alta de cuenta ·
-ficha de cuenta · comerciales · catálogo (+ ficha, editar, nuevo) · cursos (+ crear curso, editar
-lección, biblioteca de vídeos) · materiales PLV (+ campaña, nueva campaña, nuevo material) ·
-chat inteligente (síntomas, reglas, fuentes, pruébalo, sin respuesta) · registro de consultas.
+ficha de cuenta · comerciales (+ alta de comercial) · catálogo (+ ficha, editar, nuevo) · cursos
+(+ crear curso, editar lección, biblioteca de vídeos) · materiales PLV (+ campaña, nueva campaña,
+nuevo material) · chat inteligente (síntomas, reglas, fuentes, pruébalo, sin respuesta) ·
+registro de consultas.
+
+Al pulsar un producto en cualquier lista (catálogo, consejo por síntomas…) se abre primero un
+panel lateral con lo esencial; su botón **Ampliar** lleva a la ficha completa.
 
 ## Estructura
 
@@ -58,9 +62,13 @@ src/
   al borde derecho y llevan velo oscuro.
 - Cualquier vista de producto lleva su imagen o su zona de subida.
 - Pestañas para organizar la información dentro de las fichas y de los paneles.
-- El control **Vista** (lista / tarjetas / columnas) va a la altura de los chips en todas las listas.
+- El control **Vista** (lista / tarjetas por fila / qué columnas se ven y en qué orden) va a la
+  altura de los chips en todas las listas, con «volver a como venía».
 
 ## Lo que aún no hay
 
-Backend. Los formularios y los botones cambian el estado local y avisan con un *toast*, pero nada se
-persiste salvo Mi lista y la solicitud de PLV, que van a `localStorage`.
+Backend. Los formularios y los botones cambian el estado local y avisan con un *toast*. Persisten en
+`localStorage` Mi lista y la solicitud de PLV (`src/app/store.tsx`); el resto de altas (cuentas,
+comerciales, campañas, categorías del catálogo…) vive en memoria y se pierde al recargar — son
+mutaciones directas sobre los arrays de `src/data/*.ts`, pensadas para sustituirse una a una por
+llamadas a Xano.

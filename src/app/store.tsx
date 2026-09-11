@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 
 export type Role = 'farmacia' | 'comercial' | 'admin'
@@ -38,10 +38,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => { try { localStorage.setItem('sf.lista', JSON.stringify(miLista)) } catch {} }, [miLista])
   useEffect(() => { try { localStorage.setItem('sf.solicitud', JSON.stringify(solicitud)) } catch {} }, [solicitud])
 
+  const toastTimer = useRef<number | undefined>(undefined)
   const notify = useCallback((msg: string) => {
     setToast(msg)
-    window.clearTimeout((notify as unknown as { t?: number }).t)
-    ;(notify as unknown as { t?: number }).t = window.setTimeout(() => setToast(null), 2600)
+    window.clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600)
   }, [])
 
   const value = useMemo<Store>(

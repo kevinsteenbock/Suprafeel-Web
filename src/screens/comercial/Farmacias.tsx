@@ -4,7 +4,7 @@ import { Plus, Search, X, Mail, PencilLine, ChevronRight, QrCode, Clock, Send } 
 import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { filterPharmacies, pharmacyFilters, registry } from '@/data/pharmacies'
-import { Toolbar, SearchField, PageHeader, Notice } from '@/ui/Page'
+import { Toolbar, PageHeader, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Chip, ChipRow } from '@/ui/Chip'
 import { Badge } from '@/ui/Badge'
