@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { Plus, Search, X, Mail, PencilLine, ChevronRight, QrCode, Clock, Send } from 'lucide-react'
 import { Screen } from '@/app/Shell'
@@ -11,9 +11,17 @@ import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
 import { Field, Input, Textarea } from '@/ui/Field'
 import { Avatar } from '@/ui/Avatar'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+
+const columnOptions = [
+  { key: 'visita', label: 'Última visita' },
+  { key: 'consultas', label: 'Consultas' },
+  { key: 'formacion', label: 'Formación' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'proxima', label: 'Próxima visita' },
+]
 
 export function Farmacias() {
   const navigate = useNavigate()
@@ -21,9 +29,18 @@ export function Farmacias() {
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const [panel, setPanel] = useState<null | 'buscar' | 'alta'>(null)
-  const { vista, setVista } = useVista({ mode: 'list' })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list', columns: columnOptions })
   const list = filterPharmacies(filter).filter((p) => !q || (p.name + p.city + p.owner).toLowerCase().includes(q.toLowerCase()))
   const tone = (s: string): 'ok' | 'danger' | 'accent' => (s === 'Activa' ? 'ok' : s === 'En riesgo' ? 'danger' : 'accent')
+  type Row = (typeof list)[number]
+  const cells: Record<string, { th: ReactNode; td: (p: Row) => ReactNode }> = {
+    visita: { th: <Th key="h1" className="w-[90px]" align="right">Última visita</Th>, td: (p) => <Td key="c1" className="w-[90px]" align="right">{p.lastVisit}</Td> },
+    consultas: { th: <Th key="h2" className="w-[80px]" align="right">Consultas</Th>, td: (p) => <Td key="c2" className="w-[80px] font-semibold text-ink" align="right">{p.consultations}</Td> },
+    formacion: { th: <Th key="h3" className="w-[80px]" align="right">Formación</Th>, td: (p) => <Td key="c3" className={cn('w-[80px]', p.training < 40 && 'text-warn font-medium')} align="right">{p.training} %</Td> },
+    estado: { th: <Th key="h4" className="w-[96px]" align="right">Estado</Th>, td: (p) => <div key="c4" className="w-[96px] flex justify-end"><Badge tone={tone(p.status)}>{p.status}</Badge></div> },
+    proxima: { th: <Th key="h5" className="w-[110px]" align="right">Próxima visita</Th>, td: (p) => <Td key="c5" className={cn('w-[110px]', p.nextToday ? 'text-accent font-semibold' : p.nextVisit === 'Sin planificar' ? 'text-faint' : 'text-ink-soft')} align="right">{p.nextVisit}</Td> },
+  }
+  const cols = visibleColumns(vista)
 
   return (
     <Screen
@@ -40,31 +57,25 @@ export function Farmacias() {
       }
     >
       <PageHeader title="Mis farmacias" subtitle="34 farmacias en Zona Levante · 2 en riesgo · 5 sin visitar este trimestre" right={<span className="text-base text-muted">Actualizado hace 10 min</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} columns={[{ key: 'consultas', label: 'Consultas' }, { key: 'formacion', label: 'Formación' }]} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} columns={columnOptions} />}>
         {pharmacyFilters.map((f) => <Chip key={f.key} active={filter === f.key} count={f.count} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
       </ChipRow>
 
       {vista.mode === 'list' ? (
         <TableCard footer={`${list.length} de 34 farmacias · 5 sin visitar este trimestre`} footerRight={<button onClick={() => notify('CSV exportado')}>Exportar a CSV</button>}>
           <THead>
-            <Th className="flex-1">Farmacia</Th><Th className="w-[90px]" align="right">Última visita</Th>
-            {vista.columns.consultas !== false && <Th className="w-[80px]" align="right">Consultas</Th>}
-            {vista.columns.formacion !== false && <Th className="w-[80px]" align="right">Formación</Th>}
-            <Th className="w-[96px]" align="right">Estado</Th><Th className="w-[110px]" align="right">Próxima visita</Th>
+            <Th className="flex-1">Farmacia</Th>
+            {cols.map((k) => cells[k].th)}
           </THead>
           {list.map((p, i) => (
             <Tr key={p.id} onClick={() => navigate(`/comercial/farmacias/${p.id}`)} last={i === list.length - 1}>
               <TdMain title={p.name} meta={`${p.city} · ${p.owner}`} avatar={<Avatar initials={p.code} size={30} tone={i === 0 ? 'soft' : 'neutral'} />} />
-              <Td className="w-[90px]" align="right">{p.lastVisit}</Td>
-              {vista.columns.consultas !== false && <Td className="w-[80px] font-semibold text-ink" align="right">{p.consultations}</Td>}
-              {vista.columns.formacion !== false && <Td className={cn('w-[80px]', p.training < 40 && 'text-warn font-medium')} align="right">{p.training} %</Td>}
-              <div className="w-[96px] flex justify-end"><Badge tone={tone(p.status)}>{p.status}</Badge></div>
-              <Td className={cn('w-[110px]', p.nextToday ? 'text-accent font-semibold' : p.nextVisit === 'Sin planificar' ? 'text-faint' : 'text-ink-soft')} align="right">{p.nextVisit}</Td>
+              {cols.map((k) => cells[k].td(p))}
             </Tr>
           ))}
         </TableCard>
       ) : (
-        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-4" style={gridCols(vista)}>
           {list.map((p) => (
             <button key={p.id} onClick={() => navigate(`/comercial/farmacias/${p.id}`)} className="rounded-xl bg-surface border border-line shadow-card p-4 flex flex-col gap-3 text-left hover:border-faint">
               <div className="flex items-center gap-3"><Avatar initials={p.code} size={32} tone="soft" /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-semibold text-ink truncate">{p.name}</span><span className="text-xs text-faint">{p.city} · {p.owner}</span></span><Badge tone={tone(p.status)}>{p.status}</Badge></div>

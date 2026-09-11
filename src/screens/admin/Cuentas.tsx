@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Plus, Mail } from 'lucide-react'
 import { Screen } from '@/app/Shell'
@@ -9,7 +9,7 @@ import { Button } from '@/ui/Button'
 import { Chip, ChipRow } from '@/ui/Chip'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
@@ -24,19 +24,36 @@ export function RowActions({ onEdit, onDup, onDel, className }: { onEdit?: () =>
   )
 }
 
+const columnOptions = [
+  { key: 'plan', label: 'Plan' },
+  { key: 'accesos', label: 'Accesos' },
+  { key: 'rep', label: 'Comercial' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'alta', label: 'Alta' },
+]
+
 export function Cuentas() {
   const navigate = useNavigate()
   const { notify } = useStore()
   const [filter, setFilter] = useState('all')
   const [removed, setRemoved] = useState<string[]>([])
-  const { vista, setVista } = useVista({ mode: 'list' })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list', columns: columnOptions })
   const list = filterAccounts(filter).filter((a) => !removed.includes(a.id))
   const tone = (s: string): 'ok' | 'danger' | 'warn' => (s === 'Activa' ? 'ok' : s === 'Suspendida' ? 'danger' : 'warn')
+  type Row = (typeof list)[number]
+  const cells: Record<string, { th: ReactNode; td: (a: Row) => ReactNode }> = {
+    plan: { th: <Th key="h1" className="w-[70px]" align="right">Plan</Th>, td: (a) => <Td key="c1" className="w-[70px]" align="right">{a.plan}</Td> },
+    accesos: { th: <Th key="h2" className="w-[80px]" align="right">Accesos</Th>, td: (a) => <Td key="c2" className="w-[80px] font-semibold text-ink" align="right">{a.seatsUsed} / {a.seats}</Td> },
+    rep: { th: <Th key="h3" className="w-[92px]" align="right">Comercial</Th>, td: (a) => <Td key="c3" className={cn('w-[92px]', a.rep === 'Sin asignar' && 'text-accent font-medium')} align="right">{a.rep}</Td> },
+    estado: { th: <Th key="h4" className="w-[100px]" align="right">Estado</Th>, td: (a) => <div key="c4" className="w-[100px] flex justify-end"><Badge tone={tone(a.status)}>{a.status}</Badge></div> },
+    alta: { th: <Th key="h5" className="w-[72px]" align="right">Alta</Th>, td: (a) => <Td key="c5" className="w-[72px]" align="right">{a.since}</Td> },
+  }
+  const cols = visibleColumns(vista)
 
   return (
     <Screen toolbar={<Toolbar title="Cuentas y accesos" right={<><SearchField placeholder="Buscar cuenta, CIF o correo" /><Link to="/admin/cuentas/nueva"><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Dar de alta una cuenta</Button></Link></>} />}>
       <PageHeader title="Cuentas y accesos" subtitle="412 farmacias activas · 1.106 accesos en uso · 9 invitaciones sin aceptar" right={<span className="text-base text-muted">Sincronizado hace 4 min</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} columns={[{ key: 'plan', label: 'Plan' }, { key: 'rep', label: 'Comercial' }, { key: 'alta', label: 'Alta' }]} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} columns={columnOptions} />}>
         {accountFilters.map((f) => <Chip key={f.key} active={filter === f.key} count={f.count} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
       </ChipRow>
 
@@ -49,21 +66,13 @@ export function Cuentas() {
       <TableCard footer={`${list.length} de 412 cuentas · 1.106 accesos de 1.680 contratados`} footerRight={<button onClick={() => notify('CRM exportado')}>Exportar CRM</button>}>
         <THead>
           <Th className="flex-1">Cuenta</Th>
-          {vista.columns.plan !== false && <Th className="w-[70px]" align="right">Plan</Th>}
-          <Th className="w-[80px]" align="right">Accesos</Th>
-          {vista.columns.rep !== false && <Th className="w-[92px]" align="right">Comercial</Th>}
-          <Th className="w-[100px]" align="right">Estado</Th>
-          {vista.columns.alta !== false && <Th className="w-[72px]" align="right">Alta</Th>}
+          {cols.map((k) => cells[k].th)}
           <Th className="w-[172px]" align="right">Acciones</Th>
         </THead>
         {list.map((a, i) => (
           <Tr key={a.id} onClick={() => navigate(`/admin/cuentas/${a.id}`)} last={i === list.length - 1}>
             <TdMain title={a.name} meta={`${a.city} · ${a.owner}`} avatar={<Avatar initials={a.code} size={30} tone={i === 0 ? 'soft' : 'neutral'} />} />
-            {vista.columns.plan !== false && <Td className="w-[70px]" align="right">{a.plan}</Td>}
-            <Td className="w-[80px] font-semibold text-ink" align="right">{a.seatsUsed} / {a.seats}</Td>
-            {vista.columns.rep !== false && <Td className={cn('w-[92px]', a.rep === 'Sin asignar' && 'text-accent font-medium')} align="right">{a.rep}</Td>}
-            <div className="w-[100px] flex justify-end"><Badge tone={tone(a.status)}>{a.status}</Badge></div>
-            {vista.columns.alta !== false && <Td className="w-[72px]" align="right">{a.since}</Td>}
+            {cols.map((k) => cells[k].td(a))}
             <RowActions className="w-[172px]" onEdit={() => navigate(`/admin/cuentas/${a.id}`)} onDup={() => notify(`Duplicada ${a.name}`)} onDel={() => { setRemoved((r) => [...r, a.id]); notify(`${a.name} eliminada`) }} />
           </Tr>
         ))}

@@ -24,12 +24,12 @@ const log = [
 export function Registro() {
   const { notify } = useStore()
   const [filter, setFilter] = useState('all')
-  const { vista, setVista } = useVista({ mode: 'list' })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list' })
   const list = log.filter((l) => filter === 'all' || (filter === 'ok' ? l.state === 'Resuelta' : filter === 'bad' ? l.state === 'Valorada mal' : l.state === 'Sin respuesta'))
   return (
     <Screen toolbar={<Toolbar title="Registro de consultas" right={<><SearchField placeholder="Buscar en las consultas" /><Button onClick={() => notify('Registro exportado · sin datos de pacientes')}>Exportar</Button></>} />}>
       <PageHeader title="Registro de consultas" subtitle="2.104 consultas este mes · guardadas sin nombre de paciente ni de quien las escribió" right={<span className="text-base text-muted">Se conservan 12 meses</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         {[['all', 'Todas', 2104], ['ok', 'Resueltas', 1831], ['bad', 'Valoradas mal', 46], ['none', 'Sin respuesta', 64]].map(([k, l, n]) => <Chip key={k as string} active={filter === k} count={n as number} countTone={k === 'none' ? 'danger' : 'neutral'} onClick={() => setFilter(k as string)}>{l}</Chip>)}
       </ChipRow>
       <TableCard footer={`${list.length} de 2.104 consultas · las últimas 48 h`}>

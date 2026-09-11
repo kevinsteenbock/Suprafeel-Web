@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
-import { AlignLeft, Download, Maximize2, Play } from 'lucide-react'
+import { Download, Maximize2, Play } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
 import { courseById } from '@/data/courses'
@@ -17,7 +17,6 @@ export function Clase() {
   const { notify } = useStore()
   const c = courseById(id)
   const [playing, setPlaying] = useState(false)
-  const [transcript, setTranscript] = useState(false)
   if (!c) return <Navigate to={`${base}/formacion/cursos`} replace />
   const idx = Math.max(0, c.lessons.findIndex((l) => l.n === Number(n)))
   const lesson = c.lessons[idx] ?? c.lessons[0]
@@ -53,15 +52,7 @@ export function Clase() {
               <h1 className="mt-1.5 text-title font-semibold tracking-tight text-ink">{lesson.title}</h1>
               <p className="mt-2 text-base text-muted leading-[19px] max-w-[660px]">{lesson.summary ?? lesson.meta}</p>
             </div>
-            <Button icon={<AlignLeft size={13} />} onClick={() => setTranscript((t) => !t)} variant={transcript ? 'soft' : 'secondary'}>Transcripción</Button>
           </div>
-
-          {transcript && (
-            <div className="mt-4 rounded-xl bg-chrome border border-line p-4 text-base leading-[21px] text-ink-soft">
-              «Cuando alguien te dice que no duerme, la primera pregunta no es qué le doy, es cuándo se despierta. Si tarda en dormirse es un problema de conciliación; si se despierta a las tres, de mantenimiento. Y la respuesta cambia por completo…»
-            </div>
-          )}
-
           <div className="mt-7 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-ink">Archivos de esta clase</h2>
             <button onClick={() => notify('Descargando los archivos de la clase')} className="text-base font-medium text-accent">Descargar todo</button>

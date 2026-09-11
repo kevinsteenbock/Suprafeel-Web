@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { ChevronsUpDown, ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ChevronsUpDown, ChevronDown, Check, Plus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 export function Field({ label, required, hint, right, children, className, labelClass = 'text-sm text-ink-soft' }: {
@@ -62,6 +62,85 @@ export function Select({ value, className, size = 'md', muted, chevron = 'updown
     <div className={cn('field justify-between gap-2 cursor-default', size === 'sm' && 'h-[30px] rounded-[7px]', className)}>
       <span className={cn('text-base truncate', muted ? 'text-faint' : 'text-ink')}>{value}</span>
       {chevron === 'updown' ? <ChevronsUpDown size={12} className="text-muted shrink-0" /> : <ChevronDown size={13} className="text-muted shrink-0" />}
+    </div>
+  )
+}
+
+/** Desplegable de verdad: elige de la lista o crea una opción nueva sin salir. */
+export function Picker({ value, options, onChange, onCreate, createLabel = 'Crear', className, size = 'md', placeholder }: {
+  value: string
+  options: string[]
+  onChange: (v: string) => void
+  onCreate?: (v: string) => void
+  createLabel?: string
+  className?: string
+  size?: 'sm' | 'md'
+  placeholder?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [draft, setDraft] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const h = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) { setOpen(false); setCreating(false); setDraft('') } }
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); setCreating(false); setDraft('') } }
+    window.addEventListener('mousedown', h)
+    window.addEventListener('keydown', k)
+    return () => { window.removeEventListener('mousedown', h); window.removeEventListener('keydown', k) }
+  }, [open])
+
+  const create = () => {
+    const v = draft.trim()
+    if (!v) return
+    onCreate?.(v)
+    onChange(v)
+    setDraft('')
+    setCreating(false)
+    setOpen(false)
+  }
+
+  return (
+    <div ref={ref} className={cn('relative', className)}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className={cn('field justify-between gap-2 w-full', size === 'sm' && 'h-[30px] rounded-[7px]', open && 'is-focus')}>
+        <span className={cn('text-base truncate', value ? 'text-ink' : 'text-faint')}>{value || placeholder || 'Elige una opción'}</span>
+        <ChevronDown size={13} className={cn('text-muted shrink-0 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-lg bg-surface border border-line shadow-pop py-1.5 max-h-[280px] overflow-y-auto">
+          {options.map((o) => (
+            <button key={o} type="button" onClick={() => { onChange(o); setOpen(false) }} className="h-8 w-full px-3 flex items-center gap-2 text-base text-ink hover:bg-chrome text-left">
+              <span className="w-4 shrink-0 flex justify-center">{o === value && <Check size={13} strokeWidth={2.5} className="text-accent" />}</span>
+              <span className="truncate">{o}</span>
+            </button>
+          ))}
+          {onCreate && (
+            <>
+              <div className="h-px bg-line-soft my-1.5" />
+              {creating ? (
+                <div className="px-2 pb-1 flex gap-1.5">
+                  <input
+                    autoFocus
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); create() } }}
+                    placeholder="Nombre de la categoría"
+                    className="flex-1 min-w-0 h-8 rounded-[7px] bg-canvas border border-accent shadow-focus px-2.5 text-base"
+                  />
+                  <button type="button" onClick={create} disabled={!draft.trim()} className="h-8 px-3 rounded-[7px] bg-accent text-on-accent text-md font-semibold disabled:opacity-40">Crear</button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setCreating(true)} className="h-8 w-full px-3 flex items-center gap-2 text-base font-medium text-accent hover:bg-chrome text-left">
+                  <span className="w-4 shrink-0 flex justify-center"><Plus size={13} strokeWidth={2.5} /></span>
+                  {createLabel}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

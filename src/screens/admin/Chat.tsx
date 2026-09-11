@@ -40,7 +40,7 @@ export function Chat() {
   const [rule, setRule] = useState<Rule | null>(null)
   const [teach, setTeach] = useState<string | null>(null)
   const [newRule, setNewRule] = useState(false)
-  const { vista, setVista } = useVista({ mode: 'list' })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list' })
   if (!tabs.some((t) => t.key === tab)) return <Navigate to="/admin/chat/sintomas" replace />
 
   const onCta = () => {
@@ -63,7 +63,7 @@ export function Chat() {
           </div>
         }
       />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         {tabs.map((t) => <Chip key={t.key} active={tab === t.key} count={t.count} countTone={t.danger ? 'danger' : 'neutral'} onClick={() => navigate(`/admin/chat/${t.key}`)}>{t.label}</Chip>)}
       </ChipRow>
 

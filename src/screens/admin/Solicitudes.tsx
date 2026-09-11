@@ -16,7 +16,7 @@ export function Solicitudes() {
   const [reqs, setReqs] = useState<SignupRequest[]>(all)
   const [filter, setFilter] = useState('pending')
   const [sel, setSel] = useState(all[0].id)
-  const { vista, setVista } = useVista({ mode: 'list' })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list' })
   const list = reqs.filter((r) => (filter === 'pending' ? r.state === 'Pendiente' : filter === 'ok' ? r.state === 'Aceptada' : filter === 'ko' ? r.state === 'Rechazada' : !!r.blocked))
   const cur = reqs.find((r) => r.id === sel) ?? list[0]
   const decide = (id: string, state: 'Aceptada' | 'Rechazada') => {
@@ -31,7 +31,7 @@ export function Solicitudes() {
   return (
     <Screen toolbar={<Toolbar back="/admin/cuentas" crumbs={[{ label: 'Cuentas y accesos', to: '/admin/cuentas' }, { label: 'Solicitudes de alta' }]} right={<><SearchField placeholder="Buscar solicitud o CIF" /><Button onClick={() => notify('Ajustes del formulario público')}>Ajustes del formulario</Button></>} />}>
       <PageHeader title="Solicitudes de alta" subtitle={`${pending} pendientes · ${31 + reqs.filter((r) => r.state === 'Aceptada').length} aceptadas y ${2 + reqs.filter((r) => r.state === 'Rechazada').length} rechazadas este año · 1 con el CIF ya registrado`} right={<span className="text-base text-muted">suprafeel.com/alta</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         <Chip active={filter === 'pending'} count={pending} onClick={() => setFilter('pending')}>Pendientes</Chip>
         <Chip active={filter === 'ok'} count={31 + reqs.filter((r) => r.state === 'Aceptada').length} onClick={() => setFilter('ok')}>Aceptadas</Chip>
         <Chip active={filter === 'ko'} count={2 + reqs.filter((r) => r.state === 'Rechazada').length} onClick={() => setFilter('ko')}>Rechazadas</Chip>

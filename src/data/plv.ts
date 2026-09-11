@@ -95,3 +95,12 @@ export function filterMaterials(list: Material[], key: string) {
   if (key === 'folleto') return list.filter((m) => m.kind === 'folleto' || m.kind === 'cartel')
   return list.filter((m) => m.kind === key)
 }
+
+/** Campañas creadas durante la sesión (sin backend todavía) */
+export function addCampaign(c: Omit<Campaign, 'word'> & { word?: string }) {
+  const full: Campaign = { word: c.name.split(' ')[0], ...c } as Campaign
+  campaigns.unshift(full)
+  return full
+}
+export const slugify = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'campana'

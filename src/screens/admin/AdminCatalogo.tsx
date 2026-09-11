@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Plus, ArrowUpRight, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { Screen } from '@/app/Shell'
@@ -10,9 +10,17 @@ import { Chip, ChipRow } from '@/ui/Chip'
 import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
 import { ProductArt, Thumb, FileBadge } from '@/ui/ProductArt'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+
+const columnOptions = [
+  { key: 'cat', label: 'Categoría' },
+  { key: 'pvp', label: 'PVP' },
+  { key: 'margin', label: 'Margen' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'updated', label: 'Actualizado' },
+]
 
 export function AdminCatalogo() {
   const navigate = useNavigate()
@@ -20,33 +28,37 @@ export function AdminCatalogo() {
   const [filter, setFilter] = useState('all')
   const [open, setOpen] = useState<Product | null>(null)
   const [tab, setTab] = useState('general')
-  const { vista, setVista } = useVista({ mode: 'list', perRow: 4 })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 4, columns: columnOptions })
   const list = products.filter((p) => filter === 'all' || (filter === 'pub' ? p.status === 'Publicado' : filter === 'draft' ? p.status === 'Borrador' : filter === 'new' ? p.isNew : !p.pitch || p.composition.length < 2))
   const marginTone = (m: number) => (m === 0 ? 'text-faint' : m < 32 ? 'text-accent font-medium' : 'text-ink-soft')
+  const cells: Record<string, { th: ReactNode; td: (p: Product, i: number) => ReactNode }> = {
+    cat: { th: <Th key="h1" className="w-[120px]" align="right">Categoría</Th>, td: (p) => <Td key="c1" className="w-[120px]" align="right">{p.categoryLabel.split(' y ')[0]}</Td> },
+    pvp: { th: <Th key="h2" className="w-[80px]" align="right">PVP</Th>, td: (p) => <Td key="c2" className="w-[80px] font-semibold text-ink" align="right">{p.pvp ? euro(p.pvp) : '—'}</Td> },
+    margin: { th: <Th key="h3" className="w-[70px]" align="right">Margen</Th>, td: (p) => <Td key="c3" className={cn('w-[70px]', marginTone(p.margin))} align="right">{p.margin ? `${p.margin} %` : '—'}</Td> },
+    estado: { th: <Th key="h4" className="w-[96px]" align="right">Estado</Th>, td: (p, i) => <div key="c4" className="w-[96px] flex justify-end"><Badge tone={p.status === 'Publicado' ? (i === 4 ? 'danger' : i === 5 ? 'warn' : 'ok') : 'warn'}>{p.status}</Badge></div> },
+    updated: { th: <Th key="h5" className="w-[90px]" align="right">Actualizado</Th>, td: (p) => <Td key="c5" className="w-[90px]" align="right">{p.updated}</Td> },
+  }
+  const cols = visibleColumns(vista)
 
   return (
     <Screen toolbar={<Toolbar title="Catálogo" right={<><SearchField placeholder="Buscar producto, CN o EAN" /><Link to="/admin/catalogo/nuevo"><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Nuevo producto</Button></Link></>} />}>
       <PageHeader title="Catálogo" subtitle="48 referencias · 6 categorías · 3 en borrador · 4 sin ficha completa" right={<span className="text-base text-muted">Tarifa vigente desde el 3 de septiembre</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} columns={[{ key: 'cat', label: 'Categoría' }, { key: 'margin', label: 'Margen' }]} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} columns={columnOptions} />}>
         {[['all', 'Todas', 48], ['pub', 'Publicadas', 45], ['draft', 'Borradores', 3], ['new', 'Novedades', 6], ['incomplete', 'Sin ficha completa', 4]].map(([k, l, n]) => <Chip key={k as string} active={filter === k} count={n as number} onClick={() => setFilter(k as string)}>{l}</Chip>)}
       </ChipRow>
 
       {vista.mode === 'list' ? (
         <TableCard footer={`${list.length} de 48 referencias · 3 en borrador`} footerRight={<button onClick={() => notify('Tarifa exportada')}>Exportar tarifa</button>}>
-          <THead><Th className="flex-1">Producto</Th>{vista.columns.cat !== false && <Th className="w-[120px]" align="right">Categoría</Th>}<Th className="w-[80px]" align="right">PVP</Th>{vista.columns.margin !== false && <Th className="w-[70px]" align="right">Margen</Th>}<Th className="w-[96px]" align="right">Estado</Th><Th className="w-[90px]" align="right">Actualizado</Th></THead>
+          <THead><Th className="flex-1">Producto</Th>{cols.map((k) => cells[k].th)}</THead>
           {list.map((p, i) => (
             <Tr key={p.id} active={open?.id === p.id} onClick={() => { setOpen(p); setTab('general') }} last={i === list.length - 1}>
               <TdMain title={p.name} meta={p.status === 'Borrador' ? `Sin CN asignado · ${p.format}` : `CN ${p.cn} · ${p.format}`} avatar={<Thumb code={p.code} tone={i < 2 ? 'accent' : 'neutral'} />} />
-              {vista.columns.cat !== false && <Td className="w-[120px]" align="right">{p.categoryLabel.split(' y ')[0]}</Td>}
-              <Td className="w-[80px] font-semibold text-ink" align="right">{p.pvp ? euro(p.pvp) : '—'}</Td>
-              {vista.columns.margin !== false && <Td className={cn('w-[70px]', marginTone(p.margin))} align="right">{p.margin ? `${p.margin} %` : '—'}</Td>}
-              <div className="w-[96px] flex justify-end"><Badge tone={p.status === 'Publicado' ? (i === 4 ? 'danger' : i === 5 ? 'warn' : 'ok') : 'warn'}>{p.status}</Badge></div>
-              <Td className="w-[90px]" align="right">{p.updated}</Td>
+              {cols.map((k) => cells[k].td(p, i))}
             </Tr>
           ))}
         </TableCard>
       ) : (
-        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-4" style={gridCols(vista)}>
           {list.map((p) => (
             <button key={p.id} onClick={() => { setOpen(p); setTab('general') }} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden text-left hover:border-faint">
               <ProductArt art={p.art} size={88} className="h-[140px] border-b border-line-soft" />

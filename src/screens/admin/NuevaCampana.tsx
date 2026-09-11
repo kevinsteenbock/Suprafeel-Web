@@ -7,6 +7,7 @@ import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Field, Input, Select, Textarea } from '@/ui/Field'
 import { Toggle } from '@/ui/Toggle'
+import { addCampaign, slugify } from '@/data/plv'
 import { Steps } from './NuevaCuenta'
 import { cn } from '@/lib/cn'
 
@@ -27,7 +28,34 @@ export function NuevaCampana() {
         <FooterBar title="La campaña se crea vacía" subtitle="Al crearla se abre su ficha y ahí añades los materiales">
           <Link to="/admin/plv"><Button size="lg">Cancelar</Button></Link>
           <Button size="lg" onClick={() => { notify('Borrador guardado'); navigate('/admin/plv') }}>Guardar borrador</Button>
-          <Button variant="primary" size="lg" disabled={!f.name} onClick={() => { notify(`Campaña «${f.name}» creada · ahora añade los materiales`); navigate('/admin/plv/otono') }}>Crear campaña</Button>
+          <Button
+            variant="primary"
+            size="lg"
+            disabled={!f.name}
+            onClick={() => {
+              const id = slugify(f.name)
+              addCampaign({
+                id,
+                name: f.name,
+                status: 'PRÓXIMA',
+                period: `${f.from} – ${f.to}`,
+                theme: 'Mujer y hormonal',
+                materials: 0,
+                note: 'aún no disponible',
+                description: f.notes,
+                code: f.name.slice(0, 2).toUpperCase(),
+                adminState: 'Borrador',
+                pharmacies: target.startsWith('Todas') ? '412' : '—',
+                requests: '—',
+                updated: 'ahora',
+                dark: 'mid',
+              })
+              notify(`Campaña «${f.name}» creada · ahora añade los materiales`)
+              navigate(`/admin/plv/${id}`)
+            }}
+          >
+            Crear campaña
+          </Button>
         </FooterBar>
       }
     >

@@ -167,3 +167,9 @@ export function filterProducts(key: string) {
 }
 
 export const euro = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+
+/** Categorías del catálogo. Se pueden crear nuevas desde el desplegable. */
+export const categories = ['Vitaminas y minerales', 'Minerales', 'Digestivo', 'Descanso y ánimo', 'Belleza y piel', 'Cardiovascular', 'Deporte']
+export function addCategory(name: string) {
+  if (!categories.includes(name)) categories.push(name)
+}

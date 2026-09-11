@@ -8,7 +8,7 @@ import { Toolbar, SearchField, PageHeader, KeyValue } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Chip, ChipRow } from '@/ui/Chip'
 import { Drawer } from '@/ui/Drawer'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols } from '@/ui/Vista'
 import { MaterialArt } from '@/ui/MaterialArt'
 import { TableCard, Tr } from '@/ui/Table'
 import { cn } from '@/lib/cn'
@@ -20,8 +20,9 @@ export function Campana() {
   const { solicitud, setQty, notify } = useStore()
   const [filter, setFilter] = useState('all')
   const [openId, setOpenId] = useState<string | null>(null)
-  const { vista, setVista } = useVista({ mode: 'cards', perRow: 4 })
+  const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 4 })
   const c = campaignById(id)
+  const big = vista.perRow === 2 || vista.perRow === 3
   if (!c) return <Navigate to={`${base}/plv`} replace />
   const all = materialsOf(c.id)
   const list = filterMaterials(all.length ? all : materialsOf('otono'), filter)
@@ -48,19 +49,19 @@ export function Campana() {
     >
       <PageHeader title={c.name} subtitle={c.description} right={<span className="text-base text-muted">{c.period === 'Todo el año' || c.period === 'Siempre disponible' ? c.period : `Del ${c.period.replace(' – ', ' al ')}`}</span>} />
 
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         {materialFilters.map((f) => <Chip key={f.key} active={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
       </ChipRow>
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-4" style={gridCols(vista)}>
           {list.map((m) => {
             const a = actionOf(m)
             const added = !!solicitud[m.id]
             return (
               <div key={m.id} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden flex flex-col hover:border-faint transition-colors">
                 <button onClick={() => setOpenId(m.id)} className="relative block">
-                  <MaterialArt art={m.art} size={vista.perRow >= 4 ? 88 : 110} className={cn('w-full border-b border-line-soft', vista.perRow >= 4 ? 'h-[134px]' : 'h-[170px]')} />
+                  <MaterialArt art={m.art} size={big ? 110 : 88} className={cn('w-full border-b border-line-soft', big ? 'h-[170px]' : 'h-[134px]')} />
                   {added && <span className="absolute top-3 right-3 h-5 w-5 rounded-full bg-accent text-on-accent inline-flex items-center justify-center"><Check size={11} strokeWidth={3} /></span>}
                 </button>
                 <div className="p-[14px] flex flex-col">

@@ -8,7 +8,7 @@ import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Tag } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols } from '@/ui/Vista'
 import { MaterialArt } from '@/ui/MaterialArt'
 import { TableCard, Tr } from '@/ui/Table'
 import { cn } from '@/lib/cn'
@@ -70,7 +70,7 @@ export function PLV() {
   const base = useBase()
   const navigate = useNavigate()
   const { solicitud } = useStore()
-  const { vista, setVista } = useVista({ mode: 'cards', perRow: 3 })
+  const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 3 })
   const inReq = (c: Campaign) => materials.filter((m) => m.campaignId === c.id && solicitud[m.id]).length
   const isComercial = base === '/comercial'
 
@@ -79,11 +79,11 @@ export function PLV() {
       <PageHeader
         title="Materiales PLV"
         subtitle={isComercial ? 'Cada campaña trae su propio material. Lo que marquen tus farmacias te aparece aquí para llevarlo en la visita.' : 'Cada campaña trae su propio material. Marca lo que quieras y Álvaro te lo trae en la visita.'}
-        right={<><VistaButton vista={vista} onChange={setVista} /><span className="text-base text-muted">Última entrega: 22 de julio</span></>}
+        right={<><VistaButton vista={vista} onChange={setVista} onReset={resetVista} /><span className="text-base text-muted">Última entrega: 22 de julio</span></>}
       />
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-5" style={gridCols(vista)}>
           {campaigns.map((c) => {
             const n = inReq(c)
             return (

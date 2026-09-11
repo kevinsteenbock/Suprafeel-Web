@@ -9,7 +9,7 @@ import { Button } from '@/ui/Button'
 import { Chip, ChipRow } from '@/ui/Chip'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { RowActions } from './Cuentas'
 import { CampaignCover } from '../shared/PLV'
@@ -27,7 +27,7 @@ export function AdminPLV() {
   const { notify } = useStore()
   const [filter, setFilter] = useState('all')
   const [removed, setRemoved] = useState<string[]>([])
-  const { vista, setVista } = useVista({ mode: 'list', perRow: 3 })
+  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 3 })
   const rows = [
     ...campaigns.map((c) => ({ id: c.id, code: c.code, name: c.id === 'otono' ? 'Otoño 2025' : c.id === 'navidad' ? 'Navidad 2025' : c.id === 'marca' ? 'Marca Suprafeel' : c.id === 'cole' ? 'Vuelta al colegio' : c.id === 'piel' ? 'Colágeno · lanzamiento' : c.name, period: `${c.period} · ${c.theme.charAt(0).toUpperCase() + c.theme.slice(1)}`, materials: c.materials, pharmacies: c.pharmacies, requests: c.requests, adminState: c.adminState, updated: c.updated, real: true })),
     ...extra.map((e) => ({ ...e, real: false })),
@@ -38,7 +38,7 @@ export function AdminPLV() {
   return (
     <Screen toolbar={<Toolbar title="Materiales PLV" right={<><SearchField placeholder="Buscar material o campaña" /><Link to="/admin/plv/nueva"><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Nueva campaña</Button></Link></>} />}>
       <PageHeader title="Materiales PLV" subtitle="9 campañas · 48 materiales · 214 solicitudes abiertas" right={<span className="text-base text-muted">Última subida hace 2 h</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         {[['all', 'Todas', 9], ['active', 'Activas', 2], ['sched', 'Programadas', 1], ['draft', 'Borradores', 2], ['closed', 'Cerradas', 4]].map(([k, l, n]) => <Chip key={k as string} active={filter === k} count={n as number} onClick={() => setFilter(k as string)}>{l}</Chip>)}
       </ChipRow>
 
@@ -58,7 +58,7 @@ export function AdminPLV() {
           ))}
         </TableCard>
       ) : (
-        <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-5" style={gridCols(vista)}>
           {campaigns.filter((c) => !removed.includes(c.id)).map((c) => (
             <button key={c.id} onClick={() => navigate(`/admin/plv/${c.id}`)} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden text-left hover:border-faint">
               <CampaignCover c={c} className="h-[130px]" />

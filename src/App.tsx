@@ -7,7 +7,6 @@ import { Catalogo } from './screens/shared/Catalogo'
 import { Producto } from './screens/shared/Producto'
 import { Consejo } from './screens/shared/Consejo'
 import { ConsejoProducto } from './screens/shared/ConsejoProducto'
-import { Formacion } from './screens/shared/Formacion'
 import { Cursos } from './screens/shared/Cursos'
 import { Curso } from './screens/shared/Curso'
 import { Clase } from './screens/shared/Clase'
@@ -21,7 +20,6 @@ import { Ajustes } from './screens/farmacia/Ajustes'
 import { Hoy } from './screens/comercial/Hoy'
 import { Farmacias } from './screens/comercial/Farmacias'
 import { Farmacia } from './screens/comercial/Farmacia'
-import { Mensajes } from './screens/comercial/Mensajes'
 import { AjustesComercial } from './screens/comercial/AjustesComercial'
 // admin
 import { Cuentas } from './screens/admin/Cuentas'
@@ -52,7 +50,7 @@ function SharedRoutes() {
       <Route path="novedades" element={<Catalogo initialFilter="new" />} />
       <Route path="consejo" element={<Consejo />} />
       <Route path="consejo/:id" element={<ConsejoProducto />} />
-      <Route path="formacion" element={<Formacion />} />
+      <Route path="formacion" element={<Cursos />} />
       <Route path="formacion/cursos" element={<Cursos />} />
       <Route path="formacion/cursos/:id" element={<Curso />} />
       <Route path="formacion/cursos/:id/leccion/:n" element={<Clase />} />
@@ -81,7 +79,6 @@ export default function App() {
         <Route path="hoy" element={<Hoy />} />
         <Route path="farmacias" element={<Farmacias />} />
         <Route path="farmacias/:id" element={<Farmacia />} />
-        <Route path="mensajes" element={<Mensajes />} />
         <Route path="ajustes" element={<AjustesComercial />} />
         {SharedRoutes()}
       </Route>

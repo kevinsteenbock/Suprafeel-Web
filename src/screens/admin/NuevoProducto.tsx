@@ -1,21 +1,21 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Sparkles, Upload, AlertTriangle } from 'lucide-react'
+import { Upload, AlertTriangle } from 'lucide-react'
 import { Screen, FooterBar } from '@/app/Shell'
 import { useStore } from '@/app/store'
+import { addCategory, categories } from '@/data/products'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Field, Input, Select } from '@/ui/Field'
+import { Field, Input, Picker } from '@/ui/Field'
 import { Steps } from './NuevaCuenta'
 
 export function NuevoProducto() {
   const navigate = useNavigate()
   const { notify } = useStore()
-  const [f, setF] = useState({ name: 'Cúrcuma Fitosomada', cn: '', ean: '', slug: 'curcuma-fitosomada', pvp: '24,50', pvf: '', format: '30 cápsulas', pitch: '' })
+  const [f, setF] = useState({ name: 'Cúrcuma Fitosomada', cn: '', ean: '', slug: 'curcuma-fitosomada', pvp: '24,50', pvf: '', format: '30 cápsulas', pitch: '', category: 'Digestivo' })
   const [photo, setPhoto] = useState(false)
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v, ...(k === 'name' ? { slug: v.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') } : {}) })
   const missing = [!f.pvf && 'PVF', !f.pitch && 'argumentario'].filter(Boolean) as string[]
-  const write = () => set('pitch')('Cúrcuma en forma fitosomada, la que mejor se absorbe. Para molestias articulares y recuperación tras el ejercicio. No prometer efectos antiinflamatorios clínicos ni recomendar con anticoagulantes.')
 
   return (
     <Screen
@@ -27,7 +27,7 @@ export function NuevoProducto() {
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col gap-4">
             <Field label="Nombre del producto" required labelClass="label"><Input value={f.name} onChange={set('name')} focus /></Field>
-            <div className="grid grid-cols-3 gap-4"><Field label="Código nacional" labelClass="label"><Input value={f.cn} onChange={set('cn')} placeholder="Aún sin asignar" /></Field><Field label="EAN" labelClass="label"><Input value={f.ean} onChange={set('ean')} placeholder="8436017 …" /></Field><Field label="Categoría" required labelClass="label"><Select value="Digestivo" chevron="down" /></Field></div>
+            <div className="grid grid-cols-3 gap-4"><Field label="Código nacional" labelClass="label"><Input value={f.cn} onChange={set('cn')} placeholder="Aún sin asignar" /></Field><Field label="EAN" labelClass="label"><Input value={f.ean} onChange={set('ean')} placeholder="8436017 …" /></Field><Field label="Categoría" required labelClass="label"><Picker value={f.category} options={categories} onChange={set("category")} onCreate={(v) => { addCategory(v); notify(`Categoría «${v}» creada`) }} createLabel="Crear categoría" /></Field></div>
             <Field label="Página pública en la web" labelClass="label" right={<span className="text-xs text-faint">Se genera del nombre</span>}><div className="flex"><span className="h-[34px] px-3 rounded-l-md bg-chrome border border-r-0 border-line text-base text-faint inline-flex items-center">suprafeel.com/producto/</span><Input className="rounded-l-none" value={f.slug} onChange={set('slug')} /></div></Field>
           </div>
           <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col gap-4">
@@ -38,7 +38,6 @@ export function NuevoProducto() {
             <div className="flex items-center justify-between"><span className="label">Argumentario de mostrador <span className="text-accent">*</span></span><span className="text-xs text-faint">{f.pitch.length} / 400</span></div>
             <div className="rounded-lg border border-dashed border-line bg-canvas p-3.5 min-h-[130px] flex flex-col">
               <textarea rows={3} className="w-full bg-transparent text-base leading-[19px] text-ink resize-none" placeholder="Cuenta a la farmacia cuándo recomendarlo y qué no se puede prometer." value={f.pitch} onChange={(e) => set('pitch')(e.target.value)} />
-              <div className="mt-auto pt-3 flex items-center gap-3"><Button variant="secondary" size="lg" icon={<Sparkles size={13} className="text-accent" />} onClick={write}>Redactar con IA</Button><span className="text-sm text-faint">Lo genera desde la composición y lo revisas tú</span></div>
             </div>
           </div>
         </div>

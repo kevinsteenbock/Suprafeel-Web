@@ -6,7 +6,7 @@ import { useBase } from '@/app/store'
 import { courseFilters, filterCourses } from '@/data/courses'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Chip, ChipRow } from '@/ui/Chip'
-import { VistaButton, useVista } from '@/ui/Vista'
+import { VistaButton, useVista, gridCols } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { MiListaButton } from './Catalogo'
@@ -15,19 +15,19 @@ export function Cursos() {
   const base = useBase()
   const navigate = useNavigate()
   const [filter, setFilter] = useState('all')
-  const { vista, setVista } = useVista({ mode: 'cards', perRow: 3 })
+  const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 3 })
   const list = filterCourses(filter)
 
   return (
     <Screen toolbar={<Toolbar title="Cursos" right={<><SearchField placeholder="Buscar curso" /><MiListaButton /></>} />}>
       <PageHeader title="Cursos" subtitle="Formación breve para el mostrador. Cada curso deja un certificado a tu nombre." right={<span className="text-base text-muted">6 cursos · 3 h 09 min en total</span>} />
 
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} />}>
+      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
         {courseFilters.map((f) => <Chip key={f.key} active={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
       </ChipRow>
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${vista.perRow}, minmax(0, 1fr))` }}>
+        <div className="grid gap-5" style={gridCols(vista)}>
           {list.map((c) => {
             const action = c.state === 'progress' ? 'Continuar' : c.state === 'done' ? 'Repasar' : 'Empezar'
             const to = `${base}/formacion/cursos/${c.id}`

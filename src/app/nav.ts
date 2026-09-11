@@ -1,6 +1,6 @@
 import {
   LayoutGrid, Sparkles, Search, GraduationCap, Presentation, UserRound,
-  CalendarDays, MapPin, MessageCircle,
+  CalendarDays, MapPin,
   ClipboardList, KeyRound, Briefcase, Package, BookOpen, Bot, ScrollText,
 } from 'lucide-react'
 import type { ShellConfig } from './Shell'
@@ -43,7 +43,6 @@ export const comercialShell: ShellConfig = {
     {
       title: 'Equipo',
       items: [
-        { label: 'Mensajes', to: '/comercial/mensajes', icon: MessageCircle },
         { label: 'Formación', to: '/comercial/formacion', icon: GraduationCap },
         { label: 'Materiales PLV', to: '/comercial/plv', icon: Presentation },
       ],

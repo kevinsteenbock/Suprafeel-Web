@@ -9,7 +9,6 @@ import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
 import { Field, Input, Select, Textarea } from '@/ui/Field'
-import { Toggle } from '@/ui/Toggle'
 import { Avatar } from '@/ui/Avatar'
 import { FileBadge } from '@/ui/ProductArt'
 import { cn } from '@/lib/cn'
@@ -31,7 +30,6 @@ export function CrearCurso() {
   const [title, setTitle] = useState(existing?.title ?? 'Vitamina D: la pregunta de cada invierno')
   const [lessons, setLessons] = useState<L[]>(real ? real.lessons.map((l) => ({ n: l.n, title: l.title, meta: l.meta, minutes: `${l.minutes} min`, type: l.type === 'text' ? 'text' : 'video' })) : existing && existing.lessons === 0 ? [] : defaultLessons)
   const [cover, setCover] = useState(!!real)
-  const [cert, setCert] = useState(true)
   const [panel, setPanel] = useState<null | 'nueva' | 'subiendo' | 'biblioteca'>(null)
   const [fromLibrary, setFromLibrary] = useState<string | null>(null)
   const [saved, setSaved] = useState('Guardado hace 12 s')
@@ -105,7 +103,6 @@ export function CrearCurso() {
             <div className="h-[34px] px-4 bg-chrome border-b border-line-soft flex items-center"><span className="label">Publicación</span></div>
             <div className="px-4 py-3.5 border-b border-line-soft flex flex-col gap-1.5"><span className="text-sm text-ink-soft">Itinerario</span><Select value={existing?.itinerary === 'Vitaminas' || !existing ? 'Vitaminas y minerales' : existing.itinerary} /></div>
             <div className="px-4 py-3.5 border-b border-line-soft flex flex-col gap-1.5"><span className="text-sm text-ink-soft">Quién lo ve</span><Select value="Farmacias y comerciales" /></div>
-            <div className="px-4 py-3 flex items-center justify-between"><div className="flex flex-col"><span className="text-base font-medium text-ink">Emite certificado</span><span className="text-xs text-faint">Al completar todas las lecciones</span></div><Toggle on={cert} onChange={setCert} /></div>
           </div>
           <div className="rounded-xl bg-surface border border-line shadow-card px-4 py-3.5 flex items-center gap-3"><Avatar initials="ES" size={32} tone="neutral" rounded="full" /><span className="flex-1 flex flex-col"><span className="text-base font-medium text-ink">Dra. Elena Sanz</span><span className="text-xs text-faint">Docente del curso</span></span><button className="text-sm font-medium text-accent" onClick={() => notify('Elige otro docente')}>Cambiar</button></div>
           <div className="rounded-xl bg-chrome border border-line p-4 flex flex-col gap-2.5 flex-1">
