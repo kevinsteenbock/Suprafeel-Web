@@ -3,12 +3,15 @@ import { Link, useNavigate } from 'react-router'
 import { Bookmark, ChevronRight, Minus, Plus, Send } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
+import { useAuth } from '@/app/auth'
+import { useDatos } from '@/app/datos'
+import { nombreDe } from '@/data/pharmacies'
 import { campaigns, materials, type Campaign } from '@/data/plv'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Tag } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
-import { VistaButton, useVista, gridCols } from '@/ui/Vista'
+import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
 import { MaterialArt } from '@/ui/MaterialArt'
 import { TableCard, Tr } from '@/ui/Table'
 import { cn } from '@/lib/cn'
@@ -26,9 +29,29 @@ export function CampaignCover({ c, className, big = true }: { c: Campaign; class
   )
 }
 
-/** Botón "Solicitud · N" + panel lateral con lo pedido */
+/**
+ * Envía la solicitud de PLV por correo a Suprafeel (se abre el correo de quien la pide, con la lista).
+ * Todavía no hay endpoint de solicitudes: así llega de verdad, en vez de un «enviada» que no sale de aquí.
+ */
+export function useEnviarSolicitud() {
+  const { user } = useAuth()
+  const { farmacias } = useDatos()
+  const { solicitud } = useStore()
+  return () => {
+    const items = Object.entries(solicitud).map(([id, qty]) => ({ m: materials.find((x) => x.id === id), qty })).filter((x) => x.m)
+    if (!items.length) return
+    const f = user?.role === 'farmacia' ? farmacias.find((p) => p.id === user.pharmacy_slug) : undefined
+    const quien = f ? nombreDe(f) : user?.rep_name || user?.name || ''
+    const lista = items.map(({ m, qty }) => `· ${qty} × ${m!.name}`).join('\n')
+    const cuerpo = `Hola:\n\nPido este material PLV${f ? ` para ${nombreDe(f)}` : ''}:\n\n${lista}\n\n${user?.name ?? ''}`
+    window.location.href = `mailto:info@suprafeel.es?subject=${encodeURIComponent(`Solicitud de material PLV${quien ? ` · ${quien}` : ''}`)}&body=${encodeURIComponent(cuerpo)}`
+  }
+}
+
+/** Botón "Solicitud · N" + panel con lo pedido */
 export function SolicitudButton() {
-  const { solicitud, setQty, notify } = useStore()
+  const { solicitud, setQty } = useStore()
+  const enviar = useEnviarSolicitud()
   const [open, setOpen] = useState(false)
   const items = Object.entries(solicitud).map(([id, qty]) => ({ m: materials.find((x) => x.id === id)!, qty })).filter((x) => x.m)
   const count = items.reduce((a, b) => a + b.qty, 0)
@@ -39,11 +62,11 @@ export function SolicitudButton() {
         open={open}
         onClose={() => setOpen(false)}
         title="Tu solicitud de material"
-        subtitle={count ? `${count} unidades · Álvaro las revisa y te las trae en la visita` : 'Todavía no has marcado nada'}
+        subtitle={count ? `${count} unidades · se envía por correo a Suprafeel` : 'Todavía no has marcado nada'}
         footer={
           <>
-            <span className="text-sm text-muted">Sin compromiso · se puede cambiar hasta el envío</span>
-            <Button variant="primary" icon={<Send size={13} />} disabled={!count} onClick={() => { notify('Solicitud enviada a Álvaro · te la trae el martes 16'); setOpen(false) }}>Enviar a mi comercial</Button>
+            <span className="text-sm text-muted">Se abre tu correo con la lista</span>
+            <Button variant="primary" icon={<Send size={13} />} disabled={!count} onClick={enviar}>Enviar por correo</Button>
           </>
         }
       >
@@ -54,9 +77,9 @@ export function SolicitudButton() {
               <MaterialArt art={m.art} size={32} className="h-11 w-11 rounded-md border border-line-soft" />
               <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
               <div className="h-[30px] rounded-[7px] bg-surface border border-line flex items-center">
-                <button onClick={() => setQty(m.id, qty - 1)} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
+                <button onClick={() => setQty(m.id, qty - 1)} aria-label={`Quitar una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
                 <span className="w-6 text-center text-base font-semibold">{qty}</span>
-                <button onClick={() => setQty(m.id, qty + 1)} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>
+                <button onClick={() => setQty(m.id, qty + 1)} aria-label={`Añadir una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>
               </div>
             </div>
           ))}
@@ -71,6 +94,7 @@ export function PLV() {
   const navigate = useNavigate()
   const { solicitud } = useStore()
   const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 3 })
+  const gridStyle = useGridCols(vista)
   const inReq = (c: Campaign) => materials.filter((m) => m.campaignId === c.id && solicitud[m.id]).length
   const isComercial = base === '/comercial'
 
@@ -78,12 +102,12 @@ export function PLV() {
     <Screen toolbar={<Toolbar title="Materiales PLV" right={<><SearchField placeholder="Buscar material" /><SolicitudButton /></>} />}>
       <PageHeader
         title="Materiales PLV"
-        subtitle={isComercial ? 'Cada campaña trae su propio material. Lo que marquen tus farmacias te aparece aquí para llevarlo en la visita.' : 'Cada campaña trae su propio material. Marca lo que quieras y Álvaro te lo trae en la visita.'}
-        right={<><VistaButton vista={vista} onChange={setVista} onReset={resetVista} /><span className="text-base text-muted">Última entrega: 22 de julio</span></>}
+        subtitle={isComercial ? 'Cada campaña trae su propio material. Marca lo que necesites y envía la solicitud a la central por correo.' : 'Cada campaña trae su propio material. Marca lo que quieras y envía la solicitud por correo.'}
+        right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}
       />
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-5" style={gridCols(vista)}>
+        <div className="grid gap-5" style={gridStyle}>
           {campaigns.map((c) => {
             const n = inReq(c)
             return (
@@ -102,7 +126,7 @@ export function PLV() {
           })}
         </div>
       ) : (
-        <TableCard footer="6 campañas · 39 materiales">
+        <TableCard footer={`${campaigns.length} campañas · ${campaigns.reduce((a, c) => a + c.materials, 0)} materiales`}>
           {campaigns.map((c, i) => (
             <Tr key={c.id} height={62} onClick={() => navigate(`${base}/plv/${c.id}`)} last={i === campaigns.length - 1}>
               <CampaignCover c={c} big={false} className="h-11 w-[72px] rounded-md shrink-0 [&_span:first-child]:hidden [&_span:last-child]:text-[13px] [&_span:last-child]:left-2 [&_span:last-child]:bottom-2" />

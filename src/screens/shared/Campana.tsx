@@ -1,26 +1,29 @@
 import { useState } from 'react'
 import { Navigate, useParams } from 'react-router'
-import { Check, ChevronRight, Lightbulb, Minus, Plus } from 'lucide-react'
+import { Check, ChevronRight, Lightbulb, Minus, Plus, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen, FooterBar } from '@/app/Shell'
-import { useBase, useStore } from '@/app/store'
-import { campaignById, filterMaterials, materialFilters, materialsOf, type Material } from '@/data/plv'
+import { PENDIENTE, useBase, useStore } from '@/app/store'
+import { campaignById, filterMaterials, materialFilters, materials, materialsOf, type Material } from '@/data/plv'
 import { Toolbar, SearchField, PageHeader, KeyValue } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Chip, ChipRow } from '@/ui/Chip'
+import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Drawer } from '@/ui/Drawer'
-import { VistaButton, useVista, gridCols } from '@/ui/Vista'
+import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
 import { MaterialArt } from '@/ui/MaterialArt'
 import { TableCard, Tr } from '@/ui/Table'
 import { cn } from '@/lib/cn'
-import { SolicitudButton } from './PLV'
+import { SolicitudButton, useEnviarSolicitud } from './PLV'
 
 export function Campana() {
   const { id } = useParams()
   const base = useBase()
   const { solicitud, setQty, notify } = useStore()
+  const enviar = useEnviarSolicitud()
   const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('recent')
   const [openId, setOpenId] = useState<string | null>(null)
   const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 4 })
+  const gridStyle = useGridCols(vista)
   const c = campaignById(id)
   const big = vista.perRow === 2 || vista.perRow === 3
   if (!c) return <Navigate to={`${base}/plv`} replace />
@@ -31,8 +34,7 @@ export function Campana() {
   const isComercial = base === '/comercial'
 
   const actionOf = (m: Material) => {
-    if (m.action === 'Descargar') return { label: 'Descargar', tone: 'accent' as const, onClick: () => notify(`Descargando ${m.name}`) }
-    if (m.action === 'En camino') return { label: 'En camino', tone: 'warn' as const, onClick: () => notify('Solicitado el 4 sep · llega en la próxima visita') }
+    if (m.action === 'Descargar') return { label: 'Descargar', tone: 'accent' as const, onClick: () => notify(PENDIENTE, 'aviso') }
     const added = !!solicitud[m.id]
     return { label: added ? 'Añadido' : 'Añadir', tone: added ? ('accent-deep' as const) : ('accent' as const), onClick: () => { setQty(m.id, added ? 0 : 1); notify(added ? 'Quitado de la solicitud' : 'Añadido a la solicitud') } }
   }
@@ -41,26 +43,33 @@ export function Campana() {
     <Screen
       toolbar={<Toolbar back={`${base}/plv`} crumbs={[{ label: 'Materiales PLV', to: `${base}/plv` }, { label: c.name }]} right={<><SearchField placeholder="Buscar material" /><SolicitudButton /></>} />}
       footer={
-        <FooterBar title={`${count} materiales en tu solicitud`} subtitle={isComercial ? 'Lo que marques aquí te lo llevas en la visita' : 'Álvaro los revisará y te los trae el martes 16'}>
+        <FooterBar title={`${count} materiales en tu solicitud`} subtitle={isComercial ? 'Se envía por correo a la central' : 'Se envía por correo a Suprafeel'}>
           <SolicitudButtonInline />
-          <Button variant="primary" size="lg" disabled={!count} onClick={() => notify(isComercial ? 'Solicitud registrada para la próxima ruta' : 'Solicitud enviada a Álvaro · te la trae el martes 16')}>{isComercial ? 'Reservar para la ruta' : 'Enviar a mi comercial'}</Button>
+          <Button variant="primary" size="lg" disabled={!count} onClick={enviar}>Enviar por correo</Button>
         </FooterBar>
       }
     >
       <PageHeader title={c.name} subtitle={c.description} right={<span className="text-base text-muted">{c.period === 'Todo el año' || c.period === 'Siempre disponible' ? c.period : `Del ${c.period.replace(' – ', ' al ')}`}</span>} />
 
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
-        {materialFilters.map((f) => <Chip key={f.key} active={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
-      </ChipRow>
+      <FilterBar
+        right={
+          <>
+            <FilterMenuButton align="right" icon={<ArrowUpDown size={13} strokeWidth={1.8} />} value={sort} options={[{ key: 'recent', label: 'Más reciente' }, { key: 'az', label: 'Nombre A-Z' }]} onChange={setSort} />
+            <VistaButton vista={vista} onChange={setVista} onReset={resetVista} />
+          </>
+        }
+      >
+        <FilterMenuButton icon={<Filter size={13} strokeWidth={1.8} />} value={filter} options={materialFilters.map((f) => ({ key: f.key, label: f.label }))} onChange={setFilter} />
+      </FilterBar>
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-4" style={gridCols(vista)}>
+        <div className="grid gap-4" style={gridStyle}>
           {list.map((m) => {
             const a = actionOf(m)
             const added = !!solicitud[m.id]
             return (
               <div key={m.id} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden flex flex-col hover:border-faint transition-colors">
-                <button onClick={() => setOpenId(m.id)} className="relative block">
+                <button onClick={() => setOpenId(m.id)} aria-label={`Ver ${m.name}`} className="relative block">
                   <MaterialArt art={m.art} size={big ? 110 : 88} className={cn('w-full border-b border-line-soft', big ? 'h-[170px]' : 'h-[134px]')} />
                   {added && <span className="absolute top-3 right-3 h-5 w-5 rounded-full bg-accent text-on-accent inline-flex items-center justify-center"><Check size={11} strokeWidth={3} /></span>}
                 </button>
@@ -69,7 +78,7 @@ export function Campana() {
                   <span className="text-xs text-faint mt-[3px] leading-4">{m.meta}</span>
                   <div className="mt-3.5 flex items-center justify-between">
                     <span className="text-xs text-muted">{m.limit}</span>
-                    <button onClick={a.onClick} className={cn('text-sm font-semibold', a.tone === 'warn' ? 'text-warn' : a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
+                    <button onClick={a.onClick} className={cn('text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
                   </div>
                 </div>
               </div>
@@ -85,7 +94,7 @@ export function Campana() {
                 <MaterialArt art={m.art} size={28} className="h-10 w-10 rounded-md border border-line-soft shrink-0" />
                 <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.meta}</span></span>
                 <span className="w-[160px] text-md text-muted">{m.limit}</span>
-                <button onClick={(e) => { e.stopPropagation(); a.onClick() }} className={cn('w-[90px] text-right text-sm font-semibold', a.tone === 'warn' ? 'text-warn' : a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
+                <button onClick={(e) => { e.stopPropagation(); a.onClick() }} className={cn('w-[90px] text-right text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
                 <ChevronRight size={14} className="text-faint" />
               </Tr>
             )
@@ -102,15 +111,13 @@ export function Campana() {
           width={420}
           footer={
             open.action === 'Descargar' ? (
-              <Button variant="primary" className="w-full h-10" onClick={() => notify(`Descargando ${open.name}`)}>Descargar ahora</Button>
-            ) : open.action === 'En camino' ? (
-              <span className="text-base text-warn font-medium w-full text-center">Solicitado el 4 de septiembre · llega en la próxima visita</span>
+              <Button variant="primary" className="w-full h-10" onClick={() => notify(PENDIENTE, 'aviso')}>Descargar ahora</Button>
             ) : (
               <>
                 <div className="h-10 rounded-md bg-surface border border-line flex items-center">
-                  <button onClick={() => setQty(open.id, (solicitud[open.id] ?? 0) - 1)} className="w-9 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={13} /></button>
+                  <button onClick={() => setQty(open.id, (solicitud[open.id] ?? 0) - 1)} aria-label="Quitar una unidad" className="w-9 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={13} /></button>
                   <span className="w-7 text-center text-base font-semibold">{solicitud[open.id] ?? 0}</span>
-                  <button onClick={() => setQty(open.id, (solicitud[open.id] ?? 0) + 1)} className="w-9 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={13} /></button>
+                  <button onClick={() => setQty(open.id, (solicitud[open.id] ?? 0) + 1)} aria-label="Añadir una unidad" className="w-9 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={13} /></button>
                 </div>
                 <Button variant={solicitud[open.id] ? 'primary' : 'secondary'} className="flex-1 h-10" icon={solicitud[open.id] ? <Check size={13} strokeWidth={2.5} /> : undefined} onClick={() => { const n = solicitud[open.id] ? 0 : 1; setQty(open.id, n); notify(n ? 'Añadido a la solicitud' : 'Quitado de la solicitud') }}>
                   {solicitud[open.id] ? 'Añadido a la solicitud' : 'Añadir a la solicitud'}
@@ -154,16 +161,16 @@ function SolicitudPeek({ onClose, count }: { onClose: () => void; count: number 
       <div className="rounded-xl bg-surface border border-line overflow-hidden">
         {rows.length === 0 && <div className="p-6 text-center text-base text-muted">Todavía no has marcado nada.</div>}
         {rows.map(([mid, qty], i) => {
-          const m = materialsOf('otono').find((x) => x.id === mid)
+          const m = materials.find((x) => x.id === mid)
           if (!m) return null
           return (
             <div key={mid} className={cn('h-[64px] px-3.5 flex items-center gap-3', i < rows.length - 1 && 'border-b border-line-soft')}>
               <MaterialArt art={m.art} size={32} className="h-11 w-11 rounded-md border border-line-soft" />
               <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
               <div className="h-[30px] rounded-[7px] bg-surface border border-line flex items-center">
-                <button onClick={() => setQty(mid, qty - 1)} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
+                <button onClick={() => setQty(mid, qty - 1)} aria-label={`Quitar una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
                 <span className="w-6 text-center text-base font-semibold">{qty}</span>
-                <button onClick={() => setQty(mid, qty + 1)} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>
+                <button onClick={() => setQty(mid, qty + 1)} aria-label={`Añadir una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>
               </div>
             </div>
           )

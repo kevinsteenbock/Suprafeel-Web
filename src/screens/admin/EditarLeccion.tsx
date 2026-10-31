@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Settings, Play, Plus, X, ChevronRight, Upload } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
+import { PENDIENTE_ADMIN, useStore } from '@/app/store'
 import { adminCourses, courseById } from '@/data/courses'
 import { Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
@@ -38,7 +38,7 @@ export function EditarLeccion() {
           right={
             <>
               <Link to={real ? `/farmacia/formacion/cursos/${real.id}/leccion/${n}` : '/farmacia/formacion/cursos'}><Button>Vista previa</Button></Link>
-              <Button variant="primary" onClick={() => { notify('Lección guardada'); navigate(back) }}>Hecho</Button>
+              <Button variant="primary" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate(back) }}>Hecho</Button>
               <div ref={ref} className="relative">
                 <button onClick={() => setGear((g) => !g)} className={cn('h-7 w-7 rounded-[7px] border border-line inline-flex items-center justify-center text-ink', gear ? 'bg-chrome-deep' : 'bg-chrome-deep/60 hover:bg-chrome-deep')}><Settings size={14} strokeWidth={1.7} /></button>
                 {gear && (
@@ -51,7 +51,7 @@ export function EditarLeccion() {
                     <div className="h-px bg-line-soft my-1.5" />
                     {[['Duplicar lección', '⌘D'], ['Mover a otro curso…', '›'], ['Descargar el vídeo original', '']].map(([t, r]) => <button key={t} onClick={() => { setGear(false); notify(t) }} className="w-full h-8 px-3.5 flex items-center justify-between text-base text-ink hover:bg-chrome">{t}<span className="text-xs text-faint">{r}</span></button>)}
                     <div className="h-px bg-line-soft my-1.5" />
-                    <button onClick={() => { setGear(false); notify('Lección eliminada'); navigate(back) }} className="w-full h-8 px-3.5 flex items-center text-base text-danger hover:bg-danger-wash">Eliminar lección</button>
+                    <button onClick={() => { setGear(false); notify(PENDIENTE_ADMIN, 'aviso'); navigate(back) }} className="w-full h-8 px-3.5 flex items-center text-base text-danger hover:bg-danger-wash">Eliminar lección</button>
                   </div>
                 )}
               </div>
@@ -60,7 +60,7 @@ export function EditarLeccion() {
         />
       }
     >
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col gap-5">
           <div className="relative h-[300px] rounded-xl bg-video flex flex-col items-center justify-center overflow-hidden">
             <div className="absolute top-4 right-4 flex gap-2">{['Cambiar vídeo', 'Portada del vídeo'].map((t) => <button key={t} onClick={() => notify(t)} className="h-8 px-3 rounded-[7px] bg-white/10 text-[#F4F2EF] text-sm font-medium hover:bg-white/15">{t}</button>)}</div>
@@ -72,15 +72,15 @@ export function EditarLeccion() {
           {blocks.map((b, i) => <div key={i} className="rounded-xl bg-surface border border-line p-4 flex items-center justify-between"><span className="text-base text-ink">Bloque nuevo · {b}</span><button onClick={() => setBlocks((bs) => bs.filter((_, j) => j !== i))} className="text-faint hover:text-ink"><X size={14} /></button></div>)}
           <div className="h-[46px] rounded-lg bg-chrome border border-line px-3 flex items-center gap-2">
             <span className="text-sm text-muted mr-1">Añadir a esta lección</span>
-            {['Otro vídeo', 'Texto', 'Imagen', 'Archivo'].map((b) => <Button key={b} size="md" icon={<Plus size={11} strokeWidth={2.4} />} onClick={() => { if (b === 'Archivo') { setFiles((fs) => [...fs, { k: 'PDF', n: 'Nuevo archivo', m: 'PDF · 0 KB' }]); notify('Archivo adjuntado') } else { setBlocks((bs) => [...bs, b]); notify(`Bloque de ${b.toLowerCase()} añadido`) } }}>{b}</Button>)}
+            {['Otro vídeo', 'Texto', 'Imagen', 'Archivo'].map((b) => <Button key={b} size="md" icon={<Plus size={11} strokeWidth={2.4} />} onClick={() => { if (b === 'Archivo') { setFiles((fs) => [...fs, { k: 'PDF', n: 'Nuevo archivo', m: 'PDF · 0 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') } else { setBlocks((bs) => [...bs, b]); notify(PENDIENTE_ADMIN, 'aviso') } }}>{b}</Button>)}
           </div>
         </div>
-        <aside className="w-[316px] shrink-0 flex flex-col gap-4">
+        <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-4">
           <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
-            <div className="h-[34px] px-3.5 bg-chrome border-b border-line-soft flex items-center justify-between"><span className="label">Archivos de la lección</span><button onClick={() => { setFiles((fs) => [...fs, { k: 'PDF', n: 'Ficha de interacciones', m: 'PDF · 260 KB' }]); notify('Archivo adjuntado') }} className="text-sm font-medium text-accent">Añadir</button></div>
+            <div className="h-[34px] px-3.5 bg-chrome border-b border-line-soft flex items-center justify-between"><span className="label">Archivos de la lección</span><button onClick={() => { setFiles((fs) => [...fs, { k: 'PDF', n: 'Ficha de interacciones', m: 'PDF · 260 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="text-sm font-medium text-accent">Añadir</button></div>
             {files.map((f, i) => <div key={f.n + i} className={cn('h-[50px] px-3.5 flex items-center gap-3', i < files.length - 1 && 'border-b border-line-soft')}><FileBadge kind={f.k} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{f.n}</span><span className="text-xs text-faint">{f.m}</span></span><button onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))} className="text-faint hover:text-ink"><X size={13} /></button></div>)}
           </div>
-          <button onClick={() => { setFiles((fs) => [...fs, { k: 'A5', n: 'Cartel A5 arrastrado', m: 'Imprimible A5 · 210 KB' }]); notify('Archivo adjuntado') }} className="h-[104px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center hover:bg-chrome-deep/50"><Upload size={18} className="text-faint" /><span className="mt-2 text-md font-medium text-ink-soft">Arrastra archivos aquí</span><span className="text-xs text-faint mt-0.5">PDF, imagen o ficha imprimible · máx. 25 MB</span></button>
+          <button onClick={() => { setFiles((fs) => [...fs, { k: 'A5', n: 'Cartel A5 arrastrado', m: 'Imprimible A5 · 210 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[104px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center hover:bg-chrome-deep/50"><Upload size={18} className="text-faint" /><span className="mt-2 text-md font-medium text-ink-soft">Arrastra archivos aquí</span><span className="text-xs text-faint mt-0.5">PDF, imagen o ficha imprimible · máx. 25 MB</span></button>
           <Link to={back} className="mt-auto h-10 rounded-lg bg-surface border border-line px-3.5 flex items-center justify-between text-base text-ink hover:bg-chrome">Volver al temario <ChevronRight size={14} className="text-faint" /></Link>
         </aside>
       </div>

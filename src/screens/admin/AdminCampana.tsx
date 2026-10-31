@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
-import { Plus } from 'lucide-react'
+import { Plus, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
-import { campaignById, materialsOf } from '@/data/plv'
+import { PENDIENTE_ADMIN, useStore } from '@/app/store'
+import { alcance, campaignById, materialsOf } from '@/data/plv'
+import { useCifras } from '@/app/datos'
+import { otoño } from './AdminProducto'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Chip, ChipRow } from '@/ui/Chip'
+import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { MaterialArt } from '@/ui/MaterialArt'
-import { VistaButton, useVista, gridCols } from '@/ui/Vista'
+import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
@@ -17,31 +19,51 @@ export function AdminCampana() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { notify } = useStore()
+  const cifras = useCifras()
   const c = campaignById(id)
   const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('recent')
   const [removed, setRemoved] = useState<string[]>([])
   const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 4 })
+  const gridStyle = useGridCols(vista)
   if (!c) return <Navigate to="/admin/plv" replace />
   // Las campañas de ejemplo enseñan el material de Otoño; una recién creada nace vacía.
   const demo = ['descanso', 'marca', 'navidad', 'cole', 'piel']
   const source = materialsOf(c.id).length ? materialsOf(c.id) : demo.includes(c.id) ? materialsOf('otono') : []
   const all = source.filter((m) => !removed.includes(m.id))
   const list = all.filter((m) => filter === 'all' || (filter === 'print' ? m.kind !== 'digital' && m.state === 'Publicado' : filter === 'digital' ? m.kind === 'digital' : m.state === 'Borrador'))
-  const name = c.id === 'otono' ? 'Otoño 2025' : c.name
+  const name = c.id === 'otono' ? otoño() : c.name
 
   return (
     <Screen toolbar={<Toolbar back="/admin/plv" crumbs={[{ label: 'Materiales PLV', to: '/admin/plv' }, { label: name }]} right={<><SearchField placeholder="Buscar material" /><Link to={`/admin/plv/${c.id}/nuevo-material`}><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Añadir material</Button></Link></>} />}>
       <PageHeader
         title={<span className="flex items-center gap-3">{name}<Badge tone={c.adminState === 'Activa' ? 'ok' : c.adminState === 'Borrador' ? 'warn' : 'neutral'} className="mt-1">{c.adminState}</Badge></span>}
-        subtitle={`${c.period} · ${c.theme.charAt(0).toUpperCase() + c.theme.slice(1)} · ${c.pharmacies} farmacias · ${c.requests} solicitudes`}
-        right={<><Button onClick={() => notify('Edición de la campaña')}>Editar campaña</Button><Button onClick={() => notify('Campaña duplicada como borrador')}>Duplicar</Button><Button onClick={() => notify('Campaña archivada')}>Archivar</Button><Button variant="danger" onClick={() => notify('Pide confirmación antes de eliminar')}>Eliminar</Button></>}
+        subtitle={`${c.period} · ${c.theme.charAt(0).toUpperCase() + c.theme.slice(1)} · ${alcance(c.pharmacies, cifras.farmacias)} farmacias${c.requests !== '—' ? ` · ${c.requests} solicitudes` : ''}`}
+        right={<><Button onClick={() => notify('Edición de la campaña')}>Editar campaña</Button><Button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}>Duplicar</Button><Button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}>Archivar</Button><Button variant="danger" onClick={() => notify('Pide confirmación antes de eliminar')}>Eliminar</Button></>}
       />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
-        {[['all', 'Todos', all.length], ['print', 'Impreso', all.filter((m) => m.kind !== 'digital' && m.state === 'Publicado').length], ['digital', 'Digital', all.filter((m) => m.kind === 'digital').length], ['draft', 'Borradores', all.filter((m) => m.state === 'Borrador').length]].map(([k, l, n]) => <Chip key={k as string} active={filter === k} count={n as number} onClick={() => setFilter(k as string)}>{l}</Chip>)}
-      </ChipRow>
+      <FilterBar
+        right={
+          <>
+            <FilterMenuButton align="right" icon={<ArrowUpDown size={13} strokeWidth={1.8} />} value={sort} options={[{ key: 'recent', label: 'Más reciente' }, { key: 'az', label: 'Nombre A-Z' }]} onChange={setSort} />
+            <VistaButton vista={vista} onChange={setVista} onReset={resetVista} />
+          </>
+        }
+      >
+        <FilterMenuButton
+          icon={<Filter size={13} strokeWidth={1.8} />}
+          value={filter}
+          options={[
+            { key: 'all', label: 'Todos', count: all.length },
+            { key: 'print', label: 'Impreso', count: all.filter((m) => m.kind !== 'digital' && m.state === 'Publicado').length },
+            { key: 'digital', label: 'Digital', count: all.filter((m) => m.kind === 'digital').length },
+            { key: 'draft', label: 'Borradores', count: all.filter((m) => m.state === 'Borrador').length },
+          ]}
+          onChange={setFilter}
+        />
+      </FilterBar>
 
       {vista.mode === 'list' ? (
-        <TableCard footer={all.length ? `${all.length} materiales · ${all.filter((m) => m.kind !== 'digital').length} impresos y ${all.filter((m) => m.kind === 'digital').length} digitales` : 'Sin materiales todavía'} footerRight={all.length ? <button onClick={() => notify(`${c.requests} solicitudes`)}>Ver {c.requests} solicitudes</button> : undefined}>
+        <TableCard footer={all.length ? `${all.length} materiales · ${all.filter((m) => m.kind !== 'digital').length} impresos y ${all.filter((m) => m.kind === 'digital').length} digitales` : 'Sin materiales todavía'}>
           <THead><Th className="flex-1">Material</Th><Th className="w-[120px]" align="right">Suministro</Th><Th className="w-[130px]" align="right">Entrega</Th><Th className="w-[90px]" align="right">Estado</Th><Th className="w-[80px]" align="right">Solicitudes</Th><Th className="w-[130px]" align="right">Acciones</Th></THead>
           {all.length === 0 && (
             <div className="py-12 px-8 flex flex-col items-center text-center">
@@ -63,12 +85,12 @@ export function AdminCampana() {
               <Td className="w-[130px]" align="right">{m.delivery}</Td>
               <div className="w-[90px] flex justify-end"><Badge tone={m.state === 'Publicado' ? 'ok' : 'warn'}>{m.state}</Badge></div>
               <Td className="w-[80px] font-semibold text-ink" align="right">{m.requests}</Td>
-              <div className="w-[130px] flex justify-end gap-3 text-sm font-medium"><button className="text-ink" onClick={(e) => { e.stopPropagation(); navigate(`/admin/plv/${c.id}/nuevo-material?editar=${m.id}`) }}>Editar</button><button className="text-danger" onClick={(e) => { e.stopPropagation(); setRemoved((r) => [...r, m.id]); notify(`${m.name} eliminado`) }}>Eliminar</button></div>
+              <div className="w-[130px] flex justify-end gap-3 text-sm font-medium"><button className="text-ink" onClick={(e) => { e.stopPropagation(); navigate(`/admin/plv/${c.id}/nuevo-material?editar=${m.id}`) }}>Editar</button><button className="text-danger" onClick={(e) => { e.stopPropagation(); setRemoved((r) => [...r, m.id]); notify(PENDIENTE_ADMIN, 'aviso') }}>Eliminar</button></div>
             </Tr>
           ))}
         </TableCard>
       ) : (
-        <div className="grid gap-4" style={gridCols(vista)}>
+        <div className="grid gap-4" style={gridStyle}>
           {list.map((m) => (
             <button key={m.id} onClick={() => navigate(`/admin/plv/${c.id}/nuevo-material?editar=${m.id}`)} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden text-left hover:border-faint">
               <MaterialArt art={m.art} size={80} className="h-[120px] border-b border-line-soft" />

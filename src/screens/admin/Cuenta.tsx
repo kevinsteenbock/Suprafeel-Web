@@ -1,81 +1,131 @@
-import { useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router'
-import { Plus } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
+import { Plus, Phone, Store } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
-import { accountById } from '@/data/accounts'
-import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
+import { useDatos } from '@/app/datos'
+import { products, productById } from '@/data/products'
+import { formacionChapa, formacionLabel, iniciales, pharmacyById } from '@/data/pharmacies'
+import { Toolbar, PageHeader, Stat, StatRow, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
-import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
+import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+import { accesosPorFarmacia, fechaAlta, plural } from './accesos'
+import { Principal } from './AccesoCelda'
+
+const crumbsBase = { label: 'Cuentas y accesos', to: '/admin/cuentas' }
 
 export function Cuenta() {
   const { id } = useParams()
-  const { notify } = useStore()
-  const a = accountById(id)
-  const [people, setPeople] = useState(a?.people ?? [])
-  const [status, setStatus] = useState(a?.status ?? 'Activa')
-  if (!a) return <Navigate to="/admin/cuentas" replace />
-  const used = people.filter((p) => p.state === 'Activo').length
-  const tone = status === 'Activa' ? 'ok' : status === 'Suspendida' ? 'danger' : 'warn'
+  const navigate = useNavigate()
+  const { farmacias, usuarios } = useDatos()
+  const p = pharmacyById(id, farmacias)
+
+  if (!p) {
+    return (
+      <Screen toolbar={<Toolbar back="/admin/cuentas" crumbs={[crumbsBase, { label: 'Farmacia no encontrada' }]} />}>
+        <div className="rounded-xl bg-surface border border-line shadow-card px-6 py-12 flex flex-col items-center text-center">
+          <span className="h-10 w-10 rounded-full bg-chrome text-muted inline-flex items-center justify-center"><Store size={18} /></span>
+          <h1 className="mt-4 text-lg font-semibold text-ink">No encontramos esta farmacia</h1>
+          <p className="mt-1.5 text-base text-muted max-w-[420px]">Puede que el enlace esté mal o que ya no esté en la lista de farmacias de Suprafeel.</p>
+          <Button className="mt-5" size="lg" onClick={() => navigate('/admin/cuentas')}>Volver a Cuentas y accesos</Button>
+        </div>
+      </Screen>
+    )
+  }
+
+  const cuentas = (accesosPorFarmacia(usuarios).get(p.id) ?? []).slice().sort((a, b) => a.created_at - b.created_at)
+  const darAcceso = () => navigate(`/admin/cuentas/nueva?farmacia=${encodeURIComponent(p.id)}`)
+  const lineal = p.lineal.map((pid) => productById(pid)).filter((x) => !!x)
+  const fecha = [p.formacionDate, p.formacionHora].filter(Boolean).join(' · ')
+
+  // Solo lo que consta: lo que no tiene dato no se enseña.
+  const datos: [string, ReactNode][] = (
+    [
+      ['Razón social', p.name],
+      ['Nombre comercial', p.nombreComercial],
+      ['Titular', p.owner],
+      ['Dirección', p.address],
+      ['Código postal', p.postal],
+      ['Población', p.city],
+      ['Teléfono', p.telefono ? <a href={`tel:${p.telefono.replace(/\s+/g, '')}`} className="text-accent hover:text-accent-deep">{p.telefono}</a> : undefined],
+      ['Código de cliente', p.codigoCliente],
+      ['Comercial', p.rep ? <Link to={`/admin/cuentas?comercial=${encodeURIComponent(p.rep)}`} className="text-accent hover:text-accent-deep">{p.rep}</Link> : undefined],
+      ['Zona', p.zona],
+    ] as [string, ReactNode][]
+  ).filter(([, v]) => v !== undefined && v !== '')
 
   return (
-    <Screen toolbar={<Toolbar back="/admin/cuentas" crumbs={[{ label: 'Cuentas y accesos', to: '/admin/cuentas' }, { label: a.name }]} right={<><SearchField placeholder="Buscar cuenta, CIF o correo" /><Link to="/admin/cuentas/nueva"><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Dar de alta una cuenta</Button></Link></>} />}>
+    <Screen
+      toolbar={
+        <Toolbar
+          back="/admin/cuentas"
+          crumbs={[crumbsBase, { label: p.name }]}
+          right={<Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />} onClick={darAcceso}>{cuentas.length ? 'Dar acceso a otra persona' : 'Dar acceso'}</Button>}
+        />
+      }
+    >
       <PageHeader
-        title={<span className="flex items-center gap-3">{a.name}<Badge tone={tone} className="mt-1">{status}</Badge></span>}
-        subtitle={`${a.city} · ${a.cif} · plan ${a.plan} · alta en ${a.since === 'mar 2023' ? 'marzo de 2023' : a.since} · ${a.rep}`}
-        right={<><Button onClick={() => notify('Edición de datos')}>Editar datos</Button><Button onClick={() => notify('Cuenta duplicada como borrador')}>Duplicar</Button><Button onClick={() => { setStatus((s) => (s === 'Suspendida' ? 'Activa' : 'Suspendida')); notify(status === 'Suspendida' ? 'Cuenta reactivada' : 'Cuenta suspendida') }}>{status === 'Suspendida' ? 'Reactivar' : 'Suspender'}</Button><Button variant="danger" onClick={() => notify('Pide confirmación por correo antes de eliminar')}>Eliminar</Button></>}
+        title={<span className="flex flex-wrap items-center gap-3">{p.name}<Badge tone={cuentas.length ? 'ok' : 'neutral'} className="mt-1">{cuentas.length ? 'Con acceso' : 'Sin acceso'}</Badge></span>}
+        subtitle={[p.nombreComercial, p.city, p.rep ? `la lleva ${p.rep}` : 'sin comercial asignado'].filter(Boolean).join(' · ')}
+        right={p.telefono ? <a href={`tel:${p.telefono.replace(/\s+/g, '')}`} className="h-[28px] px-[13px] inline-flex items-center gap-1.5 rounded-[7px] bg-surface text-ink text-base border border-line hover:bg-chrome"><Phone size={13} />Llamar</a> : undefined}
       />
-      <div className="flex gap-6">
-        <div className="flex-1 min-w-0 flex flex-col gap-5">
-          <div className="rounded-xl bg-surface border border-line shadow-card p-6 grid grid-cols-3 gap-y-5 gap-x-6">
-            {[['CIF', a.cif], ['Dirección', a.address], ['Población', a.postal], ['Titular', a.owner], ['Email', a.email], ['Teléfono', a.phone], ['Plan', `${a.plan} · ${a.seats} accesos`], ['Comercial', `${a.rep} · Zona Levante`], ['Alta', a.since === 'mar 2023' ? '14 de marzo de 2023' : a.since]].map(([k, v]) => (
-              <div key={k} className="flex flex-col"><span className="label">{k}</span><span className="mt-1.5 text-base text-ink">{v}</span></div>
-            ))}
-          </div>
+      <StatRow>
+        <Stat label="Referencias en el lineal" value={p.refs} sub={`de ${products.length} del catálogo`} bar={Math.round((p.refs / Math.max(products.length, 1)) * 100)} />
+        <Stat label="Formación" value={formacionLabel(p.formacion)} sub={fecha || (p.formacion ? undefined : 'No consta en el seguimiento')} tone={p.formacion === 'hecha' ? 'ok' : p.formacion === 'rechazada' ? 'danger' : undefined} />
+        <Stat label="Comercial" value={p.rep || '—'} sub={p.zona} />
+        <Stat label="Personas con acceso" value={cuentas.length} sub={cuentas.length ? 'pueden entrar en la app' : 'nadie puede entrar todavía'} />
+      </StatRow>
 
-          <TableCard footer={`${used} accesos en uso de ${a.seats} · ${people.filter((p) => p.state === 'Invitado').length} invitación sin aceptar`} footerRight={<button onClick={() => notify('Plan ampliado a 10 accesos')}>Subir a 10 accesos</button>}>
-            <THead><Th className="flex-1">Persona con acceso</Th><Th className="w-[100px]" align="right">Rol</Th><Th className="w-[110px]" align="right">Último acceso</Th><Th className="w-[90px]" align="right">Estado</Th><Th className="w-[130px]" align="right">Acciones</Th></THead>
-            {people.map((p) => (
-              <Tr key={p.email}>
-                <TdMain title={p.name} meta={p.email} avatar={<Avatar initials={p.initials} size={30} tone="neutral" rounded="full" />} />
-                <Td className="w-[100px]" align="right">{p.role}</Td>
-                <Td className="w-[110px]" align="right">{p.last}</Td>
-                <div className="w-[90px] flex justify-end"><Badge tone={p.state === 'Activo' ? 'ok' : p.state === 'Invitado' ? 'warn' : 'neutral'}>{p.state}</Badge></div>
-                <div className="w-[130px] flex justify-end gap-3 text-sm font-medium">
-                  {p.state === 'Activo' && <><button className="text-ink" onClick={() => notify('Editar acceso')}>Editar</button><button className="text-danger" onClick={() => setPeople((ps) => ps.map((x) => (x.email === p.email ? { ...x, state: 'Retirado', last: 'retirado hoy' } : x)))}>Quitar</button></>}
-                  {p.state === 'Invitado' && <><button className="text-ink" onClick={() => notify('Invitación reenviada')}>Reenviar</button><button className="text-muted" onClick={() => setPeople((ps) => ps.filter((x) => x.email !== p.email))}>Cancelar</button></>}
-                  {p.state === 'Retirado' && <button className="text-ink" onClick={() => setPeople((ps) => ps.map((x) => (x.email === p.email ? { ...x, state: 'Activo', last: 'hoy' } : x)))}>Reactivar</button>}
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
+          <Section title="Personas con acceso">
+            <TableCard footer={cuentas.length ? plural(cuentas.length, 'cuenta de esta farmacia', 'cuentas de esta farmacia') : undefined} footerRight={cuentas.length ? <button onClick={darAcceso}>Dar acceso a otra persona</button> : undefined}>
+              {cuentas.length > 0 && <THead><Principal min={160}><Th>Persona</Th></Principal><Th className="w-[110px] shrink-0" align="right">Alta</Th></THead>}
+              {cuentas.length === 0 && (
+                <div className="px-6 py-10 flex flex-col items-center text-center">
+                  <span className="text-base font-medium text-ink">Nadie de esta farmacia puede entrar todavía</span>
+                  <span className="mt-1 text-sm text-muted max-w-[380px]">Crea una cuenta con su correo y una contraseña, y pásaselas por un canal seguro.</span>
+                  <Button variant="primary" size="lg" className="mt-4" icon={<Plus size={13} strokeWidth={2.4} />} onClick={darAcceso}>Dar acceso</Button>
                 </div>
-              </Tr>
-            ))}
-            <button onClick={() => { setPeople((ps) => [...ps, { initials: 'NU', name: 'Nueva persona', email: 'pendiente@' + a.email.split('@')[1], role: 'Auxiliar', last: 'invitado ahora', state: 'Invitado' }]); notify('Invitación enviada') }} className="h-[54px] px-4 flex items-center gap-3 text-left hover:bg-canvas">
-              <span className="h-[30px] w-[30px] rounded-full bg-accent-wash text-accent inline-flex items-center justify-center"><Plus size={14} /></span>
-              <span className="text-base font-medium text-accent">Invitar a alguien del mostrador</span><span className="text-sm text-muted">quedan {a.seats - used} accesos libres de {a.seats}</span>
-            </button>
-          </TableCard>
-        </div>
+              )}
+              {cuentas.map((u, i) => (
+                <Tr key={u.id} last={i === cuentas.length - 1}>
+                  <Principal min={160}><TdMain title={u.name || u.email} meta={u.email} avatar={<Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone="neutral" rounded="full" />} /></Principal>
+                  <Td className="w-[110px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
+                </Tr>
+              ))}
+            </TableCard>
+          </Section>
 
-        <aside className="w-[316px] shrink-0 flex flex-col gap-4">
-          <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col">
-            <span className="text-base font-semibold text-ink">Uso de la cuenta</span>
-            <div className="mt-4 flex items-center justify-between text-sm"><span className="text-muted">Accesos en uso</span><span className="font-semibold text-ink">{used} de {a.seats}</span></div>
-            <Bar value={(used / a.seats) * 100} width={999} className="w-full mt-2" tone="accent" />
-            <div className="mt-4 flex flex-col gap-2.5 text-sm">
-              {[['Consultas al chat', a.usage.chat], ['Cursos completados', a.usage.courses], ['Último pedido', a.usage.order], ['Material PLV pedido', a.usage.plv]].map(([k, v]) => <div key={k} className="flex justify-between"><span className="text-muted">{k}</span><span className="font-medium text-ink">{v}</span></div>)}
-            </div>
-          </div>
-          <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col">
-            <span className="text-base font-semibold text-ink">Actividad de la cuenta</span>
-            <div className="mt-4 flex flex-col gap-3.5">
-              {a.activity.map((x) => (
-                <div key={x.title} className="flex gap-3"><span className={cn('mt-1.5 h-2 w-2 rounded-full shrink-0', x.live ? 'bg-accent' : 'bg-line')} /><div className="flex flex-col"><span className="text-base text-ink">{x.title}</span><span className="text-xs text-faint">{x.meta}</span></div></div>
+          <Section title="Datos de la farmacia">
+            <div className="rounded-xl bg-surface border border-line shadow-card p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-5 gap-x-6">
+              {datos.map(([k, v]) => (
+                <div key={k} className="flex flex-col min-w-0"><span className="label">{k}</span><span className="mt-1.5 text-base text-ink break-words">{v}</span></div>
               ))}
             </div>
-            <button className="mt-5 text-sm font-medium text-accent text-left" onClick={() => notify('Histórico completo')}>Ver todo el histórico</button>
-          </div>
+          </Section>
+        </div>
+
+        <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-6">
+          <Section title="Formación en el mostrador">
+            <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <Badge tone={formacionChapa(p).tone}>{formacionChapa(p).label}</Badge>
+                {fecha && <span className="text-base font-medium text-ink">{fecha}</span>}
+              </div>
+              <p className="text-sm text-muted leading-4">{p.formacionNote || (p.formacion ? 'Sin notas en el seguimiento.' : 'Esta farmacia no consta en el seguimiento de formación.')}</p>
+            </div>
+          </Section>
+          <Section title="Lineal Suprafeel" right={<span className="text-sm text-muted">{plural(p.refs, 'referencia', 'referencias')}</span>}>
+            <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
+              {lineal.length === 0 && <div className="p-5 text-sm text-muted">{p.refs ? 'El seguimiento no detalla qué referencias tiene.' : 'Todavía no tiene ninguna referencia de Suprafeel.'}</div>}
+              {lineal.map((x, i) => (
+                <Link key={x.id} to={`/admin/catalogo/${x.id}`} className={cn('h-10 px-4 flex items-center text-base text-ink hover:bg-canvas', i < lineal.length - 1 && 'border-b border-line-soft')}>{x.name}</Link>
+              ))}
+            </div>
+          </Section>
         </aside>
       </div>
     </Screen>

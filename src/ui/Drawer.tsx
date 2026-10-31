@@ -1,12 +1,13 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useId, type CSSProperties, type ReactNode } from 'react'
 import { X, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 export interface DrawerTab { key: string; label: ReactNode }
 
 /**
- * Panel lateral: flota sobre la página sin recolocar nada, ocupa todo el alto,
- * pegado al borde derecho, con velo oscuro detrás.
+ * Panel de detalle, alta o edición. Se abre como ventana centrada sobre la página (pop-up), con velo
+ * oscuro detrás: nada se abre como cajón lateral (lo pidió Kevin; solo el menú del móvil sale de lado).
+ * Mismo contenido, mismas pestañas y mismo pie de siempre; `width` es el ancho de la ventana.
  */
 export function Drawer({
   open, onClose, onBack, title, subtitle, badge, width = 472, tabs, activeTab, onTab, footer, children, bodyClass, headerRight,
@@ -33,10 +34,11 @@ export function Drawer({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  const tituloId = useId()
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside style={{ width }} className="h-full shrink-0 bg-canvas border-l border-line shadow-drawer flex flex-col animate-[drawer_.22s_ease-out]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <aside role="dialog" aria-modal="true" aria-labelledby={tituloId} style={{ '--dw-w': `${width}px` } as CSSProperties} className="w-full sm:w-[var(--dw-w)] max-w-full sm:max-w-[92vw] max-h-[calc(100dvh-32px)] sm:max-h-[86vh] shrink-0 bg-canvas border border-line rounded-xl overflow-hidden shadow-drawer flex flex-col animate-[drawer_.18s_ease-out]">
         <header className="h-[62px] shrink-0 px-5 bg-chrome border-b border-line flex items-center gap-3">
           {onBack && (
             <button onClick={onBack} className="text-ink-soft hover:text-ink -ml-1" aria-label="Atrás">
@@ -45,7 +47,7 @@ export function Drawer({
           )}
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-lg font-semibold tracking-[-0.01em] text-ink truncate">{title}</span>
+              <span id={tituloId} className="text-lg font-semibold tracking-[-0.01em] text-ink truncate">{title}</span>
               {badge}
             </div>
             {subtitle && <span className="text-[11.5px] text-muted mt-[2px] truncate">{subtitle}</span>}
@@ -56,7 +58,7 @@ export function Drawer({
           </button>
         </header>
         {tabs && (
-          <nav className="h-[42px] shrink-0 px-5 gap-5 border-b border-line flex items-end">
+          <nav className="h-[42px] shrink-0 px-5 gap-5 border-b border-line flex items-end overflow-x-auto no-scrollbar scroll-hint">
             {tabs.map((t) => {
               const on = t.key === activeTab
               return (
@@ -71,10 +73,10 @@ export function Drawer({
             })}
           </nav>
         )}
-        <div className={cn('flex-1 overflow-y-auto p-5 flex flex-col', bodyClass)}>{children}</div>
+        <div className={cn('flex-1 min-h-0 overflow-y-auto p-5 flex flex-col', bodyClass)}>{children}</div>
         {footer && <footer className="h-[62px] shrink-0 px-5 bg-chrome border-t border-line flex items-center justify-between gap-3">{footer}</footer>}
       </aside>
-      <style>{`@keyframes drawer{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}`}</style>
+      <style>{`@keyframes drawer{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}`}</style>
     </div>
   )
 }

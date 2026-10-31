@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { Check, ChevronRight, Download, ExternalLink, Lock, Play } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useBase, useStore } from '@/app/store'
+import { PENDIENTE, useBase, useStore } from '@/app/store'
 import { courseById, type Lesson } from '@/data/courses'
 import { Toolbar, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
@@ -29,15 +29,15 @@ export function Curso() {
 
   return (
     <Screen
-      toolbar={<Toolbar back={`${base}/formacion/cursos`} crumbs={[{ label: 'Cursos', to: `${base}/formacion/cursos` }, { label: c.title.length > 32 ? c.title.slice(0, 30) + '…' : c.title }]} right={<Button onClick={() => notify('Enlace copiado para tu equipo')}>Compartir con el equipo</Button>} />}
+      toolbar={<Toolbar back={`${base}/formacion/cursos`} crumbs={[{ label: 'Cursos', to: `${base}/formacion/cursos` }, { label: c.title.length > 32 ? c.title.slice(0, 30) + '…' : c.title }]} right={<Button onClick={() => { void navigator.clipboard?.writeText(window.location.href).then(() => notify('Enlace copiado'), () => notify('No se ha podido copiar el enlace', 'aviso')) }}>Copiar el enlace</Button>} />}
     >
-      <div className="flex gap-5">
-        <img src={c.cover} alt="" className="w-[216px] h-[140px] rounded-xl object-cover shrink-0 bg-chrome-deep" />
+      <div className="flex flex-col sm:flex-row gap-5">
+        <img src={c.cover} alt="" className="w-full h-[160px] sm:w-[216px] sm:h-[140px] sm:shrink-0 rounded-xl object-cover bg-chrome-deep" />
         <div className="flex-1 min-w-0 flex flex-col">
           <span className="label text-accent">Itinerario {c.itinerary}</span>
           <h1 className="mt-1.5 text-h1 font-semibold tracking-tight text-ink">{c.title}</h1>
           <p className="mt-2 text-base text-muted leading-[19px] max-w-[620px]">{c.description}</p>
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2.5">
             <Link to={`${base}/formacion/cursos/${c.id}/leccion/${current.n}`}>
               <Button variant="primary" size="lg" className="h-9 px-4" icon={<Play size={11} fill="currentColor" />}>{done > 0 && done < c.lessons.length ? `Seguir por la lección ${current.n}` : done === c.lessons.length ? 'Repasar el curso' : 'Empezar el curso'}</Button>
             </Link>
@@ -70,7 +70,7 @@ export function Curso() {
       <Section title="Material del curso">
         <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
           {c.materials.map((m, i) => (
-            <button key={m.name} onClick={() => notify(m.kind === 'URL' ? 'Abriendo el enlace…' : `Descargando ${m.name}`)} className={cn('w-full h-[46px] px-4 flex items-center gap-3 text-left hover:bg-canvas', i < c.materials.length - 1 && 'border-b border-line-soft')}>
+            <button key={`${i}-${m.name}`} onClick={() => notify(PENDIENTE, 'aviso')} className={cn('w-full h-[46px] px-4 flex items-center gap-3 text-left hover:bg-canvas', i < c.materials.length - 1 && 'border-b border-line-soft')}>
               <FileBadge kind={m.kind} />
               <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.meta}</span></span>
               {m.kind === 'URL' ? <ExternalLink size={14} className="text-muted" /> : <Download size={14} className="text-muted" />}

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
-import { Plus, Check, X, ChevronRight, Sparkles, AlertTriangle, RotateCcw } from 'lucide-react'
+import { Plus, Check, X, ChevronRight, Sparkles, AlertTriangle, RotateCcw, LayoutGrid } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
+import { PENDIENTE_ADMIN, useStore } from '@/app/store'
 import { symptoms as allSymptoms, rules as allRules, unanswered as allUnanswered, sources, type Symptom, type Rule } from '@/data/chat'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Chip, ChipRow } from '@/ui/Chip'
+import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
 import { Field, Textarea, Select } from '@/ui/Field'
@@ -16,16 +16,18 @@ import { VistaButton, useVista } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
+// Cifras contadas sobre el contenido que hay. Consultas, acierto y uso no se registran todavía: no se enseñan.
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
 const tabs = [
-  { key: 'sintomas', label: 'Síntomas', count: 142 },
-  { key: 'reglas', label: 'Reglas', count: 96 },
-  { key: 'fuentes', label: 'Fuentes', count: 24 },
+  { key: 'sintomas', label: 'Síntomas', count: allSymptoms.length },
+  { key: 'reglas', label: 'Reglas', count: allRules.length },
+  { key: 'fuentes', label: 'Fuentes', count: sources.length },
   { key: 'pruebalo', label: 'Pruébalo' },
-  { key: 'sin-respuesta', label: 'Sin respuesta', count: 64, danger: true },
+  { key: 'sin-respuesta', label: 'Sin respuesta', count: allUnanswered.length, danger: true },
 ]
 const sub: Record<string, string> = {
-  sintomas: 'Lo que la farmacia escribe y lo que le contestamos · 142 síntomas · 2.104 consultas este mes',
-  reglas: 'Cada regla dice qué recomendar y, sobre todo, por qué · 96 reglas activas',
+  sintomas: `Lo que la farmacia escribe y lo que le contestamos · ${plural(allSymptoms.length, 'síntoma', 'síntomas')}`,
+  reglas: `Cada regla dice qué recomendar y, sobre todo, por qué · ${plural(allRules.filter((r) => r.state === 'Activa').length, 'regla activa', 'reglas activas')}`,
   fuentes: 'Los documentos de los que sale cada respuesta · si no está aquí, el chat no lo puede decir',
   pruebalo: 'Escribe como escribiría la farmacia y mira qué le sale · nada de esto queda registrado',
   'sin-respuesta': 'Consultas reales que no supimos contestar · de aquí sale casi todo el entrenamiento',
@@ -47,7 +49,7 @@ export function Chat() {
     if (tab === 'sintomas') setTeach('nuevo')
     else if (tab === 'reglas' || tab === 'sin-respuesta') setNewRule(true)
     else if (tab === 'fuentes') notify('Sube un PDF o pega un enlace')
-    else notify('Prueba vaciada')
+    else notify(PENDIENTE_ADMIN, 'aviso')
   }
 
   return (
@@ -55,17 +57,15 @@ export function Chat() {
       <PageHeader
         title="Chat inteligente"
         subtitle={sub[tab]}
-        right={
-          <div className="flex items-center gap-[22px]">
-            <div className="flex flex-col items-end"><span className="text-[17px] font-semibold tracking-tight text-ink leading-6">87 %</span><span className="text-xs text-faint">consultas resueltas</span></div>
-            <span className="w-px h-[34px] bg-line" />
-            <div className="flex flex-col items-end"><span className="text-[17px] font-semibold tracking-tight text-accent leading-6">64</span><span className="text-xs text-faint">sin respuesta esta semana</span></div>
-          </div>
-        }
       />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
-        {tabs.map((t) => <Chip key={t.key} active={tab === t.key} count={t.count} countTone={t.danger ? 'danger' : 'neutral'} onClick={() => navigate(`/admin/chat/${t.key}`)}>{t.label}</Chip>)}
-      </ChipRow>
+      <FilterBar right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
+        <FilterMenuButton
+          icon={<LayoutGrid size={13} strokeWidth={1.8} />}
+          value={tab}
+          options={tabs.map((t) => ({ key: t.key, label: t.label, count: t.count, countTone: t.danger ? 'danger' : 'neutral' }))}
+          onChange={(k) => navigate(`/admin/chat/${k}`)}
+        />
+      </FilterBar>
 
       {tab === 'sintomas' && <Sintomas onOpen={setSymptom} onTeach={() => setTeach('niebla')} />}
       {tab === 'reglas' && <Reglas onOpen={setRule} />}
@@ -84,7 +84,7 @@ export function Chat() {
 function Sintomas({ onOpen, onTeach }: { onOpen: (s: Symptom) => void; onTeach: () => void }) {
   const { notify } = useStore()
   return (
-    <TableCard footer="9 de 142 síntomas · ordenados por consultas de los últimos 30 días" footerRight={<button onClick={() => notify('Vocabulario exportado')}>Exportar el vocabulario</button>}>
+    <TableCard footer={plural(allSymptoms.length, 'síntoma', 'síntomas')} footerRight={<button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}>Exportar el vocabulario</button>}>
       <THead><Th className="flex-1">Síntoma</Th><Th className="w-[292px]">Cómo lo dicen</Th><Th className="w-[72px]" align="right">Consultas</Th><Th className="w-[52px]" align="right">Reglas</Th><Th className="w-[92px]">Acierto</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
       {allSymptoms.map((s, i) => (
         <Tr key={s.id} tone={s.state === 'Sin regla' ? 'danger' : undefined} onClick={() => (s.state === 'Sin regla' ? onTeach() : onOpen(s))} last={i === allSymptoms.length - 1}>
@@ -93,9 +93,9 @@ function Sintomas({ onOpen, onTeach }: { onOpen: (s: Symptom) => void; onTeach: 
             {s.expressions.slice(0, 2).map((e) => <span key={e.text} className={cn('h-[19px] px-2 rounded-full border border-line-soft text-[10.5px] text-ink-soft inline-flex items-center whitespace-nowrap', s.detected ? 'bg-surface' : 'bg-chrome')}>{e.text.length > 22 ? e.text.slice(0, 20) + '…' : e.text}</span>)}
             <span className="text-[10.5px] text-faint">+{Math.max(0, s.expressions.length - 2 + s.pending.length)}</span>
           </div>
-          <Td className="w-[72px]" align="right">{s.consultations}</Td>
+          <Td className="w-[72px]" align="right">{s.consultations ?? '—'}</Td>
           <Td className="w-[52px]" align="right">{s.rules}</Td>
-          <div className="w-[92px] flex items-center gap-2">{s.accuracy === null ? <span className="text-sm text-faint">—</span> : <><Bar value={s.accuracy} tone={s.accuracy >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted">{s.accuracy} %</span></>}</div>
+          <div className="w-[92px] flex items-center gap-2">{s.accuracy === null ? <span className="text-sm text-faint">—</span> : <><Bar value={s.accuracy} tone={s.accuracy >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{s.accuracy} %</span></>}</div>
           <div className="w-[92px] flex justify-end"><Badge tone={s.state === 'Entrenado' ? 'ok' : s.state === 'Flojo' ? 'warn' : 'solid-danger'}>{s.state}</Badge></div>
         </Tr>
       ))}
@@ -106,7 +106,7 @@ function Sintomas({ onOpen, onTeach }: { onOpen: (s: Symptom) => void; onTeach: 
 function Reglas({ onOpen }: { onOpen: (r: Rule) => void }) {
   const { notify } = useStore()
   return (
-    <TableCard footer="8 de 96 reglas · cuando dos reglas encajan, gana la que tiene más condiciones" footerRight={<button onClick={() => notify('Las reglas se ordenan por número de condiciones y luego por acierto')}>Ver cómo se ordenan</button>}>
+    <TableCard footer={`${plural(allRules.length, 'regla', 'reglas')} · cuando dos reglas encajan, gana la que tiene más condiciones`} footerRight={<button onClick={() => notify('Las reglas se ordenan por número de condiciones y luego por acierto')}>Ver cómo se ordenan</button>}>
       <THead><Th className="flex-1">Cuándo se activa</Th><Th className="w-[168px]">Qué recomienda</Th><Th className="w-[76px]" align="right">Se usó</Th><Th className="w-[96px]">Le sirvió</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
       {allRules.map((r, i) => (
         <Tr key={r.id} height={58} onClick={() => onOpen(r)} last={i === allRules.length - 1}>
@@ -116,7 +116,7 @@ function Reglas({ onOpen }: { onOpen: (r: Rule) => void }) {
           </div>
           <div className="w-[168px] flex items-center gap-[5px]">{r.products.length === 0 ? <span className="text-sm text-faint">Sin producto</span> : <>{r.products.slice(0, 3).map((p) => <Thumb key={p.code + p.name} code={p.code} tone={p.tone === 'sand' ? 'sand' : p.tone === 'ok' ? 'ok' : p.tone === 'violet' ? 'violet' : 'accent'} />)}{r.extra && <span className="text-xs text-faint ml-0.5">+{r.extra}</span>}</>}</div>
           <Td className="w-[76px]" align="right">{r.used ?? '—'}</Td>
-          <div className="w-[96px] flex items-center gap-2">{r.useful === null ? <span className="text-sm text-faint">—</span> : <><Bar value={r.useful} width={50} tone={r.useful >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted">{r.useful} %</span></>}</div>
+          <div className="w-[96px] flex items-center gap-2">{r.useful === null ? <span className="text-sm text-faint">—</span> : <><Bar value={r.useful} width={50} tone={r.useful >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{r.useful} %</span></>}</div>
           <div className="w-[92px] flex justify-end"><Badge tone={r.state === 'Activa' ? 'ok' : 'warn'}>{r.state}</Badge></div>
         </Tr>
       ))}
@@ -127,7 +127,7 @@ function Reglas({ onOpen }: { onOpen: (r: Rule) => void }) {
 function Fuentes() {
   const { notify } = useStore()
   return (
-    <TableCard footer="6 de 24 fuentes · 1,2 GB · todas revisadas por la Dra. Sanz" footerRight={<button onClick={() => notify('Sube un PDF o pega un enlace')}>Subir fuente</button>}>
+    <TableCard footer={plural(sources.length, 'fuente', 'fuentes')} footerRight={<button onClick={() => notify('Sube un PDF o pega un enlace')}>Subir fuente</button>}>
       <THead><Th className="flex-1">Fuente</Th><Th className="w-[110px]" align="right">Usada en reglas</Th><Th className="w-[100px]" align="right">Actualizada</Th><Th className="w-[90px]" align="right">Estado</Th></THead>
       {sources.map((f, i) => (
         <Tr key={f.name} onClick={() => notify(`Abriendo «${f.name}»`)} last={i === sources.length - 1}>
@@ -153,7 +153,7 @@ function Pruebalo() {
     { art: 'sachet' as const, name: 'Glicina 1 g', score: 63, why: 'Si no quiere melatonina. Baja un poco la temperatura corporal y ayuda a coger el sueño.', dose: '1 sobre antes de acostarse' },
   ]
   return (
-    <div className="flex gap-[18px]">
+    <div className="flex flex-col lg:flex-row gap-[18px]">
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="rounded-xl bg-surface border border-accent shadow-focus p-3.5 flex flex-col">
           <textarea rows={2} className="w-full bg-transparent text-[14px] leading-[19px] text-ink resize-none" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -179,7 +179,7 @@ function Pruebalo() {
           </div>
         )}
       </div>
-      <aside className="w-[336px] shrink-0 flex flex-col gap-3">
+      <aside className="w-full lg:w-[336px] lg:shrink-0 flex flex-col gap-3">
         <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
           <div className="h-9 px-3.5 bg-chrome border-b border-line flex items-center"><span className="label">Por qué ha salido esto</span></div>
           <div className="p-3.5 flex flex-col">
@@ -202,7 +202,7 @@ function Pruebalo() {
           <span className="text-md font-semibold text-ink">¿Contestarías tú lo mismo?</span>
           <span className="text-xs text-muted mt-[3px] leading-[15px]">Lo que marques aquí entra directo al entrenamiento.</span>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => { setVerdict('ok'); notify('Respuesta validada · refuerza la regla') }} className={cn('flex-1 h-8 rounded-md border inline-flex items-center justify-center gap-1.5 text-md font-semibold', verdict === 'ok' ? 'bg-ok text-white border-ok' : 'bg-ok-wash text-ok border-[#CBD9CC]')}><Check size={13} strokeWidth={2.5} />Está bien</button>
+            <button onClick={() => { setVerdict('ok'); notify(PENDIENTE_ADMIN, 'aviso') }} className={cn('flex-1 h-8 rounded-md border inline-flex items-center justify-center gap-1.5 text-md font-semibold', verdict === 'ok' ? 'bg-ok text-white border-ok' : 'bg-ok-wash text-ok border-[#CBD9CC]')}><Check size={13} strokeWidth={2.5} />Está bien</button>
             <button onClick={() => { setVerdict('fix'); notify('Abre la regla para corregirla') }} className={cn('flex-1 h-8 rounded-md border inline-flex items-center justify-center gap-1.5 text-md font-semibold', verdict === 'fix' ? 'bg-ink text-white border-ink' : 'bg-surface text-ink border-line')}><RotateCcw size={12} />Corregir</button>
           </div>
           <span className="mt-2.5 text-xs text-faint">Al corregir puedes quitar un producto, meter otro o reescribir el porqué.</span>
@@ -217,7 +217,7 @@ function SinRespuesta({ onTeach }: { onTeach: (id: string) => void }) {
   const [gone, setGone] = useState<string[]>([])
   const list = allUnanswered.filter((u) => !gone.includes(u.id))
   return (
-    <TableCard footer={`${list.length} de 64 · agrupadas por lo que querían decir, no por las palabras exactas`} footerRight={<button onClick={() => { setGone(list.map((l) => l.id)); notify('Todo marcado como visto') }}>Marcar todo como visto</button>}>
+    <TableCard footer={`${list.length} de ${allUnanswered.length} · agrupadas por lo que querían decir, no por las palabras exactas`} footerRight={<button onClick={() => { setGone(list.map((l) => l.id)); notify(PENDIENTE_ADMIN, 'aviso') }}>Marcar todo como visto</button>}>
       <THead><Th className="flex-1">Lo que escribieron</Th><Th className="w-[150px]">Farmacia</Th><Th className="w-[74px]">Cuándo</Th><Th className="w-[186px]">Qué pasó</Th><Th className="w-[104px]" align="right">Arreglarlo</Th></THead>
       {list.map((u, i) => (
         <Tr key={u.id} active={u.hot} onClick={() => (u.action === 'Descartar' ? setGone((g) => [...g, u.id]) : onTeach(u.id))} last={i === list.length - 1}>
@@ -239,13 +239,13 @@ function SymptomDrawer({ s, onClose }: { s: Symptom; onClose: () => void }) {
   const [pending, setPending] = useState(s.pending)
   const [draft, setDraft] = useState('')
   const [showAll, setShowAll] = useState(false)
-  const add = () => { if (!draft.trim()) return; setExpr((e) => [{ text: draft.trim(), count: 0 }, ...e]); setDraft(''); notify('Expresión añadida') }
-  const approve = (t: string) => { const p = pending.find((x) => x.text === t)!; setPending((ps) => ps.filter((x) => x.text !== t)); setExpr((e) => [...e, { text: t, count: parseInt(p.meta) || 0 }]); notify('Aprobada · ya cuenta para el síntoma') }
+  const add = () => { if (!draft.trim()) return; setExpr((e) => [{ text: draft.trim(), count: 0 }, ...e]); setDraft(''); notify(PENDIENTE_ADMIN, 'aviso') }
+  const approve = (t: string) => { const p = pending.find((x) => x.text === t)!; setPending((ps) => ps.filter((x) => x.text !== t)); setExpr((e) => [...e, { text: t, count: parseInt(p.meta) || 0 }]); notify(PENDIENTE_ADMIN, 'aviso') }
   const shown = showAll ? expr : expr.slice(0, 5)
   return (
-    <Drawer open onClose={onClose} title={s.name} badge={<Badge tone={s.state === 'Entrenado' ? 'ok' : 'warn'}>{s.state}</Badge>} subtitle={`${s.category} · ${s.consultations} consultas en 30 días${s.accuracy ? ` · ${s.accuracy} % de acierto` : ''}`} width={496}
+    <Drawer open onClose={onClose} title={s.name} badge={<Badge tone={s.state === 'Entrenado' ? 'ok' : 'warn'}>{s.state}</Badge>} subtitle={[s.category, s.consultations != null ? `${s.consultations} consultas en 30 días` : '', s.accuracy != null ? `${s.accuracy} % de acierto` : ''].filter(Boolean).join(' · ')} width={496}
       tabs={[{ key: 'dicen', label: 'Cómo lo dicen' }, { key: 'rec', label: `Qué recomienda · ${s.rules}` }, { key: 'hist', label: 'Historial' }]} activeTab={tab} onTab={setTab}
-      footer={<><button className="text-md font-medium text-danger" onClick={() => notify('Pide confirmación antes de borrar')}>Borrar síntoma</button><div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con este síntoma')}>Probarlo</Button><Button variant="primary" size="lg" onClick={() => { notify('Síntoma guardado'); onClose() }}>Guardar</Button></div></>}
+      footer={<><button className="text-md font-medium text-danger" onClick={() => notify('Pide confirmación antes de borrar')}>Borrar síntoma</button><div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con este síntoma')}>Probarlo</Button><Button variant="primary" size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); onClose() }}>Guardar</Button></div></>}
     >
       {tab === 'dicen' && (
         <>
@@ -260,7 +260,7 @@ function SymptomDrawer({ s, onClose }: { s: Symptom; onClose: () => void }) {
             <>
               <div className="mt-5 flex items-center gap-2"><span className="label-faint">Lo ha aprendido solo</span><Badge size="sm" tone="accent">{pending.length} por aprobar</Badge></div>
               <div className="mt-2 rounded-lg bg-accent-wash border border-accent-line overflow-hidden">
-                {pending.map((p, i) => <div key={p.text} className={cn('h-[46px] px-3 flex items-center gap-2.5', i < pending.length - 1 && 'border-b border-[#E3C7BA]')}><span className="flex-1 min-w-0 flex flex-col"><span className="text-md text-ink truncate">{p.text}</span><span className={cn('text-[10.5px]', p.danger ? 'text-danger' : 'text-accent-deep')}>{p.meta}</span></span><button onClick={() => approve(p.text)} className="h-[26px] w-[26px] rounded-[7px] bg-ok text-white inline-flex items-center justify-center"><Check size={13} strokeWidth={3} /></button><button onClick={() => { setPending((ps) => ps.filter((x) => x !== p)); notify('Descartada') }} className="h-[26px] w-[26px] rounded-[7px] bg-surface border border-line text-muted inline-flex items-center justify-center"><X size={12} strokeWidth={2.4} /></button></div>)}
+                {pending.map((p, i) => <div key={p.text} className={cn('h-[46px] px-3 flex items-center gap-2.5', i < pending.length - 1 && 'border-b border-[#E3C7BA]')}><span className="flex-1 min-w-0 flex flex-col"><span className="text-md text-ink truncate">{p.text}</span><span className={cn('text-[10.5px]', p.danger ? 'text-danger' : 'text-accent-deep')}>{p.meta}</span></span><button onClick={() => approve(p.text)} className="h-[26px] w-[26px] rounded-[7px] bg-ok text-white inline-flex items-center justify-center"><Check size={13} strokeWidth={3} /></button><button onClick={() => { setPending((ps) => ps.filter((x) => x !== p)); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[26px] w-[26px] rounded-[7px] bg-surface border border-line text-muted inline-flex items-center justify-center"><X size={12} strokeWidth={2.4} /></button></div>)}
               </div>
             </>
           )}
@@ -279,15 +279,15 @@ function RuleDrawer({ r, onClose, isNew }: { r: Rule; onClose: () => void; isNew
   const [paused, setPaused] = useState(false)
   const canPublish = prods.length > 0 && prods.every((p) => p.why.trim().length > 0)
   return (
-    <Drawer open onClose={onClose} title={r.name} badge={!isNew && <Badge tone={paused ? 'neutral' : r.state === 'Activa' ? 'ok' : 'warn'}>{paused ? 'Pausada' : r.state}</Badge>} subtitle={isNew ? 'Empieza por decir cuándo se activa' : r.used ? `Se usó ${r.used} veces · le sirvió al ${r.useful} %` : 'Aún no se ha usado'} width={496}
+    <Drawer open onClose={onClose} title={r.name} badge={!isNew && <Badge tone={paused ? 'neutral' : r.state === 'Activa' ? 'ok' : 'warn'}>{paused ? 'Pausada' : r.state}</Badge>} subtitle={isNew ? 'Empieza por decir cuándo se activa' : r.used ? `Se usó ${r.used} veces · le sirvió al ${r.useful} %` : 'Sin datos de uso todavía'} width={496}
       tabs={[{ key: 'when', label: 'Cuándo se activa' }, { key: 'what', label: `Qué recomienda · ${prods.length}` }, { key: 'warn', label: 'Avisos · 2' }, { key: 'src', label: 'Fuentes' }]} activeTab={tab} onTab={setTab}
-      footer={<>{!isNew ? <button className="text-md font-medium text-muted" onClick={() => { setPaused((p) => !p); notify(paused ? 'Regla reactivada' : 'Regla pausada') }}>{paused ? 'Reactivar regla' : 'Pausar regla'}</button> : <span className="text-sm text-muted">{canPublish ? 'Lista para publicar' : 'Sin «por qué» no se publica'}</span>}<div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con esta regla')}>Probarla</Button><Button variant="primary" size="lg" disabled={isNew && !canPublish} onClick={() => { notify(isNew ? 'Regla creada como borrador' : 'Regla guardada'); onClose() }}>{isNew ? 'Crear regla' : 'Guardar'}</Button></div></>}
+      footer={<>{!isNew ? <button className="text-md font-medium text-muted" onClick={() => { setPaused((p) => !p); notify(PENDIENTE_ADMIN, 'aviso') }}>{paused ? 'Reactivar regla' : 'Pausar regla'}</button> : <span className="text-sm text-muted">{canPublish ? 'Lista para publicar' : 'Sin «por qué» no se publica'}</span>}<div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con esta regla')}>Probarla</Button><Button variant="primary" size="lg" disabled={isNew && !canPublish} onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); onClose() }}>{isNew ? 'Crear regla' : 'Guardar'}</Button></div></>}
     >
       {tab === 'when' && (
         <div className="flex flex-col gap-4">
           <Field label="Síntoma principal" required><Select value={isNew ? 'Elige un síntoma…' : r.name.split(' · ')[0]} muted={isNew} /></Field>
-          <Field label="Condiciones" hint="Cuantas más condiciones, más prioridad tiene la regla sobre las genéricas."><div className="flex flex-col gap-2">{(isNew ? ['+ Añadir condición'] : r.conditions.split(' + ').map((c) => c.replace(/^\w/, (m) => m.toUpperCase()))).map((c) => <div key={c} className={cn('h-9 rounded-md border px-3 flex items-center text-base', c.startsWith('+') ? 'border-dashed border-line text-accent font-medium bg-chrome' : 'border-line bg-surface text-ink')}>{c}{!c.startsWith('+') && <button className="ml-auto text-faint hover:text-danger" onClick={() => notify('Condición quitada')}><X size={13} /></button>}</div>)}</div></Field>
-          <div className="flex items-center justify-between pt-3 border-t border-line-soft"><div className="flex flex-col"><span className="text-base font-medium text-ink">Solo deriva, no recomienda</span><span className="text-xs text-faint">Para casos que tienen que pasar por el médico</span></div><Toggle on={!!r.derive} onChange={() => notify('Cambiado')} /></div>
+          <Field label="Condiciones" hint="Cuantas más condiciones, más prioridad tiene la regla sobre las genéricas."><div className="flex flex-col gap-2">{(isNew ? ['+ Añadir condición'] : r.conditions.split(' + ').map((c) => c.replace(/^\w/, (m) => m.toUpperCase()))).map((c) => <div key={c} className={cn('h-9 rounded-md border px-3 flex items-center text-base', c.startsWith('+') ? 'border-dashed border-line text-accent font-medium bg-chrome' : 'border-line bg-surface text-ink')}>{c}{!c.startsWith('+') && <button className="ml-auto text-faint hover:text-danger" onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}><X size={13} /></button>}</div>)}</div></Field>
+          <div className="flex items-center justify-between pt-3 border-t border-line-soft"><div className="flex flex-col"><span className="text-base font-medium text-ink">Solo deriva, no recomienda</span><span className="text-xs text-faint">Para casos que tienen que pasar por el médico</span></div><Toggle on={!!r.derive} onChange={() => notify(PENDIENTE_ADMIN, 'aviso')} /></div>
         </div>
       )}
       {tab === 'what' && (
@@ -307,13 +307,13 @@ function RuleDrawer({ r, onClose, isNew }: { r: Rule; onClose: () => void; isNew
                 </div>
               </div>
             ))}
-            <button onClick={() => { setProds((ps) => [...ps, { code: 'GLI', tone: 'ok', name: 'Glicina 1 g', dose: '1 sobre antes de acostarse', why: '', tag: 'ALTERNATIVA' }]); notify('Producto añadido · escribe el porqué') }} className="h-[42px] rounded-lg border border-dashed border-line bg-chrome flex items-center justify-center gap-2 text-md font-medium text-ink-soft hover:bg-chrome-deep/50"><Plus size={13} />Añadir otro producto del catálogo</button>
+            <button onClick={() => { setProds((ps) => [...ps, { code: 'GLI', tone: 'ok', name: 'Glicina 1 g', dose: '1 sobre antes de acostarse', why: '', tag: 'ALTERNATIVA' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[42px] rounded-lg border border-dashed border-line bg-chrome flex items-center justify-center gap-2 text-md font-medium text-ink-soft hover:bg-chrome-deep/50"><Plus size={13} />Añadir otro producto del catálogo</button>
           </div>
           {r.notice && <div className="mt-3.5 rounded-lg bg-warn-wash border border-warn-line px-3 py-2.5 flex items-center gap-2.5"><AlertTriangle size={14} className="text-warn shrink-0" /><div className="flex flex-col"><span className="text-sm font-semibold text-[#7A5A18]">Se enseña siempre con la recomendación</span><span className="text-xs text-[#7A5A18] leading-[14px]">{r.notice}</span></div></div>}
         </>
       )}
-      {tab === 'warn' && <div className="flex flex-col gap-2.5">{[['Anticoagulantes (Sintrom, apixabán)', 'Quita valeriana, ginkgo y jengibre. Avisa arriba del todo.', 'danger'], ['Ya toma hipnóticos', 'No recomienda melatonina. Manda hablar con el médico.', 'warn']].map(([t, d, tone]) => <div key={t} className={cn('rounded-lg border p-3.5 flex flex-col', tone === 'danger' ? 'bg-danger-wash border-danger-line' : 'bg-warn-wash border-warn-line')}><span className={cn('text-base font-semibold', tone === 'danger' ? 'text-danger' : 'text-[#7A5A18]')}>{t}</span><span className="text-sm mt-1 text-ink-soft">{d}</span></div>)}<button onClick={() => notify('Nuevo aviso')} className="h-10 rounded-lg border border-dashed border-line bg-chrome text-md font-medium text-ink-soft">+ Añadir aviso</button></div>}
-      {tab === 'src' && <div className="flex flex-col gap-2">{sources.slice(0, 3).map((f) => <div key={f.name} className="h-[52px] rounded-lg bg-surface border border-line px-3 flex items-center gap-3"><FileBadge kind={f.kind} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{f.name}</span><span className="text-xs text-faint">{f.meta}</span></span><button onClick={() => notify('Fuente desvinculada')} className="text-faint hover:text-danger"><X size={13} /></button></div>)}<button onClick={() => notify('Elige una fuente de la biblioteca')} className="h-10 rounded-lg border border-dashed border-line bg-chrome text-md font-medium text-ink-soft">+ Vincular una fuente</button></div>}
+      {tab === 'warn' && <div className="flex flex-col gap-2.5">{[['Anticoagulantes (Sintrom, apixabán)', 'Quita valeriana, ginkgo y jengibre. Avisa arriba del todo.', 'danger'], ['Ya toma hipnóticos', 'No recomienda melatonina. Manda hablar con el médico.', 'warn']].map(([t, d, tone]) => <div key={t} className={cn('rounded-lg border p-3.5 flex flex-col', tone === 'danger' ? 'bg-danger-wash border-danger-line' : 'bg-warn-wash border-warn-line')}><span className={cn('text-base font-semibold', tone === 'danger' ? 'text-danger' : 'text-[#7A5A18]')}>{t}</span><span className="text-sm mt-1 text-ink-soft">{d}</span></div>)}<button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')} className="h-10 rounded-lg border border-dashed border-line bg-chrome text-md font-medium text-ink-soft">+ Añadir aviso</button></div>}
+      {tab === 'src' && <div className="flex flex-col gap-2">{sources.slice(0, 3).map((f) => <div key={f.name} className="h-[52px] rounded-lg bg-surface border border-line px-3 flex items-center gap-3"><FileBadge kind={f.kind} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{f.name}</span><span className="text-xs text-faint">{f.meta}</span></span><button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')} className="text-faint hover:text-danger"><X size={13} /></button></div>)}<button onClick={() => notify('Elige una fuente de la biblioteca')} className="h-10 rounded-lg border border-dashed border-line bg-chrome text-md font-medium text-ink-soft">+ Vincular una fuente</button></div>}
     </Drawer>
   )
 }
@@ -327,8 +327,8 @@ function TeachDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const isNew = id === 'nuevo'
   return (
     <Drawer open onClose={onClose} title={isNew ? 'Nuevo síntoma' : 'Enséñale a contestar esto'} subtitle={isNew ? 'Empieza por cómo lo llamamos y cómo lo dice la gente' : `${u?.meta.replace('y ', '').replace(' más parecidas este mes', '').replace(' más parecidas', '') ?? '64 consultas'} sin respuesta dicen lo mismo`} width={496}
-      tabs={isNew ? undefined : [{ key: 'prop', label: 'Mi propuesta' }, { key: 'all', label: 'Las 64 consultas' }]} activeTab={tab} onTab={setTab}
-      footer={<><button className="text-md font-medium text-muted" onClick={() => { notify('Descartado · no es cosa nuestra'); onClose() }}>No es cosa nuestra</button><div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con esta propuesta')}>Probarla antes</Button><Button variant="primary" size="lg" disabled={!name.trim() || (!isNew && !why2.trim())} onClick={() => { notify(isNew ? `Síntoma «${name}» creado` : `Regla creada para «${name}» · 64 consultas ya tienen respuesta`); onClose() }}>{isNew ? 'Crear síntoma' : 'Crear la regla'}</Button></div></>}
+      tabs={isNew ? undefined : [{ key: 'prop', label: 'Mi propuesta' }, { key: 'all', label: 'Las consultas' }]} activeTab={tab} onTab={setTab}
+      footer={<><button className="text-md font-medium text-muted" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); onClose() }}>No es cosa nuestra</button><div className="flex gap-2"><Button size="lg" onClick={() => notify('Abre Pruébalo con esta propuesta')}>Probarla antes</Button><Button variant="primary" size="lg" disabled={!name.trim() || (!isNew && !why2.trim())} onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); onClose() }}>{isNew ? 'Crear síntoma' : 'Crear la regla'}</Button></div></>}
     >
       {tab === 'all' && !isNew ? (
         <div className="flex flex-col gap-1.5">{['algo para la niebla mental de la quimio', 'no me concentro desde el tratamiento', 'voy espesa todo el día', 'se me olvidan las cosas, es por la quimio', 'algo para la cabeza después de la quimio', 'estoy como en una nube'].map((t, i) => <div key={t} className="h-10 rounded-md bg-surface border border-line px-3 flex items-center gap-3 text-md text-ink"><span className="flex-1 truncate">«{t}»</span><span className="text-xs text-faint">{[12, 9, 8, 7, 6, 5][i]} veces</span></div>)}<span className="text-xs text-faint mt-1.5">… y 58 más agrupadas por intención</span></div>
@@ -342,7 +342,7 @@ function TeachDrawer({ id, onClose }: { id: string; onClose: () => void }) {
             <>
               <div className="mt-[18px] flex items-center gap-2"><span className="h-[17px] w-[17px] rounded-full bg-accent text-on-accent text-[10px] font-bold inline-flex items-center justify-center">2</span><span className="flex-1 label-faint">Qué contestamos</span><span className="text-[10.5px] text-faint">sugerencia mía, cámbiala</span></div>
               <div className="mt-2 rounded-lg bg-surface border border-line p-[11px] flex gap-3"><ProductArt art="bottle" size={22} className="h-[46px] w-[46px] rounded-lg" /><div className="flex-1 flex flex-col"><span className="text-base font-semibold text-ink">Omega 3 DHA alta concentración</span><div className="mt-1.5 rounded-[7px] bg-chrome border border-line-soft p-2 flex flex-col"><span className="text-[9.5px] font-semibold tracking-[0.06em] text-faint uppercase">Por qué este</span><span className="mt-1 text-sm leading-[15px] text-ink-soft">El DHA es estructura del cerebro. Se usa cuando cuesta concentrarse y no hay nada que tratar.</span></div></div></div>
-              <div className="mt-2 rounded-lg bg-surface border border-line p-[11px] flex gap-3"><ProductArt art="sachet" size={22} className="h-[46px] w-[46px] rounded-lg" /><div className="flex-1 flex flex-col"><span className="text-base font-semibold text-ink">Complejo B activado</span><div className={cn('mt-1.5 rounded-[7px] border p-2 flex flex-col', why2 ? 'bg-chrome border-line-soft' : 'bg-chrome border-dashed border-line')}><span className="text-[9.5px] font-semibold tracking-[0.06em] text-faint uppercase">Por qué este</span><textarea rows={2} value={why2} onChange={(e) => setWhy2(e.target.value)} placeholder="Escríbelo tú. Sin esto la regla no se puede publicar." className="mt-1 w-full bg-transparent text-sm leading-[15px] text-ink-soft resize-none" /></div></div></div>
+              <div className="mt-2 rounded-lg bg-surface border border-line p-[11px] flex gap-3"><ProductArt art="sachet" size={22} className="h-[46px] w-[46px] rounded-lg" /><div className="flex-1 flex flex-col"><span className="text-base font-semibold text-ink">Vitamina B12</span><div className={cn('mt-1.5 rounded-[7px] border p-2 flex flex-col', why2 ? 'bg-chrome border-line-soft' : 'bg-chrome border-dashed border-line')}><span className="text-[9.5px] font-semibold tracking-[0.06em] text-faint uppercase">Por qué este</span><textarea rows={2} value={why2} onChange={(e) => setWhy2(e.target.value)} placeholder="Escríbelo tú. Sin esto la regla no se puede publicar." className="mt-1 w-full bg-transparent text-sm leading-[15px] text-ink-soft resize-none" /></div></div></div>
               <div className="mt-[18px] flex items-center gap-2"><span className="h-[17px] w-[17px] rounded-full bg-accent text-on-accent text-[10px] font-bold inline-flex items-center justify-center">3</span><span className="label-faint">Lo que hay que avisar</span></div>
               <div className="mt-2 rounded-lg bg-danger-wash border border-danger-line px-3 py-2.5 flex items-center gap-2.5"><AlertTriangle size={15} className="text-danger shrink-0" /><div className="flex flex-col"><span className="text-sm font-medium text-[#7E2323] leading-[15px]">«Si está en tratamiento oncológico, que lo hable con su oncólogo antes de tomar nada.»</span><span className="text-[10.5px] text-danger mt-[3px]">Sale siempre, arriba del todo · no se puede quitar</span></div></div>
             </>

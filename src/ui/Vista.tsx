@@ -27,7 +27,7 @@ export function useVista(init: VistaInit = {}) {
   )
   const [vista, setVista] = useState<VistaState>(initial)
   const reset = () => setVista(initial)
-  return { vista, setVista, resetVista: reset, initialVista: initial }
+  return { vista, setVista, resetVista: reset }
 }
 
 /** Columnas visibles, ya en el orden elegido */
@@ -35,8 +35,26 @@ export function visibleColumns(vista: VistaState) {
   return vista.order.filter((k) => vista.columns[k] !== false)
 }
 
-/** Rejilla de tarjetas según «tarjetas por fila» */
-export function gridCols(vista: VistaState): CSSProperties {
+function useNarrow() {
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const onChange = () => setNarrow(mq.matches)
+    onChange()
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return narrow
+}
+
+/**
+ * Rejilla de tarjetas según «tarjetas por fila». En pantallas estrechas (<640px)
+ * ignora un número fijo de columnas elegido en Vista (4-6 no cabe en un móvil)
+ * y cae siempre a «las que quepan».
+ */
+export function useGridCols(vista: VistaState): CSSProperties {
+  const narrow = useNarrow()
+  if (narrow) return { gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))' }
   return { gridTemplateColumns: vista.perRow === 'fit' ? 'repeat(auto-fill, minmax(236px, 1fr))' : `repeat(${vista.perRow}, minmax(0, 1fr))` }
 }
 

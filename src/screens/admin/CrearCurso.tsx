@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { GripVertical, ChevronRight, Play, AlignLeft, Image as ImageIcon, Plus, Check, Search, Upload, FileText, X } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
+import { PENDIENTE_ADMIN, useStore } from '@/app/store'
 import { adminCourses, courseById } from '@/data/courses'
 import { Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
@@ -33,7 +33,8 @@ export function CrearCurso() {
   const [panel, setPanel] = useState<null | 'nueva' | 'subiendo' | 'biblioteca'>(null)
   const [fromLibrary, setFromLibrary] = useState<string | null>(null)
   const [saved, setSaved] = useState('Guardado hace 12 s')
-  const [published, setPublished] = useState(existing?.state === 'Publicado')
+  // Publicar todavía no escribe en ningún sitio: el estado es el que trae el curso.
+  const published = existing?.state === 'Publicado'
   const [toast, setToast] = useState<L | null>(null)
   const courseId = id ?? 'nuevo'
 
@@ -61,14 +62,14 @@ export function CrearCurso() {
       toolbar={
         <Toolbar back="/admin/cursos" crumbs={[{ label: 'Cursos', to: '/admin/cursos' }, { label: existing ? existing.title.slice(0, 34) + (existing.title.length > 34 ? '…' : '') : 'Nuevo curso' }]}
           meta={<><Badge tone={published ? 'ok' : 'warn'} className="ml-1">{published ? 'Publicado' : 'Borrador'}</Badge><span className="text-sm text-muted">{saved}</span></>}
-          right={<><Link to={real ? `/farmacia/formacion/cursos/${real.id}` : '/farmacia/formacion/cursos'}><Button>Vista previa</Button></Link><Button variant="primary" disabled={!ready && !published} onClick={() => { setPublished(true); notify(ready ? 'Curso publicado · lo ven 412 farmacias y 6 comerciales' : 'Falta la portada para publicar') }}>{published ? 'Publicado' : 'Publicar'}</Button></>}
+          right={<><Link to={real ? `/farmacia/formacion/cursos/${real.id}` : '/farmacia/formacion/cursos'}><Button>Vista previa</Button></Link><Button variant="primary" disabled={!ready && !published} onClick={() => notify(ready ? PENDIENTE_ADMIN : 'Falta la portada para publicar', 'aviso')}>{published ? 'Publicado' : 'Publicar'}</Button></>}
         />
       }
     >
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
         <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex gap-4">
-            <button onClick={() => { setCover(true); notify('Portada subida') }} className={cn('h-[106px] w-[168px] shrink-0 rounded-xl border flex flex-col items-center justify-center gap-2', cover ? 'border-line overflow-hidden' : 'border-dashed border-line bg-chrome hover:bg-chrome-deep/50')}>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button onClick={() => { setCover(true); notify(PENDIENTE_ADMIN, 'aviso') }} className={cn('h-[106px] w-full sm:w-[168px] sm:shrink-0 rounded-xl border flex flex-col items-center justify-center gap-2', cover ? 'border-line overflow-hidden' : 'border-dashed border-line bg-chrome hover:bg-chrome-deep/50')}>
               {cover && real ? <img src={real.cover} alt="" className="h-full w-full object-cover" /> : cover ? <span className="text-sm text-ok font-medium inline-flex items-center gap-1"><Check size={12} /> Portada subida</span> : <><ImageIcon size={18} className="text-muted" /><span className="text-sm text-ink-soft">Portada del curso</span></>}
             </button>
             <Field className="flex-1" label="Título del curso" required hint={<span className="flex justify-between"><span>Aparece en la tarjeta del curso y en el buscador.</span><span>{title.length} / 70</span></span>}>
@@ -98,7 +99,7 @@ export function CrearCurso() {
           </div>
         </div>
 
-        <aside className="w-[316px] shrink-0 flex flex-col gap-4">
+        <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-4">
           <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
             <div className="h-[34px] px-4 bg-chrome border-b border-line-soft flex items-center"><span className="label">Publicación</span></div>
             <div className="px-4 py-3.5 border-b border-line-soft flex flex-col gap-1.5"><span className="text-sm text-ink-soft">Itinerario</span><Select value={existing?.itinerary === 'Vitaminas' || !existing ? 'Vitaminas y minerales' : existing.itinerary} /></div>
@@ -160,7 +161,7 @@ function NuevaLeccion({ n, course, fromLibrary, onLibrary, onClose, onCreate }: 
         </Block>
         <Block icon={<FileText size={12} className="text-ink-soft" />} title="Archivos adjuntos" right={files.length ? String(files.length) : 'ninguno todavía'}>
           {files.map((f) => <div key={f.n} className="h-10 mb-2 rounded-md border border-line px-2.5 flex items-center gap-2.5"><FileBadge kind={f.k} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-md font-medium text-ink truncate">{f.n}</span><span className="text-xs text-faint">{f.m}</span></span><button onClick={() => setFiles((fs) => fs.filter((x) => x !== f))} className="text-faint hover:text-ink"><X size={12} /></button></div>)}
-          <button onClick={() => { setFiles((fs) => [...fs, fs.length === 0 ? { k: 'PDF', n: 'Mapa de déficit por latitud', m: '620 KB · descargable' } : { k: 'A5', n: 'Chuleta de mostrador', m: '180 KB · imprimible' }]); notify('Archivo adjuntado') }} className="h-11 w-full rounded-md border border-dashed border-line bg-chrome flex items-center justify-center gap-2 text-md font-medium text-ink-soft hover:bg-chrome-deep/50"><Plus size={13} />PDF, ficha imprimible, imagen o enlace</button>
+          <button onClick={() => { setFiles((fs) => [...fs, fs.length === 0 ? { k: 'PDF', n: 'Mapa de déficit por latitud', m: '620 KB · descargable' } : { k: 'A5', n: 'Chuleta de mostrador', m: '180 KB · imprimible' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-11 w-full rounded-md border border-dashed border-line bg-chrome flex items-center justify-center gap-2 text-md font-medium text-ink-soft hover:bg-chrome-deep/50"><Plus size={13} />PDF, ficha imprimible, imagen o enlace</button>
         </Block>
       </div>
       <div className="mt-4 flex items-center gap-2.5"><span className="w-[74px] text-md text-ink-soft">Dónde va</span><Select value="Al final del temario" size="sm" className="flex-1" /></div>

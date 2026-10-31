@@ -2,10 +2,15 @@ import { cn } from '@/lib/cn'
 
 export type Art = 'bottle' | 'dropper' | 'jar' | 'sachet' | 'box' | 'tube'
 
-/** Silueta de producto en línea, como en el Paper: trazo gris y tapón/etiqueta en arcilla suave. */
-export function ProductArt({ art = 'bottle', className, size = 80, stroke = '#B0AAA1', fill = '#F7E7E0', bg = true, filled }: {
-  art?: Art; className?: string; size?: number; stroke?: string; fill?: string; bg?: boolean; filled?: boolean
+/** Silueta de producto en línea, como en el Paper: trazo gris y tapón/etiqueta en arcilla suave. Si se pasa `photo`, se muestra la foto real en vez del dibujo. */
+export function ProductArt({ art = 'bottle', photo, className, size = 80, stroke = '#B0AAA1', fill = '#F7E7E0', bg = true, filled }: {
+  art?: Art; photo?: string; className?: string; size?: number; stroke?: string; fill?: string; bg?: boolean; filled?: boolean
 }) {
+  if (photo) {
+    const img = <img src={photo} alt="" width={bg ? undefined : size} height={bg ? undefined : size} className={bg ? 'max-w-[94%] max-h-[94%] object-contain' : 'object-contain'} />
+    if (!bg) return img
+    return <div className={cn('bg-white flex items-center justify-center', className)}>{img}</div>
+  }
   const s = 1.6
   const body = filled ? '#B4502E' : 'none'
   const bodyStroke = filled ? '#B4502E' : stroke

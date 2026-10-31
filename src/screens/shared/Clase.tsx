@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { Download, Maximize2, Play } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useBase, useStore } from '@/app/store'
+import { PENDIENTE, useBase, useStore } from '@/app/store'
 import { courseById } from '@/data/courses'
 import { Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
@@ -26,8 +26,8 @@ export function Clase() {
   const courseTo = `${base}/formacion/cursos/${c.id}`
 
   return (
-    <Screen toolbar={<Toolbar back={courseTo} crumbs={[{ label: c.title.length > 28 ? c.title.slice(0, 26) + '…' : c.title, to: courseTo }, { label: `Lección ${lesson.n} · ${lesson.title}` }]} right={<Button onClick={() => notify('Enlace copiado para tu equipo')}>Compartir con el equipo</Button>} />}>
-      <div className="flex gap-6">
+    <Screen toolbar={<Toolbar back={courseTo} crumbs={[{ label: c.title.length > 28 ? c.title.slice(0, 26) + '…' : c.title, to: courseTo }, { label: `Lección ${lesson.n} · ${lesson.title}` }]} right={<Button onClick={() => { void navigator.clipboard?.writeText(window.location.href).then(() => notify('Enlace copiado'), () => notify('No se ha podido copiar el enlace', 'aviso')) }}>Copiar el enlace</Button>} />}>
+      <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="relative rounded-xl bg-video h-[366px] overflow-hidden flex items-center justify-center">
             {lesson.type === 'text' ? (
@@ -55,11 +55,11 @@ export function Clase() {
           </div>
           <div className="mt-7 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-ink">Archivos de esta clase</h2>
-            <button onClick={() => notify('Descargando los archivos de la clase')} className="text-base font-medium text-accent">Descargar todo</button>
+            <button onClick={() => notify(PENDIENTE, 'aviso')} className="text-base font-medium text-accent">Descargar todo</button>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-3.5">
-            {files.map((f) => (
-              <button key={f.name} onClick={() => notify(`Descargando ${f.name}`)} className="rounded-xl bg-surface border border-line shadow-card p-3.5 flex items-center gap-3 text-left hover:border-faint">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {files.map((f, i) => (
+              <button key={`${i}-${f.name}`} onClick={() => notify(PENDIENTE, 'aviso')} className="rounded-xl bg-surface border border-line shadow-card p-3.5 flex items-center gap-3 text-left hover:border-faint">
                 <FileBadge kind={f.kind} />
                 <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink leading-[17px]">{f.name}</span><span className="text-xs text-faint mt-[2px]">{f.meta}</span></span>
                 <Download size={14} className="text-muted shrink-0" />
@@ -68,7 +68,7 @@ export function Clase() {
           </div>
         </div>
 
-        <aside className="w-[300px] shrink-0 flex flex-col gap-4">
+        <aside className="w-full lg:w-[300px] lg:shrink-0 flex flex-col gap-4">
           <div className="flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Lecciones del curso</h2><span className="text-sm text-muted">{done} de {c.lessons.length}</span></div>
           <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden -mt-1">
             {c.lessons.map((l, i) => (
@@ -83,14 +83,14 @@ export function Clase() {
             <div className="rounded-xl bg-chrome border border-line p-4 flex flex-col">
               <span className="label-faint">Siguiente</span>
               <span className="mt-1.5 text-base font-semibold text-ink">{next.title}</span>
-              <Button variant="primary" className="mt-3.5 w-full h-8" onClick={() => { notify(`Lección ${lesson.n} marcada como vista`); navigate(`${courseTo}/leccion/${next.n}`) }}>Marcar vista y continuar</Button>
+              <Button variant="primary" className="mt-3.5 w-full h-8" onClick={() => navigate(`${courseTo}/leccion/${next.n}`)}>Ir a la siguiente</Button>
             </div>
           )}
           {!next && (
             <div className="rounded-xl bg-ok-wash border border-[#CBD9CC] p-4 flex flex-col">
               <span className="text-base font-semibold text-ok">Última lección</span>
-              <span className="text-sm text-ok/80 mt-1">Al marcarla como vista se emite tu certificado.</span>
-              <Button variant="primary" className="mt-3.5 w-full h-8" onClick={() => { notify('¡Curso completado! Certificado emitido a tu nombre'); navigate(courseTo) }}>Terminar el curso</Button>
+              <span className="text-sm text-ok/80 mt-1">Todavía no se guarda tu progreso ni se emiten certificados desde la app.</span>
+              <Button variant="primary" className="mt-3.5 w-full h-8" onClick={() => navigate(courseTo)}>Volver al curso</Button>
             </div>
           )}
         </aside>

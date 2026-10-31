@@ -39,11 +39,8 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
       onClose={onClose}
       width={420}
       title={p.name}
-      subtitle={`${p.format} · CN ${p.cn}`}
+      subtitle={[p.format, p.cn && `CN ${p.cn}`].filter(Boolean).join(' · ')}
       badge={tag && <Tag tone={tagTone}>{tag}</Tag>}
-      tabs={tabs}
-      activeTab={tab}
-      onTab={setTab}
       bodyClass="p-0"
       footer={
         <>
@@ -56,7 +53,7 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
         </>
       }
     >
-      <ProductArt art={p.art} size={124} className="h-[212px] border-b border-line-soft" />
+      <ProductArt art={p.art} photo={p.photo} size={124} className="h-[212px] border-b border-line-soft" />
 
       <div className="px-5 py-4 border-b border-line-soft flex items-end gap-6">
         <div className="flex flex-col">
@@ -73,16 +70,24 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
         </div>
       </div>
 
+      <div className="px-5 flex gap-5 border-b border-line-soft overflow-x-auto no-scrollbar scroll-hint">
+        {tabs.map((t) => (
+          <button key={t.key} onClick={() => setTab(t.key)} className={cn('h-9 shrink-0 whitespace-nowrap text-md font-medium border-b-2 -mb-px', tab === t.key ? 'text-accent font-semibold border-accent' : 'text-muted border-transparent hover:text-ink')}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <div className="px-5 py-4 flex flex-col">
         {tab === 'comp' && (
           <div className="rounded-lg border border-line overflow-hidden">
             <div className="h-8 px-3 bg-chrome border-b border-line-soft flex items-center">
-              <span className="label flex-1">Por {p.dose.match(/^\d+ \w+/)?.[0] ?? '1 toma'}</span>
+              <span className="label flex-1">Por {p.dose.match(/^\d+ \p{L}+/u)?.[0] ?? '1 toma'}</span>
               <span className="label w-[74px] text-right">Cantidad</span>
               <span className="label w-[54px] text-right">% VRN</span>
             </div>
             {p.composition.map((c, i) => (
-              <div key={c.name} className={cn('h-9 px-3 flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
+              <div key={`${i}-${c.name}`} className={cn('h-9 px-3 flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
                 <span className="flex-1 text-md text-ink truncate">{c.name}</span>
                 <span className="w-[74px] text-right text-md font-semibold text-ink">{c.qty}</span>
                 <span className="w-[54px] text-right text-md text-muted">{c.vrn}</span>
@@ -112,8 +117,8 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
               No superar la dosis diaria recomendada. Los complementos alimenticios no sustituyen una dieta variada.
             </div>
             <div className="rounded-lg border border-line overflow-hidden mt-1">
-              {[['Alérgenos', p.allergens], ['Apto para', p.suitable], ['Registro sanitario', p.registry]].map(([k, v], i) => (
-                <div key={k} className={cn('min-h-[38px] px-3 py-2 flex items-center gap-3', i < 2 && 'border-b border-line-soft')}>
+              {[['Alérgenos', p.allergens], ['Apto para', p.suitable], ['Registro sanitario', p.registry]].filter(([, v]) => v).map(([k, v], i, arr) => (
+                <div key={k} className={cn('min-h-[38px] px-3 py-2 flex items-center gap-3', i < arr.length - 1 && 'border-b border-line-soft')}>
                   <span className="w-[124px] shrink-0 text-sm text-muted">{k}</span>
                   <span className="text-md text-ink">{v}</span>
                 </div>
@@ -124,8 +129,8 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
 
         <span className="label mt-5">Se recomienda cuando el cliente cuenta</span>
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {p.symptoms.map((s) => (
-            <span key={s} className="h-[25px] rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[11px] inline-flex items-center">{s}</span>
+          {p.symptoms.map((s, i) => (
+            <span key={`${i}-${s}`} className="h-[25px] rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[11px] inline-flex items-center">{s}</span>
           ))}
         </div>
 

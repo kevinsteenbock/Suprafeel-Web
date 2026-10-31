@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 export function TableCard({ children, footer, footerRight, className }: { children: ReactNode; footer?: ReactNode; footerRight?: ReactNode; className?: string }) {
   return (
     <div className={cn('rounded-xl bg-surface border border-line shadow-card overflow-hidden flex flex-col', className)}>
-      {children}
+      <div className="overflow-x-auto">{children}</div>
       {(footer || footerRight) && (
         <div className="h-[46px] px-4 bg-chrome flex items-center justify-between mt-auto">
           <span className="text-sm text-muted">{footer}</span>
@@ -16,7 +16,7 @@ export function TableCard({ children, footer, footerRight, className }: { childr
 }
 
 export function THead({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('h-8 px-4 gap-[14px] bg-chrome border-b border-line flex items-center', className)}>{children}</div>
+  return <div className={cn('h-8 px-4 gap-[14px] bg-chrome border-b border-line flex items-center min-w-max', className)}>{children}</div>
 }
 
 export function Th({ children, className, align = 'left' }: { children?: ReactNode; className?: string; align?: 'left' | 'right' | 'center' }) {
@@ -25,15 +25,17 @@ export function Th({ children, className, align = 'left' }: { children?: ReactNo
   )
 }
 
-export function Tr({ children, className, onClick, active, tone, height = 54, last }: {
-  children: ReactNode; className?: string; onClick?: () => void; active?: boolean; tone?: 'accent' | 'danger'; height?: number; last?: boolean
+/** `wrap`: filas de lista simple (sin cabecera de columnas) que en móvil se reparten en dos líneas en vez de obligar a deslizar de lado. */
+export function Tr({ children, className, onClick, active, tone, height = 54, last, wrap }: {
+  children: ReactNode; className?: string; onClick?: () => void; active?: boolean; tone?: 'accent' | 'danger'; height?: number; last?: boolean; wrap?: boolean
 }) {
   return (
     <div
-      style={{ height }}
+      style={wrap ? { minHeight: height } : { height }}
       onClick={onClick}
       className={cn(
         'px-4 gap-[14px] flex items-center shrink-0',
+        wrap ? 'flex-wrap py-2.5 sm:py-0 sm:flex-nowrap sm:min-w-max' : 'min-w-max',
         !last && 'border-b border-line-soft',
         onClick && 'cursor-pointer hover:bg-canvas',
         active && 'bg-accent-wash border-accent-line',

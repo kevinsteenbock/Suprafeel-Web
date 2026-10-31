@@ -1,18 +1,21 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { Plus, Mail } from 'lucide-react'
+import { type ReactNode } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { Plus, Search, X, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
-import { accountFilters, filterAccounts } from '@/data/accounts'
-import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
+import { useDatos, type Usuario } from '@/app/datos'
+import { comercialesDe, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
+import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Chip, ChipRow } from '@/ui/Chip'
+import { FilterMenuButton, FilterBar, type MenuOption } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
-import { VistaButton, useVista, visibleColumns } from '@/ui/Vista'
+import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+import { accesosPorFarmacia, ataduraDe, fechaAlta, norm, plural, ROL_LABEL } from './accesos'
+import { AccesoCelda, Principal, vistaInicial } from './AccesoCelda'
 
+/** Acciones de fila (la usa la lista de campañas PLV). */
 export function RowActions({ onEdit, onDup, onDel, className }: { onEdit?: () => void; onDup?: () => void; onDel?: () => void; className?: string }) {
   const stop = (fn?: () => void) => (e: React.MouseEvent) => { e.stopPropagation(); fn?.() }
   return (
@@ -25,58 +28,238 @@ export function RowActions({ onEdit, onDup, onDel, className }: { onEdit?: () =>
 }
 
 const columnOptions = [
-  { key: 'plan', label: 'Plan' },
-  { key: 'accesos', label: 'Accesos' },
-  { key: 'rep', label: 'Comercial' },
-  { key: 'estado', label: 'Estado' },
-  { key: 'alta', label: 'Alta' },
+  { key: 'comercial', label: 'Comercial' },
+  { key: 'refs', label: 'Referencias' },
+  { key: 'formacion', label: 'Formación' },
+  { key: 'acceso', label: 'Acceso' },
 ]
+
+/** Valores del filtro de formación: los estados de Xano + «sin» (sin estado) y «pasada» (prevista con la fecha ya pasada). */
+const FORMACION_OPCIONES: { key: string; label: string; test: (p: Pharmacy, hoy: string) => boolean }[] = [
+  { key: 'hecha', label: 'Hecha', test: (p) => p.formacion === 'hecha' },
+  { key: 'prevista', label: 'Prevista', test: (p) => p.formacion === 'prevista' },
+  { key: 'pasada', label: 'Prevista, fecha pasada', test: (p, hoy) => p.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha < hoy },
+  { key: 'pendiente', label: 'Pendiente de agendar', test: (p) => p.formacion === 'pendiente' },
+  { key: 'rechazada', label: 'No la quieren', test: (p) => p.formacion === 'rechazada' },
+  { key: 'sin', label: 'Sin agendar', test: (p) => !p.formacion },
+]
+
+const SIN_REP = '__sin'
+
+function Buscar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="h-7 flex-1 min-w-0 lg:flex-none lg:w-[248px] rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]">
+      <Search size={13} className="text-faint shrink-0" strokeWidth={2} />
+      <input type="search" aria-label={placeholder} className="flex-1 min-w-0 bg-transparent text-md text-ink" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+      {value && <button type="button" onClick={() => onChange('')} aria-label="Borrar la búsqueda" className="h-4 w-4 rounded-full bg-chrome-deep inline-flex items-center justify-center text-ink-soft shrink-0"><X size={9} strokeWidth={2.6} /></button>}
+    </div>
+  )
+}
 
 export function Cuentas() {
   const navigate = useNavigate()
-  const { notify } = useStore()
-  const [filter, setFilter] = useState('all')
-  const [removed, setRemoved] = useState<string[]>([])
-  const { vista, setVista, resetVista } = useVista({ mode: 'list', columns: columnOptions })
-  const list = filterAccounts(filter).filter((a) => !removed.includes(a.id))
-  const tone = (s: string): 'ok' | 'danger' | 'warn' => (s === 'Activa' ? 'ok' : s === 'Suspendida' ? 'danger' : 'warn')
-  type Row = (typeof list)[number]
-  const cells: Record<string, { th: ReactNode; td: (a: Row) => ReactNode }> = {
-    plan: { th: <Th key="h1" className="w-[70px]" align="right">Plan</Th>, td: (a) => <Td key="c1" className="w-[70px]" align="right">{a.plan}</Td> },
-    accesos: { th: <Th key="h2" className="w-[80px]" align="right">Accesos</Th>, td: (a) => <Td key="c2" className="w-[80px] font-semibold text-ink" align="right">{a.seatsUsed} / {a.seats}</Td> },
-    rep: { th: <Th key="h3" className="w-[92px]" align="right">Comercial</Th>, td: (a) => <Td key="c3" className={cn('w-[92px]', a.rep === 'Sin asignar' && 'text-accent font-medium')} align="right">{a.rep}</Td> },
-    estado: { th: <Th key="h4" className="w-[100px]" align="right">Estado</Th>, td: (a) => <div key="c4" className="w-[100px] flex justify-end"><Badge tone={tone(a.status)}>{a.status}</Badge></div> },
-    alta: { th: <Th key="h5" className="w-[72px]" align="right">Alta</Th>, td: (a) => <Td key="c5" className="w-[72px]" align="right">{a.since}</Td> },
+  const { farmacias, usuarios } = useDatos()
+  const [sp, setSp] = useSearchParams()
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), columns: columnOptions })
+  const gridStyle = useGridCols(vista)
+  const hoy = hoyISO()
+
+  // Los filtros viven en la URL: así Resumen y Comerciales pueden traer aquí una lista ya filtrada.
+  const ver = sp.get('ver') === 'cuentas' ? 'cuentas' : 'farmacias'
+  const acceso = sp.get('acceso') ?? 'all'
+  const comercial = sp.get('comercial') ?? 'all'
+  const formacion = sp.get('formacion') ?? 'all'
+  const orden = sp.get('orden') ?? 'az'
+  const q = sp.get('q') ?? ''
+  const setParam = (k: string, v: string, porDefecto = 'all') => {
+    const next = new URLSearchParams(sp)
+    if (v === porDefecto || v === '') next.delete(k)
+    else next.set(k, v)
+    setSp(next, { replace: true })
+  }
+  const quitarFiltros = () => setSp(ver === 'cuentas' ? { ver } : {}, { replace: true })
+
+  const porFarmacia = accesosPorFarmacia(usuarios)
+  const cuentasDe = (p: Pharmacy) => porFarmacia.get(p.id) ?? []
+  const n = farmacias.length
+  const conAcceso = farmacias.filter((p) => porFarmacia.has(p.id)).length
+  const darAcceso = (p: Pharmacy) => navigate(`/admin/cuentas/nueva?farmacia=${encodeURIComponent(p.id)}`)
+
+  // --- Farmacias ---
+  const filtroFormacion = FORMACION_OPCIONES.find((f) => f.key === formacion)
+  const base = farmacias.filter(
+    (p) =>
+      (acceso === 'all' || (acceso === 'con') === porFarmacia.has(p.id)) &&
+      (comercial === 'all' || (comercial === SIN_REP ? !p.rep : p.rep === comercial)) &&
+      (!filtroFormacion || filtroFormacion.test(p, hoy)),
+  )
+  const nq = norm(q.trim())
+  const lista = (nq
+    ? base.filter((p) => norm([p.name, p.nombreComercial, p.city, p.owner, p.rep, p.codigoCliente, ...cuentasDe(p).map((u) => u.email)].filter(Boolean).join(' ')).includes(nq))
+    : base
+  ).slice().sort((a, b) =>
+    orden === 'refs' ? b.refs - a.refs || a.name.localeCompare(b.name, 'es')
+    : orden === 'city' ? a.city.localeCompare(b.city, 'es') || a.name.localeCompare(b.name, 'es')
+    : a.name.localeCompare(b.name, 'es'),
+  )
+
+  const reps = comercialesDe(farmacias)
+  const sinRep = farmacias.filter((p) => !p.rep).length
+  const opcionesAcceso: MenuOption[] = [
+    { key: 'all', label: 'Todas', count: n },
+    { key: 'con', label: 'Con acceso', count: conAcceso },
+    { key: 'sin', label: 'Sin acceso', count: n - conAcceso },
+  ]
+  const opcionesComercial: MenuOption[] = [
+    { key: 'all', label: 'Todos', count: n },
+    ...reps.map((r) => ({ key: r.rep, label: r.rep, count: r.farmacias })),
+    ...(sinRep ? [{ key: SIN_REP, label: 'Sin comercial', count: sinRep }] : []),
+    ...(comercial !== 'all' && comercial !== SIN_REP && !reps.some((r) => r.rep === comercial) ? [{ key: comercial, label: comercial, count: 0 }] : []),
+  ]
+  const opcionesFormacion: MenuOption[] = [
+    { key: 'all', label: 'Todas', count: n },
+    ...FORMACION_OPCIONES.map((f) => ({ key: f.key, label: f.label, count: farmacias.filter((p) => f.test(p, hoy)).length })).filter((o) => o.count > 0 || o.key === formacion),
+  ]
+
+  // --- Cuentas creadas ---
+  const cuentas = (nq
+    ? usuarios.filter((u) => norm([u.name, u.email, u.rep_name, ataduraDe(u, farmacias)].join(' ')).includes(nq))
+    : usuarios
+  ).slice().sort((a, b) => (orden === 'az' ? a.name.localeCompare(b.name, 'es') : b.created_at - a.created_at))
+  const irACuenta = (u: Usuario) => {
+    if (u.role === 'farmacia' && farmacias.some((p) => p.id === u.pharmacy_slug)) navigate(`/admin/cuentas/${u.pharmacy_slug}`)
+    else if (u.role === 'comercial' && u.rep_name) navigate(`/admin/cuentas?comercial=${encodeURIComponent(u.rep_name)}`)
+  }
+
+  const filtrado = acceso !== 'all' || comercial !== 'all' || formacion !== 'all' || !!q
+  type Row = Pharmacy
+  const cells: Record<string, { th: ReactNode; td: (p: Row) => ReactNode }> = {
+    comercial: { th: <Th key="h2" className="w-[100px] shrink-0">Comercial</Th>, td: (p) => <Td key="c2" className={cn('w-[100px] shrink-0', !p.rep && 'text-accent font-medium')}>{p.rep || 'Sin comercial'}</Td> },
+    refs: { th: <Th key="h3" className="w-[92px] shrink-0" align="right">Referencias</Th>, td: (p) => <Td key="c3" className={cn('w-[92px] shrink-0 font-semibold', p.refs >= 10 ? 'text-ink' : p.refs <= 2 ? 'text-warn' : 'text-ink-soft')} align="right">{p.refs}</Td> },
+    formacion: {
+      th: <Th key="h4" className="w-[122px] shrink-0" align="right">Formación</Th>,
+      td: (p) => { const c = formacionChapa(p); return <div key="c4" className="w-[122px] shrink-0 flex justify-end"><Badge tone={c.tone}>{c.label}{p.formacion === 'prevista' && p.formacionDate ? ` · ${p.formacionDate}` : ''}</Badge></div> },
+    },
+    acceso: { th: <Th key="h5" className="w-[180px] shrink-0" align="right">Acceso</Th>, td: (p) => <AccesoCelda key="c5" className="w-[180px] shrink-0" cuentas={cuentasDe(p)} onDar={() => darAcceso(p)} /> },
   }
   const cols = visibleColumns(vista)
 
   return (
-    <Screen toolbar={<Toolbar title="Cuentas y accesos" right={<><SearchField placeholder="Buscar cuenta, CIF o correo" /><Link to="/admin/cuentas/nueva"><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />}>Dar de alta una cuenta</Button></Link></>} />}>
-      <PageHeader title="Cuentas y accesos" subtitle="412 farmacias activas · 1.106 accesos en uso · 9 invitaciones sin aceptar" right={<span className="text-base text-muted">Sincronizado hace 4 min</span>} />
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} columns={columnOptions} />}>
-        {accountFilters.map((f) => <Chip key={f.key} active={filter === f.key} count={f.count} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
-      </ChipRow>
+    <Screen
+      toolbar={
+        <Toolbar
+          title="Cuentas y accesos"
+          right={
+            <>
+              <Buscar value={q} onChange={(v) => setParam('q', v, '')} placeholder={ver === 'cuentas' ? 'Buscar cuenta o correo' : 'Buscar farmacia, población o correo'} />
+              <Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />} onClick={() => navigate('/admin/cuentas/nueva')}>Nueva cuenta</Button>
+            </>
+          }
+        />
+      }
+    >
+      <PageHeader
+        title="Cuentas y accesos"
+        subtitle={`${plural(n, 'farmacia', 'farmacias')} · ${conAcceso} con acceso y ${n - conAcceso} sin acceso · ${plural(usuarios.length, 'cuenta creada', 'cuentas creadas')}`}
+      />
+      <FilterBar
+        right={
+          <>
+            <FilterMenuButton
+              align="right"
+              icon={<ArrowUpDown size={13} strokeWidth={1.8} />}
+              value={orden}
+              options={ver === 'cuentas' ? [{ key: 'az', label: 'Nombre A-Z' }, { key: 'recent', label: 'Alta más reciente' }] : [{ key: 'az', label: 'Nombre A-Z' }, { key: 'refs', label: 'Más referencias' }, { key: 'city', label: 'Población A-Z' }]}
+              onChange={(v) => setParam('orden', v, 'az')}
+            />
+            {ver === 'farmacias' && <VistaButton vista={vista} onChange={setVista} onReset={resetVista} columns={columnOptions} />}
+          </>
+        }
+      >
+        <FilterMenuButton
+          label="Ver"
+          value={ver}
+          options={[{ key: 'farmacias', label: 'Farmacias', count: n }, { key: 'cuentas', label: 'Cuentas creadas', count: usuarios.length }]}
+          onChange={(v) => setSp(v === 'cuentas' ? { ver: v } : {}, { replace: true })}
+        />
+        {ver === 'farmacias' && (
+          <>
+            <FilterMenuButton label="Acceso" value={acceso} options={opcionesAcceso} onChange={(v) => setParam('acceso', v)} />
+            <FilterMenuButton label="Comercial" width={240} value={comercial} options={opcionesComercial} onChange={(v) => setParam('comercial', v)} />
+            <FilterMenuButton label="Formación" width={240} value={formacion} options={opcionesFormacion} onChange={(v) => setParam('formacion', v)} />
+            {filtrado && <Button variant="ghost" size="sm" onClick={quitarFiltros}>Quitar filtros</Button>}
+          </>
+        )}
+      </FilterBar>
 
-      <div className="rounded-xl bg-accent-wash border border-accent-line px-5 py-3.5 flex items-center gap-4">
-        <span className="h-8 w-8 rounded-full bg-surface text-accent inline-flex items-center justify-center shrink-0"><Mail size={14} /></span>
-        <div className="flex-1 flex flex-col"><span className="text-base font-semibold text-ink">7 farmacias han pedido el alta desde el formulario web</span><span className="text-sm text-accent-deep mt-[1px]">Hasta que las aceptes no tienen cuenta ni accesos · la más antigua lleva 3 días esperando</span></div>
-        <Link to="/admin/cuentas/solicitudes"><Button variant="primary" size="lg">Revisar solicitudes</Button></Link>
-      </div>
-
-      <TableCard footer={`${list.length} de 412 cuentas · 1.106 accesos de 1.680 contratados`} footerRight={<button onClick={() => notify('CRM exportado')}>Exportar CRM</button>}>
-        <THead>
-          <Th className="flex-1">Cuenta</Th>
-          {cols.map((k) => cells[k].th)}
-          <Th className="w-[172px]" align="right">Acciones</Th>
-        </THead>
-        {list.map((a, i) => (
-          <Tr key={a.id} onClick={() => navigate(`/admin/cuentas/${a.id}`)} last={i === list.length - 1}>
-            <TdMain title={a.name} meta={`${a.city} · ${a.owner}`} avatar={<Avatar initials={a.code} size={30} tone={i === 0 ? 'soft' : 'neutral'} />} />
-            {cols.map((k) => cells[k].td(a))}
-            <RowActions className="w-[172px]" onEdit={() => navigate(`/admin/cuentas/${a.id}`)} onDup={() => notify(`Duplicada ${a.name}`)} onDel={() => { setRemoved((r) => [...r, a.id]); notify(`${a.name} eliminada`) }} />
-          </Tr>
-        ))}
-      </TableCard>
+      {ver === 'cuentas' ? (
+        <TableCard footer={`${cuentas.length} de ${plural(usuarios.length, 'cuenta', 'cuentas')}`}>
+          <THead>
+            <Principal min={220}><Th>Cuenta</Th></Principal>
+            <Th className="w-[110px] shrink-0">Rol</Th>
+            <Th className="w-[240px] shrink-0">Entra a</Th>
+            <Th className="w-[96px] shrink-0" align="right">Alta</Th>
+          </THead>
+          {cuentas.length === 0 && <div className="p-8 text-center text-base text-muted">{q ? `Ninguna cuenta con «${q}».` : 'Todavía no hay ninguna cuenta.'}</div>}
+          {cuentas.map((u, i) => {
+            const huerfana = u.role === 'farmacia' && !farmacias.some((p) => p.id === u.pharmacy_slug)
+            return (
+              <Tr key={u.id} onClick={u.role === 'admin' || huerfana ? undefined : () => irACuenta(u)} last={i === cuentas.length - 1}>
+                <Principal min={220}><TdMain title={u.name || u.email} meta={u.email} avatar={<Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone={u.role === 'admin' ? 'soft' : 'neutral'} rounded="full" />} /></Principal>
+                <div className="w-[110px] shrink-0"><Badge tone={u.role === 'admin' ? 'accent' : 'neutral'}>{ROL_LABEL[u.role]}</Badge></div>
+                <Td className={cn('w-[240px] shrink-0', huerfana && 'text-warn')}>{ataduraDe(u, farmacias)}</Td>
+                <Td className="w-[96px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
+              </Tr>
+            )
+          })}
+        </TableCard>
+      ) : vista.mode === 'list' ? (
+        <TableCard footer={`${lista.length} de ${plural(n, 'farmacia', 'farmacias')}`}>
+          <THead>
+            <Principal min={220}><Th>Farmacia</Th></Principal>
+            {cols.map((k) => cells[k]!.th)}
+          </THead>
+          {lista.length === 0 && (
+            <div className="p-8 flex flex-col items-center gap-3 text-base text-muted">
+              {q ? `Ninguna farmacia con «${q}» en estos filtros.` : 'Ninguna farmacia con estos filtros.'}
+              <Button onClick={quitarFiltros}>Quitar filtros</Button>
+            </div>
+          )}
+          {lista.map((p, i) => (
+            <Tr key={p.id} onClick={() => navigate(`/admin/cuentas/${p.id}`)} last={i === lista.length - 1}>
+              <Principal min={220}><TdMain title={p.name} meta={[p.city, p.nombreComercial || p.owner].filter(Boolean).join(' · ') || p.address} avatar={<Avatar initials={p.code} size={30} tone={porFarmacia.has(p.id) ? 'soft' : 'neutral'} />} /></Principal>
+              {cols.map((k) => cells[k]!.td(p))}
+            </Tr>
+          ))}
+        </TableCard>
+      ) : (
+        <>
+          {lista.length === 0 && (
+            <div className="rounded-xl bg-surface border border-line shadow-card p-8 flex flex-col items-center gap-3 text-base text-muted">
+              Ninguna farmacia con estos filtros.
+              <Button onClick={quitarFiltros}>Quitar filtros</Button>
+            </div>
+          )}
+          <div className="grid gap-4" style={gridStyle}>
+            {lista.map((p) => {
+              const cs = cuentasDe(p)
+              return (
+                <div key={p.id} role="link" tabIndex={0} onClick={() => navigate(`/admin/cuentas/${p.id}`)} onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/cuentas/${p.id}`)} className="rounded-xl bg-surface border border-line shadow-card p-4 flex flex-col gap-3 text-left hover:border-faint cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <Avatar initials={p.code} size={32} tone={cs.length ? 'soft' : 'neutral'} />
+                    <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-semibold text-ink truncate">{p.name}</span><span className="text-xs text-faint truncate">{[p.city, p.rep || 'Sin comercial'].join(' · ')}</span></span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-sm text-muted">
+                    <span>{plural(p.refs, 'referencia', 'referencias')}</span>
+                    <Badge tone={formacionChapa(p).tone}>{formacionChapa(p).label}</Badge>
+                  </div>
+                  <AccesoCelda cuentas={cs} onDar={() => darAcceso(p)} align="between" />
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
     </Screen>
   )
 }

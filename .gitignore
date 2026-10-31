@@ -4,3 +4,4 @@ dist
 *.local
 .vite
 .smoke.mjs
+xano/.accesos*

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase } from '@/app/store'
-import { courseFilters, filterCourses } from '@/data/courses'
+import { courseFilters, courses, filterCourses } from '@/data/courses'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
-import { Chip, ChipRow } from '@/ui/Chip'
-import { VistaButton, useVista, gridCols } from '@/ui/Vista'
+import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
+import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { MiListaButton } from './Catalogo'
@@ -15,19 +15,30 @@ export function Cursos() {
   const base = useBase()
   const navigate = useNavigate()
   const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('recent')
   const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 3 })
+  const gridStyle = useGridCols(vista)
   const list = filterCourses(filter)
+  const totalMin = courses.reduce((a, c) => a + c.minutes, 0)
+  const duracion = `${Math.floor(totalMin / 60)} h ${String(totalMin % 60).padStart(2, '0')} min`
 
   return (
     <Screen toolbar={<Toolbar title="Cursos" right={<><SearchField placeholder="Buscar curso" /><MiListaButton /></>} />}>
-      <PageHeader title="Cursos" subtitle="Formación breve para el mostrador. Cada curso deja un certificado a tu nombre." right={<span className="text-base text-muted">6 cursos · 3 h 09 min en total</span>} />
+      <PageHeader title="Cursos" subtitle="Formación breve para el mostrador. Cada curso deja un certificado a tu nombre." right={<span className="text-base text-muted">{courses.length} cursos · {duracion} en total</span>} />
 
-      <ChipRow right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
-        {courseFilters.map((f) => <Chip key={f.key} active={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</Chip>)}
-      </ChipRow>
+      <FilterBar
+        right={
+          <>
+            <FilterMenuButton align="right" icon={<ArrowUpDown size={13} strokeWidth={1.8} />} value={sort} options={[{ key: 'recent', label: 'Más reciente' }, { key: 'az', label: 'Nombre A-Z' }]} onChange={setSort} />
+            <VistaButton vista={vista} onChange={setVista} onReset={resetVista} />
+          </>
+        }
+      >
+        <FilterMenuButton icon={<Filter size={13} strokeWidth={1.8} />} value={filter} options={courseFilters.map((f) => ({ key: f.key, label: f.label }))} onChange={setFilter} />
+      </FilterBar>
 
       {vista.mode === 'cards' ? (
-        <div className="grid gap-5" style={gridCols(vista)}>
+        <div className="grid gap-5" style={gridStyle}>
           {list.map((c) => {
             const action = c.state === 'progress' ? 'Continuar' : c.state === 'done' ? 'Repasar' : 'Empezar'
             const to = `${base}/formacion/cursos/${c.id}`
@@ -52,7 +63,7 @@ export function Cursos() {
           })}
         </div>
       ) : (
-        <TableCard footer={`${list.length} de 6 cursos`}>
+        <TableCard footer={`${list.length} de ${courses.length} cursos`}>
           <THead><Th className="flex-1">Curso</Th><Th className="w-[140px]">Itinerario</Th><Th className="w-[80px]" align="right">Lecciones</Th><Th className="w-[80px]" align="right">Duración</Th><Th className="w-[140px]" align="right">Estado</Th><Th className="w-4"> </Th></THead>
           {list.map((c, i) => (
             <Tr key={c.id} height={58} onClick={() => navigate(`${base}/formacion/cursos/${c.id}`)} last={i === list.length - 1}>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { ChevronLeft, Search } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -12,7 +12,7 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
   meta?: ReactNode
 }) {
   return (
-    <header className="h-[52px] shrink-0 px-7 bg-chrome/60 border-b border-line-soft flex items-center justify-between gap-4">
+    <header className="min-h-[52px] lg:h-[52px] shrink-0 px-4 lg:px-7 py-2 lg:py-0 bg-chrome/60 border-b border-line-soft flex flex-wrap items-center justify-between gap-2 lg:gap-4">
       <div className="flex items-center gap-2 min-w-0">
         {back && (
           <Link to={back} className="text-ink-soft hover:text-ink -ml-1 mr-1" aria-label="Volver">
@@ -26,11 +26,11 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
               return (
                 <span key={i} className="flex items-center gap-2 min-w-0">
                   {c.to && !lastCrumb ? (
-                    <Link to={c.to} className="text-muted hover:text-ink truncate">{c.label}</Link>
+                    <Link to={c.to} className="min-w-0 shrink text-muted hover:text-ink truncate">{c.label}</Link>
                   ) : (
-                    <span className={cn('truncate', lastCrumb ? 'font-semibold text-ink' : 'text-muted')}>{c.label}</span>
+                    <span className={cn('min-w-0 shrink truncate', lastCrumb ? 'font-semibold text-ink' : 'text-muted')}>{c.label}</span>
                   )}
-                  {!lastCrumb && <span className="text-faint">/</span>}
+                  {!lastCrumb && <span className="text-faint shrink-0">/</span>}
                 </span>
               )
             })}
@@ -40,14 +40,14 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
         )}
         {meta}
       </div>
-      {right && <div className="flex items-center gap-2.5 shrink-0">{right}</div>}
+      {right && <div className="flex items-center flex-wrap gap-2.5 shrink-0">{right}</div>}
     </header>
   )
 }
 
 export function SearchField({ placeholder = 'Buscar', width = 208, value, className }: { placeholder?: string; width?: number; value?: string; className?: string }) {
   return (
-    <div style={{ width }} className={cn('h-7 rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]', className)}>
+    <div style={{ '--sf-w': `${width}px` } as CSSProperties} className={cn('h-7 rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px] flex-1 min-w-0 lg:flex-none lg:w-[var(--sf-w)]', className)}>
       <Search size={13} className="text-faint shrink-0" strokeWidth={2} />
       <input className="flex-1 min-w-0 bg-transparent text-md text-ink" placeholder={placeholder} defaultValue={value} />
     </div>
@@ -57,25 +57,25 @@ export function SearchField({ placeholder = 'Buscar', width = 208, value, classN
 /** Título de página con subtítulo y hueco a la derecha */
 export function PageHeader({ title, subtitle, right, className }: { title: ReactNode; subtitle?: ReactNode; right?: ReactNode; className?: string }) {
   return (
-    <div className={cn('flex items-end justify-between gap-6', className)}>
+    <div className={cn('flex flex-col lg:flex-row lg:items-end justify-between gap-3 lg:gap-6', className)}>
       <div className="flex flex-col min-w-0">
         <h1 className="text-h1 font-semibold tracking-tight text-ink">{title}</h1>
         {subtitle && <p className="mt-[5px] text-base text-muted">{subtitle}</p>}
       </div>
-      {right && <div className="shrink-0 flex items-center gap-3">{right}</div>}
+      {right && <div className="shrink-0 flex flex-wrap items-center gap-3">{right}</div>}
     </div>
   )
 }
 
 /** Contenedor del cuerpo de página: padding 26/28/28 y gap 22 como en el Paper */
 export function Page({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('flex-1 flex flex-col gap-[22px] px-7 pt-[26px] pb-7 min-h-0', className)}>{children}</div>
+  return <div className={cn('flex-1 flex flex-col gap-[22px] px-4 pt-4 pb-4 lg:px-7 lg:pt-[26px] lg:pb-7 min-h-0', className)}>{children}</div>
 }
 
 export function Section({ title, right, children, className }: { title: ReactNode; right?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={cn('flex flex-col gap-3', className)}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-ink">{title}</h2>
         {right}
       </div>
@@ -115,7 +115,7 @@ export function Stat({ label, value, sub, tone, bar, className }: { label: strin
 }
 
 export function StatRow({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('rounded-xl bg-surface border border-line shadow-card flex divide-x divide-line-soft', className)}>{children}</div>
+  return <div className={cn('rounded-xl bg-surface border border-line shadow-card flex flex-col sm:flex-row divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-line-soft', className)}>{children}</div>
 }
 
 export function Notice({ tone = 'warn', title, children, icon, className, right }: { tone?: 'warn' | 'danger' | 'accent' | 'neutral' | 'ok'; title?: ReactNode; children?: ReactNode; icon?: ReactNode; className?: string; right?: ReactNode }) {

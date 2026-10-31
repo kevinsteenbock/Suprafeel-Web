@@ -1,5 +1,10 @@
 # Prompt: conectar Xano al front-end de Suprafeel Soft
 
+> **Histórico.** Este es el encargo original para montar Xano. Desde el 31 oct 2026 hay cosas que ya
+> no son así: no existe `POST /auth/signup`, todo el grupo pide sesión (solo `POST /auth/login` es
+> público), los cambios de catálogo piden rol admin y las farmacias reales viven en la tabla
+> `sf_farmacia` (`GET /farmacias`), no en `xano/seed/`. Lo vigente está en `xano/HANDOFF.md`.
+
 Copia todo lo que hay debajo de la línea `---` y pégalo como primer mensaje a la sesión de
 Claude Code que tiene control de Chrome. Este archivo en sí no se ejecuta; es el texto a pegar.
 
@@ -135,17 +140,16 @@ más los endpoints de signup/login/me. Añade a esa tabla `user` estos campos ex
 - `pharmacy_slug` (texto, vacío salvo que `role = farmacia`; referencia a `pharmacies.slug`)
 - `rep_name` (texto, vacío salvo que `role = comercial`; referencia a `reps.name`)
 
-Da de alta estos 3 usuarios de prueba **a través del endpoint de signup** (no metiendo filas a
-mano en la tabla, para que la contraseña quede bien hasheada):
+Da de alta estos 3 usuarios de prueba (nombre, correo, rol y, según el rol, `pharmacy_slug` o
+`rep_name`), de forma que la contraseña quede bien hasheada:
 
-```json
-{ "email": "laura.vidal@farmaciacentral.es", "password": "Suprafeel2025!", "name": "Laura Vidal", "role": "farmacia", "pharmacy_slug": "central" }
-{ "email": "alvaro.ferrer@suprafeel.com", "password": "Suprafeel2025!", "name": "Álvaro Ferrer", "role": "comercial", "rep_name": "Álvaro Ferrer" }
-{ "email": "kevin@suprafeel.com", "password": "Suprafeel2025!", "name": "Kevin Steenbock", "role": "admin" }
-```
+- `laura.vidal@farmaciacentral.es` · `farmacia`
+- `alvaro.ferrer@suprafeel.com` · `comercial`
+- `kevin@suprafeel.com` · `admin`
 
-Es una contraseña temporal de desarrollo — dilo así de claro en tu informe para que se cambie
-antes de que esto sea público de verdad.
+> **Nota del 31 oct 2026:** las contraseñas de estas cuentas ya no están en el repositorio. Las de
+> ahora están en `xano/.accesos.txt`, que git ignora. El signup público se borró: las cuentas nuevas
+> las crea un admin con `POST /admin/usuarios` (ver `xano/HANDOFF.md`).
 
 ## Tres tablas nuevas, sin JSON de partida (aquí sí hay relación de verdad)
 

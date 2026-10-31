@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router'
 import { Shell } from './app/Shell'
 import { adminShell, comercialShell, farmaciaShell } from './app/nav'
 import { Login } from './screens/Login'
+import { RequireRole } from './app/auth'
+import { DatosListos } from './app/datos'
 // compartidas farmacia / comercial
 import { Catalogo } from './screens/shared/Catalogo'
 import { Producto } from './screens/shared/Producto'
@@ -66,46 +68,58 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Login />} />
 
-      <Route path="/farmacia" element={<Shell config={farmaciaShell} />}>
-        <Route index element={<Navigate to="catalogo" replace />} />
-        {SharedRoutes()}
-        <Route path="mi-comercial" element={<MiComercial />} />
-        <Route path="ajustes" element={<Navigate to="perfil" replace />} />
-        <Route path="ajustes/:section" element={<Ajustes />} />
+      <Route element={<RequireRole role="farmacia" />}>
+        <Route element={<DatosListos />}>
+          <Route path="/farmacia" element={<Shell config={farmaciaShell} />}>
+            <Route index element={<Navigate to="catalogo" replace />} />
+            {SharedRoutes()}
+            <Route path="mi-comercial" element={<MiComercial />} />
+            <Route path="ajustes" element={<Navigate to="perfil" replace />} />
+            <Route path="ajustes/:section" element={<Ajustes />} />
+          </Route>
+        </Route>
       </Route>
 
-      <Route path="/comercial" element={<Shell config={comercialShell} />}>
-        <Route index element={<Navigate to="hoy" replace />} />
-        <Route path="hoy" element={<Hoy />} />
-        <Route path="farmacias" element={<Farmacias />} />
-        <Route path="farmacias/:id" element={<Farmacia />} />
-        <Route path="ajustes" element={<AjustesComercial />} />
-        {SharedRoutes()}
+      <Route element={<RequireRole role="comercial" />}>
+        <Route element={<DatosListos />}>
+          <Route path="/comercial" element={<Shell config={comercialShell} />}>
+            <Route index element={<Navigate to="hoy" replace />} />
+            <Route path="hoy" element={<Hoy />} />
+            <Route path="farmacias" element={<Farmacias />} />
+            <Route path="farmacias/:id" element={<Farmacia />} />
+            <Route path="ajustes" element={<AjustesComercial />} />
+            {SharedRoutes()}
+          </Route>
+        </Route>
       </Route>
 
-      <Route path="/admin" element={<Shell config={adminShell} />}>
-        <Route index element={<Navigate to="cuentas" replace />} />
-        <Route path="resumen" element={<Resumen />} />
-        <Route path="comerciales" element={<Comerciales />} />
-        <Route path="registro" element={<Registro />} />
-        <Route path="cuentas" element={<Cuentas />} />
-        <Route path="cuentas/solicitudes" element={<Solicitudes />} />
-        <Route path="cuentas/nueva" element={<NuevaCuenta />} />
-        <Route path="cuentas/:id" element={<Cuenta />} />
-        <Route path="plv" element={<AdminPLV />} />
-        <Route path="plv/nueva" element={<NuevaCampana />} />
-        <Route path="plv/:id" element={<AdminCampana />} />
-        <Route path="plv/:id/nuevo-material" element={<NuevoMaterial />} />
-        <Route path="catalogo" element={<AdminCatalogo />} />
-        <Route path="catalogo/nuevo" element={<NuevoProducto />} />
-        <Route path="catalogo/:id" element={<AdminProducto />} />
-        <Route path="catalogo/:id/editar" element={<EditarProducto />} />
-        <Route path="cursos" element={<AdminCursos />} />
-        <Route path="cursos/nuevo" element={<CrearCurso />} />
-        <Route path="cursos/:id" element={<CrearCurso />} />
-        <Route path="cursos/:id/leccion/:n" element={<EditarLeccion />} />
-        <Route path="chat" element={<Navigate to="sintomas" replace />} />
-        <Route path="chat/:tab" element={<Chat />} />
+      <Route element={<RequireRole role="admin" />}>
+        <Route element={<DatosListos />}>
+          <Route path="/admin" element={<Shell config={adminShell} />}>
+            <Route index element={<Navigate to="cuentas" replace />} />
+            <Route path="resumen" element={<Resumen />} />
+            <Route path="comerciales" element={<Comerciales />} />
+            <Route path="registro" element={<Registro />} />
+            <Route path="cuentas" element={<Cuentas />} />
+            <Route path="cuentas/solicitudes" element={<Solicitudes />} />
+            <Route path="cuentas/nueva" element={<NuevaCuenta />} />
+            <Route path="cuentas/:id" element={<Cuenta />} />
+            <Route path="plv" element={<AdminPLV />} />
+            <Route path="plv/nueva" element={<NuevaCampana />} />
+            <Route path="plv/:id" element={<AdminCampana />} />
+            <Route path="plv/:id/nuevo-material" element={<NuevoMaterial />} />
+            <Route path="catalogo" element={<AdminCatalogo />} />
+            <Route path="catalogo/nuevo" element={<NuevoProducto />} />
+            <Route path="catalogo/:id" element={<AdminProducto />} />
+            <Route path="catalogo/:id/editar" element={<EditarProducto />} />
+            <Route path="cursos" element={<AdminCursos />} />
+            <Route path="cursos/nuevo" element={<CrearCurso />} />
+            <Route path="cursos/:id" element={<CrearCurso />} />
+            <Route path="cursos/:id/leccion/:n" element={<EditarLeccion />} />
+            <Route path="chat" element={<Navigate to="sintomas" replace />} />
+            <Route path="chat/:tab" element={<Chat />} />
+          </Route>
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

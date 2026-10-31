@@ -2,20 +2,23 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Check, Lock } from 'lucide-react'
 import { Screen, FooterBar } from '@/app/Shell'
-import { useStore } from '@/app/store'
+import { PENDIENTE_ADMIN, useStore } from '@/app/store'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Field, Input, Select, Textarea } from '@/ui/Field'
 import { Toggle } from '@/ui/Toggle'
-import { addCampaign, slugify } from '@/data/plv'
+import { addCampaign, slugify, TODAS } from '@/data/plv'
+import { useCifras } from '@/app/datos'
 import { Steps } from './NuevaCuenta'
 import { cn } from '@/lib/cn'
 
 export function NuevaCampana() {
   const navigate = useNavigate()
   const { notify } = useStore()
+  const cifras = useCifras()
+  const todas = `Todas · ${cifras.farmacias.toLocaleString('es-ES')}`
   const [f, setF] = useState({ name: 'Menopausia', from: '01/03/2026', to: '31/05/2026', notes: 'Campaña de apoyo al consejo en perimenopausia. El expositor va en la zona de dermo, no en el lineal de vitaminas. Recordar que el argumentario no puede prometer resultados clínicos.', limit: '1 expositor · 2 carteles · 50 folletos' })
-  const [target, setTarget] = useState('Todas · 412')
+  const [target, setTarget] = useState('Todas')
   const [types, setTypes] = useState(['Impreso', 'Digital'])
   const [notifyReps, setNotifyReps] = useState(true)
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v })
@@ -27,7 +30,7 @@ export function NuevaCampana() {
       footer={
         <FooterBar title="La campaña se crea vacía" subtitle="Al crearla se abre su ficha y ahí añades los materiales">
           <Link to="/admin/plv"><Button size="lg">Cancelar</Button></Link>
-          <Button size="lg" onClick={() => { notify('Borrador guardado'); navigate('/admin/plv') }}>Guardar borrador</Button>
+          <Button size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/plv') }}>Guardar borrador</Button>
           <Button
             variant="primary"
             size="lg"
@@ -45,12 +48,12 @@ export function NuevaCampana() {
                 description: f.notes,
                 code: f.name.slice(0, 2).toUpperCase(),
                 adminState: 'Borrador',
-                pharmacies: target.startsWith('Todas') ? '412' : '—',
+                pharmacies: target === 'Todas' ? TODAS : '—',
                 requests: '—',
                 updated: 'ahora',
                 dark: 'mid',
               })
-              notify(`Campaña «${f.name}» creada · ahora añade los materiales`)
+              notify(PENDIENTE_ADMIN, 'aviso')
               navigate(`/admin/plv/${id}`)
             }}
           >
@@ -60,18 +63,18 @@ export function NuevaCampana() {
       }
     >
       <PageHeader title="Nueva campaña" subtitle="Primero el nombre y las condiciones. Los materiales se añaden después, dentro de la campaña." />
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-6 flex flex-col gap-5">
           <Field label="Nombre de la campaña" required labelClass="label"><Input value={f.name} onChange={set('name')} /></Field>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Desde" required labelClass="label"><Input value={f.from} onChange={set('from')} /></Field>
             <Field label="Hasta" required labelClass="label"><Input value={f.to} onChange={set('to')} /></Field>
             <Field label="Tema" labelClass="label"><Select value="Mujer y hormonal" chevron="down" /></Field>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Farmacias destinatarias" labelClass="label">
               <div className="h-[34px] rounded-md bg-surface border border-line p-[3px] flex">
-                {['Todas · 412', 'Por zona', 'Manual'].map((o) => <button key={o} onClick={() => setTarget(o)} className={cn('flex-1 rounded-[6px] text-base font-medium', target === o ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}>{o}</button>)}
+                {['Todas', 'Por zona', 'Manual'].map((o) => <button key={o} onClick={() => setTarget(o)} className={cn('flex-1 rounded-[6px] text-base font-medium', target === o ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}>{o === 'Todas' ? todas : o}</button>)}
               </div>
             </Field>
             <Field label="Tipo de material" labelClass="label">
@@ -81,16 +84,16 @@ export function NuevaCampana() {
             </Field>
           </div>
           <Field label="Notas para el mostrador" labelClass="label"><Textarea rows={4} value={f.notes} onChange={set('notes')} /></Field>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Límite por farmacia" labelClass="label"><Input value={f.limit} onChange={set('limit')} /></Field>
             <Field label="Cierre de solicitudes" labelClass="label"><Select value="15 días antes del fin" chevron="down" /></Field>
           </div>
           <div className="pt-4 border-t border-line-soft flex items-center justify-between">
-            <div className="flex flex-col"><span className="text-base font-medium text-ink">Avisar a los comerciales al publicar</span><span className="text-sm text-muted">Los 6 comerciales reciben la campaña en su panel de Materiales PLV</span></div>
+            <div className="flex flex-col"><span className="text-base font-medium text-ink">Avisar a los comerciales al publicar</span><span className="text-sm text-muted">{cifras.comerciales === 1 ? 'El comercial recibe' : `Los ${cifras.comerciales} comerciales reciben`} la campaña en su panel de Materiales PLV</span></div>
             <Toggle on={notifyReps} onChange={setNotifyReps} />
           </div>
         </div>
-        <aside className="w-[316px] shrink-0 flex flex-col gap-4">
+        <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-4">
           <Steps title="Cómo funciona" steps={[{ t: 'Creas la campaña', d: 'Nombre, periodo y a qué farmacias llega.' }, { t: 'Añades los materiales dentro', d: 'Cada uno con su nombre, su foto y sus opciones. Si es digital, también su archivo; si es impreso, sus existencias.' }, { t: 'La publicas', d: 'Hasta que no la publiques, las farmacias no la ven.' }]} />
           <div className="rounded-xl bg-chrome border border-line p-4 flex flex-col">
             <span className="text-base font-semibold text-ink flex items-center gap-2"><Lock size={13} className="text-muted" />Materiales</span>

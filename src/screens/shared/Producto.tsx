@@ -34,43 +34,43 @@ export function Producto() {
         />
       }
     >
-      <div className="flex gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Columna imagen */}
-        <div className="w-[336px] shrink-0 flex flex-col gap-4">
-          <ProductArt art={p.art} size={img === 0 ? 180 : 140} className="h-[330px] rounded-xl border border-line" />
+        <div className="w-full lg:w-[336px] lg:shrink-0 flex flex-col gap-4">
+          <ProductArt art={p.art} photo={p.photo} size={img === 0 ? 180 : 140} className="h-[330px] rounded-xl border border-line" />
           <div className="grid grid-cols-4 gap-2.5">
             {['', 'DORSAL', 'LINEAL', '+2'].map((t, i) => (
               <button key={i} onClick={() => setImg(i)} className={cn('h-16 rounded-lg bg-chrome border flex items-center justify-center text-[10px] font-semibold tracking-[0.08em] text-faint', img === i ? 'border-accent ring-[3px] ring-accent-wash' : 'border-line')}>
-                {i === 0 ? <ProductArt art={p.art} size={26} bg={false} /> : t}
+                {i === 0 ? <ProductArt art={p.art} photo={p.photo} size={26} bg={false} /> : t}
               </button>
             ))}
           </div>
-          <KeyValue labelWidth={104} rows={[{ k: 'Formato', v: p.packaging }, { k: 'Alérgenos', v: p.allergens }, { k: 'Apto para', v: p.suitable }, { k: 'Registro sanitario', v: p.registry }]} />
+          <KeyValue labelWidth={104} rows={[{ k: 'Formato', v: p.packaging }, { k: 'Alérgenos', v: p.allergens }, { k: 'Apto para', v: p.suitable }, { k: 'Registro sanitario', v: p.registry }].filter((r) => r.v)} />
         </div>
 
         {/* Columna ficha */}
         <div className="flex-1 min-w-0 flex flex-col">
           <span className="label text-accent">{p.categoryLabel}{p.tag ? ` · ${p.tag}` : ''}</span>
           <h1 className="mt-2 text-display font-semibold tracking-tight text-ink">{p.name}</h1>
-          <p className="mt-2 text-base text-muted">{p.format} · CN {p.cn} · EAN {p.ean}</p>
+          <p className="mt-2 text-base text-muted">{[p.format, p.cn && `CN ${p.cn}`, p.ean && `EAN ${p.ean}`].filter(Boolean).join(' · ')}</p>
 
-          <div className="mt-5 rounded-xl bg-surface border border-line flex divide-x divide-line-soft">
+          <div className="mt-5 rounded-xl bg-surface border border-line flex flex-col sm:flex-row divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-line-soft">
             <div className="flex-1 px-4 py-4 flex flex-col"><span className="label">PVP recomendado</span><span className="mt-2 text-h1 font-semibold tracking-tight leading-8">{euro(p.pvp)}</span></div>
             <div className="flex-1 px-4 py-4 flex flex-col"><span className="label">{isComercial ? 'Margen para la farmacia' : 'Margen orientativo'}</span><span className="mt-2 text-h1 font-semibold tracking-tight leading-8">{p.margin} %</span></div>
             <div className="flex-[1.3] px-4 py-4 flex flex-col"><span className="label">Disponibilidad</span><span className="mt-2 text-base font-semibold text-ink">En almacén central</span><span className="text-xs text-muted mt-[3px]">{isComercial ? 'La farmacia lo pide por su canal habitual' : 'Pídelo por tu canal habitual'}</span></div>
           </div>
 
-          <nav className="mt-5 flex gap-5 border-b border-line">
+          <nav className="mt-5 flex gap-5 border-b border-line overflow-x-auto no-scrollbar scroll-hint">
             {tabs.map((t) => (
-              <button key={t} onClick={() => setTab(t)} className={cn('h-9 text-base font-medium border-b-2 -mb-px', tab === t ? 'text-ink border-accent font-semibold' : 'text-muted border-transparent hover:text-ink')}>{t}</button>
+              <button key={t} onClick={() => setTab(t)} className={cn('h-9 shrink-0 whitespace-nowrap text-base font-medium border-b-2 -mb-px', tab === t ? 'text-ink border-accent font-semibold' : 'text-muted border-transparent hover:text-ink')}>{t}</button>
             ))}
           </nav>
 
           {tab === 'Composición' && (
             <div className="mt-4 rounded-xl bg-surface border border-line overflow-hidden">
-              <div className="h-8 px-[14px] bg-chrome border-b border-line flex items-center"><span className="label flex-1">Por {p.dose.match(/^\d+ \w+/)?.[0] ?? '1 toma'}</span><span className="label w-[110px] text-right">Cantidad</span><span className="label w-[70px] text-right">% VRN</span></div>
+              <div className="h-8 px-[14px] bg-chrome border-b border-line flex items-center"><span className="label flex-1">Por {p.dose.match(/^\d+ \p{L}+/u)?.[0] ?? '1 toma'}</span><span className="label w-[110px] text-right">Cantidad</span><span className="label w-[70px] text-right">% VRN</span></div>
               {p.composition.map((c, i) => (
-                <div key={c.name} className={cn('h-[38px] px-[14px] flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
+                <div key={`${i}-${c.name}`} className={cn('h-[38px] px-[14px] flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
                   <span className="flex-1 text-base text-ink">{c.name}</span>
                   <span className="w-[110px] text-right text-base font-semibold text-ink">{c.qty}</span>
                   <span className="w-[70px] text-right text-base text-muted">{c.vrn}</span>
@@ -93,27 +93,31 @@ export function Producto() {
 
           <span className="label mt-6">Se recomienda cuando el cliente cuenta</span>
           <div className="mt-2.5 flex flex-wrap gap-2">
-            {p.symptoms.map((s) => (
-              <Link key={s} to={`${base}/consejo`} className="h-[27px] rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[13px] inline-flex items-center hover:bg-accent-line">{s}</Link>
+            {p.symptoms.map((s, i) => (
+              <Link key={`${i}-${s}`} to={`${base}/consejo`} className="h-[27px] rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[13px] inline-flex items-center hover:bg-accent-line">{s}</Link>
             ))}
           </div>
 
           {p.warning && <Notice className="mt-4" tone="warn" icon={<span className="text-warn font-bold text-base">!</span>}>{p.warning}</Notice>}
 
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            {course ? (
-              <Link to={`${base}/formacion/cursos/${course.id}`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
-                <span className="h-8 w-8 rounded-full bg-accent-wash text-accent-deep inline-flex items-center justify-center"><GraduationCap size={15} /></span>
-                <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Curso: {course.title.replace('Cómo recomendar magnesio en el mostrador', 'cómo recomendar magnesio')}</span><span className="text-xs text-muted">{course.lessons.length} lecciones · {course.minutes} min · vas por la 3</span></span>
-                <ChevronRight size={14} className="text-faint" />
-              </Link>
-            ) : <div />}
-            <Link to={`${base}/plv/otono`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
-              <span className="h-8 w-8 rounded-full bg-chrome-deep text-ink-soft inline-flex items-center justify-center"><Presentation size={15} /></span>
-              <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Material PLV disponible</span><span className="text-xs text-muted">{p.plv ?? 'Cartel de campaña y folleto'}</span></span>
-              <ChevronRight size={14} className="text-faint" />
-            </Link>
-          </div>
+          {(course || p.hasPLV) && (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {course && (
+                <Link to={`${base}/formacion/cursos/${course.id}`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
+                  <span className="h-8 w-8 rounded-full bg-accent-wash text-accent-deep inline-flex items-center justify-center"><GraduationCap size={15} /></span>
+                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Curso: {course.title}</span><span className="text-xs text-muted">{course.lessons.length} lecciones · {course.minutes} min</span></span>
+                  <ChevronRight size={14} className="text-faint" />
+                </Link>
+              )}
+              {p.hasPLV && (
+                <Link to={`${base}/plv/otono`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
+                  <span className="h-8 w-8 rounded-full bg-chrome-deep text-ink-soft inline-flex items-center justify-center"><Presentation size={15} /></span>
+                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Material PLV disponible</span><span className="text-xs text-muted">{p.plv ?? 'Cartel de campaña y folleto'}</span></span>
+                  <ChevronRight size={14} className="text-faint" />
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Screen>

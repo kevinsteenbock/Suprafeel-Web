@@ -75,6 +75,7 @@
 
 @layer base {
   html, body, #root { height: 100%; }
+  html, body { overflow-x: hidden; }
   body {
     margin: 0;
     background: var(--color-canvas);
@@ -102,4 +103,12 @@
   .scrollbar-thin { scrollbar-width: thin; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+  /* Difuminado en el borde derecho: avisa de que la tira se puede deslizar. Solo por debajo
+     de 1024px, que es donde estas tiras no caben; en escritorio se ven enteras. */
+  @media (max-width: 1023px) {
+    .scroll-hint {
+      -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    }
+  }
 }
