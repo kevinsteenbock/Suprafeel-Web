@@ -22,7 +22,7 @@ const diaDe = (iso: string) => {
 /** Saludo según la hora del día. */
 function saludo(d: Date) {
   const h = d.getHours()
-  return h < 14 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches'
+  return h >= 6 && h < 14 ? 'Buenos días' : h >= 14 && h < 21 ? 'Buenas tardes' : 'Buenas noches'
 }
 
 /** Nombre para el saludo: el de pila; si la cuenta es una etiqueta («X · Comercial»), lo que va antes del punto. */
