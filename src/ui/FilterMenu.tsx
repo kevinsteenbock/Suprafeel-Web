@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useMenuPos } from './menuPos'
 
 export interface MenuOption { key: string; label: string; count?: number; countTone?: 'neutral' | 'danger' }
 
 /**
  * Botón + desplegable de una sola elección (filtro, orden, sección…). Sustituye a la
  * fila de chips: en vez de N botones sueltos, un único botón compacto que abre la lista.
+ * `align` es el lado preferido; si por ahí no cabe, el menú se corre para no salirse de la pantalla.
+ * `width` es el ancho mínimo: la lista crece hasta que quepa la etiqueta más larga.
+ * En el teléfono el botón no enseña el contador (dentro de la lista sí), para que quepan dos por fila.
  */
 export function FilterMenuButton({ icon, label, value, options, onChange, width = 220, align = 'left', className }: {
   icon?: ReactNode
@@ -20,6 +24,8 @@ export function FilterMenuButton({ icon, label, value, options, onChange, width 
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const pos = useMenuPos(open, ref, menuRef, align)
 
   useEffect(() => {
     if (!open) return
@@ -37,13 +43,13 @@ export function FilterMenuButton({ icon, label, value, options, onChange, width 
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={cn('h-[27px] rounded-[7px] border border-line px-[11px] flex items-center gap-[7px] text-md font-medium text-ink', open ? 'bg-chrome-deep' : 'bg-chrome-deep/70 hover:bg-chrome-deep')}
+        className={cn('h-[27px] max-lg:h-8 rounded-[7px] border border-line px-[11px] flex items-center gap-[7px] text-md font-medium text-ink', open ? 'bg-chrome-deep' : 'bg-chrome-deep/70 hover:bg-chrome-deep')}
       >
         {icon}
         {label && <span className="text-muted">{label}</span>}
         <span className="truncate max-w-[140px]">{current?.label ?? value}</span>
         {current?.count !== undefined && (
-          <span className={cn('h-4 min-w-4 rounded-full px-1.5 text-[10.5px] font-semibold inline-flex items-center justify-center', current.countTone === 'danger' ? 'bg-danger-wash text-danger' : 'bg-chrome-deep text-ink-soft')}>
+          <span className={cn('h-4 min-w-4 rounded-full px-1.5 text-[10.5px] font-semibold hidden sm:inline-flex items-center justify-center', current.countTone === 'danger' ? 'bg-danger-wash text-danger' : 'bg-chrome-deep text-ink-soft')}>
             {current.count}
           </span>
         )}
@@ -51,14 +57,18 @@ export function FilterMenuButton({ icon, label, value, options, onChange, width 
       </button>
 
       {open && (
-        <div style={{ width }} className={cn('absolute top-[33px] z-40 rounded-[10px] bg-surface border border-line shadow-pop py-1.5 overflow-hidden', align === 'right' ? 'right-0' : 'left-0')}>
-          <span className={cn('absolute -top-[6px] h-3 w-3 rotate-45 bg-surface border-l border-t border-line', align === 'right' ? 'right-[14px]' : 'left-[14px]')} />
+        <div
+          ref={menuRef}
+          style={pos ? { minWidth: width, left: pos.left, right: 'auto' } : { minWidth: width }}
+          className={cn('absolute top-[33px] max-lg:top-[38px] z-40 w-max max-w-[calc(100vw-32px)] rounded-[10px] bg-surface border border-line shadow-pop py-1.5 overflow-hidden', align === 'right' ? 'right-0' : 'left-0')}
+        >
+          <span style={pos ? { left: pos.arrow, right: 'auto' } : undefined} className={cn('absolute -top-[6px] h-3 w-3 rotate-45 bg-surface border-l border-t border-line', align === 'right' ? 'right-[14px]' : 'left-[14px]')} />
           {options.map((o) => (
             <button
               key={o.key}
               type="button"
               onClick={() => { onChange(o.key); setOpen(false) }}
-              className="h-[34px] w-full px-3 flex items-center gap-2 text-base text-ink hover:bg-chrome text-left"
+              className="h-[34px] max-lg:h-10 w-full px-3 flex items-center gap-2 text-base text-ink hover:bg-chrome text-left"
             >
               <span className="w-4 shrink-0 flex justify-center">{o.key === value && <Check size={13} strokeWidth={2.5} className="text-accent" />}</span>
               <span className="flex-1 min-w-0 truncate">{o.label}</span>

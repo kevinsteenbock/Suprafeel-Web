@@ -108,11 +108,13 @@ export function Farmacias() {
     }
   }
   type Row = (typeof list)[number]
+  // Por debajo de 1024 px (móvil y tableta) las columnas no caben junto al nombre: la fila se parte en
+  // dos líneas (nombre arriba; referencias, formación… debajo) y la cabecera de columnas se esconde.
   const cells: Record<string, { th: ReactNode; td: (p: Row) => ReactNode }> = {
-    refs: { th: <Th key="h1" className="w-[90px]" align="right">Referencias</Th>, td: (p) => <Td key="c1" className={cn('w-[90px] font-semibold', p.refs >= 10 ? 'text-ink' : p.refs <= 2 ? 'text-warn' : 'text-ink-soft')} align="right">{p.refs}</Td> },
-    formacion: { th: <Th key="h2" className="w-[96px]" align="right">Formación</Th>, td: (p) => <div key="c2" className="w-[96px] flex justify-end">{p.formacion ? <Badge tone={formacionChapa(p).tone}>{formacionChapa(p).label}</Badge> : <span className="text-faint text-md">—</span>}</div> },
-    comercial: { th: <Th key="h3" className="w-[100px]" align="right">Comercial</Th>, td: (p) => <Td key="c3" className="w-[100px]" align="right">{p.rep}</Td> },
-    poblacion: { th: <Th key="h4" className="w-[150px]" align="right">Población</Th>, td: (p) => <Td key="c4" className="w-[150px]" align="right">{p.city}</Td> },
+    refs: { th: <Th key="h1" className="w-[90px]" align="right">Referencias</Th>, td: (p) => <Td key="c1" className={cn('w-[90px] max-lg:w-auto max-lg:text-left font-semibold', p.refs >= 10 ? 'text-ink' : p.refs <= 2 ? 'text-warn' : 'text-ink-soft')} align="right">{p.refs}<span className="lg:hidden font-normal"> {p.refs === 1 ? 'referencia' : 'referencias'}</span></Td> },
+    formacion: { th: <Th key="h2" className="w-[96px]" align="right">Formación</Th>, td: (p) => <div key="c2" className="w-[96px] max-lg:w-auto flex justify-end">{p.formacion ? <Badge tone={formacionChapa(p).tone}>{formacionChapa(p).label}</Badge> : <span className="text-faint text-md max-lg:hidden">—</span>}</div> },
+    comercial: { th: <Th key="h3" className="w-[100px]" align="right">Comercial</Th>, td: (p) => <Td key="c3" className="w-[100px] max-lg:w-auto max-lg:text-left max-lg:text-sm max-lg:text-muted" align="right">{p.rep}</Td> },
+    poblacion: { th: <Th key="h4" className="w-[150px]" align="right">Población</Th>, td: (p) => <Td key="c4" className="w-[150px] max-lg:w-auto max-lg:text-left max-lg:text-sm max-lg:text-muted" align="right">{p.city}</Td> },
   }
   const cols = visibleColumns(vista)
 
@@ -123,7 +125,7 @@ export function Farmacias() {
           title="Mis farmacias"
           right={
             <>
-              <div className="h-7 flex-1 min-w-0 lg:flex-none lg:w-[208px] rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]"><Search size={13} className="text-faint shrink-0" /><input aria-label="Buscar farmacia" className="flex-1 min-w-0 bg-transparent text-md" placeholder="Buscar farmacia" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+              <div className="h-7 max-lg:h-9 flex-1 min-w-0 lg:flex-none lg:w-[208px] rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]"><Search size={13} className="text-faint shrink-0" /><input aria-label="Buscar farmacia" className="flex-1 min-w-0 self-stretch bg-transparent text-md" placeholder="Buscar farmacia" value={q} onChange={(e) => setQ(e.target.value)} /></div>
               <Button variant="primary" className="shrink-0" icon={<Plus size={13} strokeWidth={2.4} />} onClick={() => setPanel('buscar')}>Añadir farmacia</Button>
             </>
           }
@@ -144,15 +146,15 @@ export function Farmacias() {
 
       {vista.mode === 'list' ? (
         <TableCard footer={`${list.length} de ${plural(farmacias.length, 'farmacia', 'farmacias')}`} footerRight={list.length ? <button onClick={() => exportarCSV(list)}>Exportar a CSV</button> : undefined}>
-          <THead>
+          <THead className="max-lg:hidden">
             <Th className="flex-1">Farmacia</Th>
             {cols.map((k) => cells[k].th)}
           </THead>
           {list.length === 0 && <div className="p-8 text-center text-base text-muted">{farmacias.length ? 'Ninguna farmacia coincide con la búsqueda o el filtro.' : 'Todavía no tienes farmacias asignadas.'}</div>}
           {list.map((p, i) => (
-            <Tr key={p.id} onClick={() => navigate(`/comercial/farmacias/${p.id}`)} last={i === list.length - 1}>
-              <TdMain title={p.name} meta={[p.city, p.owner].filter(Boolean).join(' · ')} avatar={<Avatar initials={p.code} size={30} tone={i === 0 ? 'soft' : 'neutral'} />} />
-              {cols.map((k) => cells[k].td(p))}
+            <Tr key={p.id} wrap="lg" className="max-lg:gap-y-1.5" onClick={() => navigate(`/comercial/farmacias/${p.id}`)} last={i === list.length - 1}>
+              <TdMain wrap="lg" className="max-lg:basis-full max-lg:w-0" title={p.name} meta={[p.city, p.owner].filter(Boolean).join(' · ')} avatar={<Avatar initials={p.code} size={30} tone={i === 0 ? 'soft' : 'neutral'} />} />
+              {cols.length > 0 && <div className="lg:contents max-lg:basis-full max-lg:pl-[42px] max-lg:flex max-lg:flex-wrap max-lg:items-center max-lg:gap-x-3 max-lg:gap-y-1">{cols.map((k) => cells[k].td(p))}</div>}
             </Tr>
           ))}
         </TableCard>

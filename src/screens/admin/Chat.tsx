@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { Plus, Check, X, ChevronRight, Sparkles, AlertTriangle, RotateCcw, LayoutGrid } from 'lucide-react'
 import { Screen } from '@/app/Shell'
@@ -12,9 +12,9 @@ import { Drawer } from '@/ui/Drawer'
 import { Field, Textarea, Select } from '@/ui/Field'
 import { Toggle } from '@/ui/Toggle'
 import { Thumb, FileBadge, ProductArt } from '@/ui/ProductArt'
-import { VistaButton, useVista } from '@/ui/Vista'
-import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
+import { TableCard, THead, Th, Td, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+import { FilaLista } from './AccesoCelda'
 
 // Cifras contadas sobre el contenido que hay. Consultas, acierto y uso no se registran todavía: no se enseñan.
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
@@ -34,6 +34,28 @@ const sub: Record<string, string> = {
 }
 const cta: Record<string, string> = { sintomas: 'Nuevo síntoma', reglas: 'Nueva regla', fuentes: 'Subir fuente', pruebalo: 'Vaciar la prueba', 'sin-respuesta': 'Crear regla' }
 
+/**
+ * Celda principal de las tablas del chat: igual que TdMain en escritorio (una línea, con «…»), pero
+ * en el móvil el texto se parte en líneas en vez de cortarse. `extra`: una línea más, solo en el móvil.
+ */
+function Principal({ title, meta, metaClass = 'text-faint', avatar, extra }: { title: ReactNode; meta?: ReactNode; metaClass?: string; avatar?: ReactNode; extra?: ReactNode }) {
+  return (
+    <div className="flex-1 min-w-0 flex items-center gap-3">
+      {avatar}
+      <div className="flex flex-col min-w-0">
+        <span className="text-base font-medium text-ink break-words lg:truncate">{title}</span>
+        {meta && <span className={cn('text-xs mt-[2px] break-words lg:truncate', metaClass)}>{meta}</span>}
+        {extra && <span className="lg:hidden text-xs mt-[2px] text-faint">{extra}</span>}
+      </div>
+    </div>
+  )
+}
+
+/** Cifra con su nombre delante: la segunda línea de cada fila en el móvil, donde no se ve la cabecera. */
+function Cifra({ label, children }: { label: string; children: ReactNode }) {
+  return <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="label-faint">{label}</span><span className="text-sm text-ink-soft inline-flex items-center gap-1.5">{children}</span></span>
+}
+
 export function Chat() {
   const { tab = 'sintomas' } = useParams()
   const navigate = useNavigate()
@@ -42,7 +64,6 @@ export function Chat() {
   const [rule, setRule] = useState<Rule | null>(null)
   const [teach, setTeach] = useState<string | null>(null)
   const [newRule, setNewRule] = useState(false)
-  const { vista, setVista, resetVista } = useVista({ mode: 'list' })
   if (!tabs.some((t) => t.key === tab)) return <Navigate to="/admin/chat/sintomas" replace />
 
   const onCta = () => {
@@ -58,7 +79,7 @@ export function Chat() {
         title="Chat inteligente"
         subtitle={sub[tab]}
       />
-      <FilterBar right={<VistaButton vista={vista} onChange={setVista} onReset={resetVista} />}>
+      <FilterBar>
         <FilterMenuButton
           icon={<LayoutGrid size={13} strokeWidth={1.8} />}
           value={tab}
@@ -81,23 +102,31 @@ export function Chat() {
   )
 }
 
+const estadoSintoma = (s: Symptom) => (s.state === 'Entrenado' ? 'ok' : s.state === 'Flojo' ? 'warn' : 'solid-danger') as 'ok' | 'warn' | 'solid-danger'
+
 function Sintomas({ onOpen, onTeach }: { onOpen: (s: Symptom) => void; onTeach: () => void }) {
   const { notify } = useStore()
   return (
     <TableCard footer={plural(allSymptoms.length, 'síntoma', 'síntomas')} footerRight={<button onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}>Exportar el vocabulario</button>}>
-      <THead><Th className="flex-1">Síntoma</Th><Th className="w-[292px]">Cómo lo dicen</Th><Th className="w-[72px]" align="right">Consultas</Th><Th className="w-[52px]" align="right">Reglas</Th><Th className="w-[92px]">Acierto</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
+      <THead className="hidden lg:flex"><Th className="flex-1">Síntoma</Th><Th className="w-[292px]">Cómo lo dicen</Th><Th className="w-[72px]" align="right">Consultas</Th><Th className="w-[52px]" align="right">Reglas</Th><Th className="w-[92px]">Acierto</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
       {allSymptoms.map((s, i) => (
-        <Tr key={s.id} tone={s.state === 'Sin regla' ? 'danger' : undefined} onClick={() => (s.state === 'Sin regla' ? onTeach() : onOpen(s))} last={i === allSymptoms.length - 1}>
-          <TdMain title={s.name} meta={s.category} metaTone={s.detected ? 'danger' : 'faint'} />
-          <div className="w-[292px] flex items-center gap-[5px] overflow-hidden">
+        <FilaLista key={s.id} tone={s.state === 'Sin regla' ? 'danger' : undefined} onClick={() => (s.state === 'Sin regla' ? onTeach() : onOpen(s))} last={i === allSymptoms.length - 1}>
+          <Principal title={s.name} meta={s.category} metaClass={s.detected ? 'text-danger' : 'text-faint'} />
+          <span className="lg:hidden shrink-0 self-start"><Badge tone={estadoSintoma(s)}>{s.state}</Badge></span>
+          <div className="hidden lg:flex w-[292px] items-center gap-[5px] overflow-hidden">
             {s.expressions.slice(0, 2).map((e) => <span key={e.text} className={cn('h-[19px] px-2 rounded-full border border-line-soft text-[10.5px] text-ink-soft inline-flex items-center whitespace-nowrap', s.detected ? 'bg-surface' : 'bg-chrome')}>{e.text.length > 22 ? e.text.slice(0, 20) + '…' : e.text}</span>)}
             <span className="text-[10.5px] text-faint">+{Math.max(0, s.expressions.length - 2 + s.pending.length)}</span>
           </div>
-          <Td className="w-[72px]" align="right">{s.consultations ?? '—'}</Td>
-          <Td className="w-[52px]" align="right">{s.rules}</Td>
-          <div className="w-[92px] flex items-center gap-2">{s.accuracy === null ? <span className="text-sm text-faint">—</span> : <><Bar value={s.accuracy} tone={s.accuracy >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{s.accuracy} %</span></>}</div>
-          <div className="w-[92px] flex justify-end"><Badge tone={s.state === 'Entrenado' ? 'ok' : s.state === 'Flojo' ? 'warn' : 'solid-danger'}>{s.state}</Badge></div>
-        </Tr>
+          <Td className="hidden lg:block w-[72px]" align="right">{s.consultations ?? '—'}</Td>
+          <Td className="hidden lg:block w-[52px]" align="right">{s.rules}</Td>
+          <div className="hidden lg:flex w-[92px] items-center gap-2">{s.accuracy === null ? <span className="text-sm text-faint">—</span> : <><Bar value={s.accuracy} tone={s.accuracy >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{s.accuracy} %</span></>}</div>
+          <div className="hidden lg:flex w-[92px] justify-end"><Badge tone={estadoSintoma(s)}>{s.state}</Badge></div>
+          <div className="lg:hidden w-full flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            <Cifra label="Consultas">{s.consultations ?? '—'}</Cifra>
+            <Cifra label="Reglas">{s.rules}</Cifra>
+            <Cifra label="Acierto">{s.accuracy === null ? '—' : <><Bar value={s.accuracy} tone={s.accuracy >= 80 ? 'ok' : 'warn'} />{s.accuracy} %</>}</Cifra>
+          </div>
+        </FilaLista>
       ))}
     </TableCard>
   )
@@ -107,18 +136,21 @@ function Reglas({ onOpen }: { onOpen: (r: Rule) => void }) {
   const { notify } = useStore()
   return (
     <TableCard footer={`${plural(allRules.length, 'regla', 'reglas')} · cuando dos reglas encajan, gana la que tiene más condiciones`} footerRight={<button onClick={() => notify('Las reglas se ordenan por número de condiciones y luego por acierto')}>Ver cómo se ordenan</button>}>
-      <THead><Th className="flex-1">Cuándo se activa</Th><Th className="w-[168px]">Qué recomienda</Th><Th className="w-[76px]" align="right">Se usó</Th><Th className="w-[96px]">Le sirvió</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
+      <THead className="hidden lg:flex"><Th className="flex-1">Cuándo se activa</Th><Th className="w-[168px]">Qué recomienda</Th><Th className="w-[76px]" align="right">Se usó</Th><Th className="w-[96px]">Le sirvió</Th><Th className="w-[92px]" align="right">Estado</Th></THead>
       {allRules.map((r, i) => (
-        <Tr key={r.id} height={58} onClick={() => onOpen(r)} last={i === allRules.length - 1}>
+        <FilaLista key={r.id} height={58} onClick={() => onOpen(r)} last={i === allRules.length - 1}>
           <div className="flex-1 min-w-0 flex flex-col">
-            <span className="flex items-center gap-2 text-base font-medium text-ink truncate">{r.name}{r.derive && <Badge size="sm" tone="danger">Deriva</Badge>}</span>
-            <span className={cn('text-xs mt-[2px] truncate', r.warn ? 'text-warn' : 'text-faint')}>{r.conditions}</span>
+            <span className="flex flex-wrap lg:flex-nowrap items-center gap-x-2 gap-y-1 lg:gap-2 text-base font-medium text-ink lg:truncate">{r.name}{r.derive && <Badge size="sm" tone="danger">Deriva</Badge>}</span>
+            <span className={cn('text-xs mt-[2px] lg:truncate', r.warn ? 'text-warn' : 'text-faint')}>{r.conditions}</span>
           </div>
-          <div className="w-[168px] flex items-center gap-[5px]">{r.products.length === 0 ? <span className="text-sm text-faint">Sin producto</span> : <>{r.products.slice(0, 3).map((p) => <Thumb key={p.code + p.name} code={p.code} tone={p.tone === 'sand' ? 'sand' : p.tone === 'ok' ? 'ok' : p.tone === 'violet' ? 'violet' : 'accent'} />)}{r.extra && <span className="text-xs text-faint ml-0.5">+{r.extra}</span>}</>}</div>
-          <Td className="w-[76px]" align="right">{r.used ?? '—'}</Td>
-          <div className="w-[96px] flex items-center gap-2">{r.useful === null ? <span className="text-sm text-faint">—</span> : <><Bar value={r.useful} width={50} tone={r.useful >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{r.useful} %</span></>}</div>
-          <div className="w-[92px] flex justify-end"><Badge tone={r.state === 'Activa' ? 'ok' : 'warn'}>{r.state}</Badge></div>
-        </Tr>
+          <span className="lg:hidden shrink-0 self-start"><Badge tone={r.state === 'Activa' ? 'ok' : 'warn'}>{r.state}</Badge></span>
+          <div className="w-full lg:w-[168px] flex items-center gap-[5px]">{r.products.length === 0 ? <span className="text-sm text-faint">Sin producto</span> : <>{r.products.slice(0, 3).map((p) => <Thumb key={p.code + p.name} code={p.code} tone={p.tone === 'sand' ? 'sand' : p.tone === 'ok' ? 'ok' : p.tone === 'violet' ? 'violet' : 'accent'} />)}{r.extra && <span className="text-xs text-faint ml-0.5">+{r.extra}</span>}</>}
+            <span className="lg:hidden ml-auto pl-3 flex items-center gap-4"><Cifra label="Se usó">{r.used ?? '—'}</Cifra><Cifra label="Le sirvió">{r.useful === null ? '—' : <><Bar value={r.useful} width={50} tone={r.useful >= 80 ? 'ok' : 'warn'} />{r.useful} %</>}</Cifra></span>
+          </div>
+          <Td className="hidden lg:block w-[76px]" align="right">{r.used ?? '—'}</Td>
+          <div className="hidden lg:flex w-[96px] items-center gap-2">{r.useful === null ? <span className="text-sm text-faint">—</span> : <><Bar value={r.useful} width={50} tone={r.useful >= 80 ? 'ok' : 'warn'} /><span className="text-sm text-muted whitespace-nowrap">{r.useful} %</span></>}</div>
+          <div className="hidden lg:flex w-[92px] justify-end"><Badge tone={r.state === 'Activa' ? 'ok' : 'warn'}>{r.state}</Badge></div>
+        </FilaLista>
       ))}
     </TableCard>
   )
@@ -128,14 +160,16 @@ function Fuentes() {
   const { notify } = useStore()
   return (
     <TableCard footer={plural(sources.length, 'fuente', 'fuentes')} footerRight={<button onClick={() => notify('Sube un PDF o pega un enlace')}>Subir fuente</button>}>
-      <THead><Th className="flex-1">Fuente</Th><Th className="w-[110px]" align="right">Usada en reglas</Th><Th className="w-[100px]" align="right">Actualizada</Th><Th className="w-[90px]" align="right">Estado</Th></THead>
+      <THead className="hidden lg:flex"><Th className="flex-1">Fuente</Th><Th className="w-[110px]" align="right">Usada en reglas</Th><Th className="w-[100px]" align="right">Actualizada</Th><Th className="w-[90px]" align="right">Estado</Th></THead>
       {sources.map((f, i) => (
-        <Tr key={f.name} onClick={() => notify(`Abriendo «${f.name}»`)} last={i === sources.length - 1}>
-          <TdMain title={f.name} meta={f.meta} avatar={<FileBadge kind={f.kind} />} />
-          <Td className="w-[110px] font-semibold text-ink" align="right">{f.used}</Td>
-          <Td className="w-[100px]" align="right">{f.updated}</Td>
-          <div className="w-[90px] flex justify-end"><Badge tone="ok">Revisada</Badge></div>
-        </Tr>
+        <FilaLista key={f.name} onClick={() => notify(`Abriendo «${f.name}»`)} last={i === sources.length - 1}>
+          <Principal title={f.name} meta={f.meta} avatar={<FileBadge kind={f.kind} />} />
+          <span className="lg:hidden shrink-0 self-start"><Badge tone="ok">Revisada</Badge></span>
+          <div className="lg:hidden w-full pl-[38px] flex flex-wrap items-center gap-x-4 gap-y-1.5"><Cifra label="Reglas">{f.used}</Cifra><Cifra label="Actualizada">{f.updated}</Cifra></div>
+          <Td className="hidden lg:block w-[110px] font-semibold text-ink" align="right">{f.used}</Td>
+          <Td className="hidden lg:block w-[100px]" align="right">{f.updated}</Td>
+          <div className="hidden lg:flex w-[90px] justify-end"><Badge tone="ok">Revisada</Badge></div>
+        </FilaLista>
       ))}
     </TableCard>
   )
@@ -175,7 +209,7 @@ function Pruebalo() {
                 <div className="flex-1 min-w-0 flex flex-col"><div className="flex items-center gap-2"><span className="flex-1 text-[13.5px] font-semibold text-ink">{r.name}</span><span className={cn('text-sm font-semibold', r.score >= 80 ? 'text-ok' : 'text-warn')}>encaja {r.score} %</span></div><span className="mt-[3px] text-sm leading-4 text-ink-soft">{r.why}</span><span className="mt-1 text-xs text-faint">{r.dose}</span></div>
               </div>
             ))}
-            <div className="h-[52px] px-3.5 bg-chrome border-t border-line flex items-center justify-between"><span className="text-sm text-muted">Y también: «tres semanas ya es mucho, que lo comente en la próxima revisión».</span><span className="text-sm text-faint">respondido en 1,2 s</span></div>
+            <div className="min-h-[52px] py-2.5 px-3.5 bg-chrome border-t border-line flex flex-wrap items-center justify-between gap-x-3 gap-y-1"><span className="text-sm text-muted">Y también: «tres semanas ya es mucho, que lo comente en la próxima revisión».</span><span className="text-sm text-faint whitespace-nowrap">respondido en 1,2 s</span></div>
           </div>
         )}
       </div>
@@ -218,15 +252,17 @@ function SinRespuesta({ onTeach }: { onTeach: (id: string) => void }) {
   const list = allUnanswered.filter((u) => !gone.includes(u.id))
   return (
     <TableCard footer={`${list.length} de ${allUnanswered.length} · agrupadas por lo que querían decir, no por las palabras exactas`} footerRight={<button onClick={() => { setGone(list.map((l) => l.id)); notify(PENDIENTE_ADMIN, 'aviso') }}>Marcar todo como visto</button>}>
-      <THead><Th className="flex-1">Lo que escribieron</Th><Th className="w-[150px]">Farmacia</Th><Th className="w-[74px]">Cuándo</Th><Th className="w-[186px]">Qué pasó</Th><Th className="w-[104px]" align="right">Arreglarlo</Th></THead>
+      <THead className="hidden lg:flex"><Th className="flex-1">Lo que escribieron</Th><Th className="w-[150px]">Farmacia</Th><Th className="w-[74px]">Cuándo</Th><Th className="w-[186px]">Qué pasó</Th><Th className="w-[104px]" align="right">Arreglarlo</Th></THead>
       {list.map((u, i) => (
-        <Tr key={u.id} active={u.hot} onClick={() => (u.action === 'Descartar' ? setGone((g) => [...g, u.id]) : onTeach(u.id))} last={i === list.length - 1}>
-          <TdMain title={u.text} meta={u.meta} metaTone={u.hot ? 'accent' : 'faint'} />
-          <Td className="w-[150px]">{u.pharmacy}</Td>
-          <Td className="w-[74px]">{u.when}</Td>
-          <div className="w-[186px]"><Badge tone={u.tone === 'danger' ? 'danger' : u.tone === 'warn' ? 'warn' : 'neutral'}>{u.what}</Badge></div>
-          <div className="w-[104px] flex justify-end">{u.hot ? <Button variant="primary" size="sm">Enseñarle</Button> : <span className={cn('text-sm font-medium', u.action === 'Descartar' ? 'text-muted' : 'text-accent')}>{u.action}</span>}</div>
-        </Tr>
+        <FilaLista key={u.id} active={u.hot} onClick={() => (u.action === 'Descartar' ? setGone((g) => [...g, u.id]) : onTeach(u.id))} last={i === list.length - 1}>
+          <Principal title={u.text} meta={u.meta} metaClass={u.hot ? 'text-accent-deep' : 'text-faint'} extra={`${u.pharmacy} · ${u.when}`} />
+          <Td className="hidden lg:block w-[150px]">{u.pharmacy}</Td>
+          <Td className="hidden lg:block w-[74px]">{u.when}</Td>
+          <div className="w-full lg:w-auto flex items-center justify-between gap-3 lg:gap-[14px]">
+            <div className="lg:w-[186px] min-w-0"><Badge tone={u.tone === 'danger' ? 'danger' : u.tone === 'warn' ? 'warn' : 'neutral'}>{u.what}</Badge></div>
+            <div className="lg:w-[104px] shrink-0 flex justify-end">{u.hot ? <Button variant="primary" size="sm">Enseñarle</Button> : <span className={cn('text-sm font-medium', u.action === 'Descartar' ? 'text-muted' : 'text-accent')}>{u.action}</span>}</div>
+          </div>
+        </FilaLista>
       ))}
     </TableCard>
   )
@@ -253,14 +289,14 @@ function SymptomDrawer({ s, onClose }: { s: Symptom; onClose: () => void }) {
           <span className="mt-1.5 text-xs text-faint">Escríbelo tal cual lo diría un cliente en el mostrador, no en médico.</span>
           <div className="mt-[18px] flex items-baseline justify-between"><span className="label-faint">Expresiones activas · {expr.length}</span><span className="text-xs text-faint">veces escritas</span></div>
           <div className="mt-2 rounded-lg bg-surface border border-line overflow-hidden">
-            {shown.map((e) => <div key={e.text} className="h-[38px] px-3 flex items-center gap-2.5 border-b border-line-soft"><span className="flex-1 text-md text-ink truncate">{e.text}</span><span className="w-11 text-right text-sm text-muted">{e.count}</span><button onClick={() => setExpr((xs) => xs.filter((x) => x !== e))} className="text-faint hover:text-danger"><X size={13} /></button></div>)}
+            {shown.map((e) => <div key={e.text} className="min-h-[38px] lg:h-[38px] py-1 lg:py-0 px-3 flex items-center gap-2.5 border-b border-line-soft"><span className="flex-1 min-w-0 text-md text-ink lg:truncate">{e.text}</span><span className="w-11 shrink-0 text-right text-sm text-muted">{e.count}</span><button onClick={() => setExpr((xs) => xs.filter((x) => x !== e))} aria-label={`Quitar «${e.text}»`} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-danger"><X size={13} /></button></div>)}
             {expr.length > 5 && <button onClick={() => setShowAll((v) => !v)} className="h-[38px] px-3 w-full text-left text-md font-medium text-accent hover:bg-canvas">{showAll ? 'Ver menos' : `Ver las ${expr.length - 5} restantes`}</button>}
           </div>
           {pending.length > 0 && (
             <>
               <div className="mt-5 flex items-center gap-2"><span className="label-faint">Lo ha aprendido solo</span><Badge size="sm" tone="accent">{pending.length} por aprobar</Badge></div>
               <div className="mt-2 rounded-lg bg-accent-wash border border-accent-line overflow-hidden">
-                {pending.map((p, i) => <div key={p.text} className={cn('h-[46px] px-3 flex items-center gap-2.5', i < pending.length - 1 && 'border-b border-[#E3C7BA]')}><span className="flex-1 min-w-0 flex flex-col"><span className="text-md text-ink truncate">{p.text}</span><span className={cn('text-[10.5px]', p.danger ? 'text-danger' : 'text-accent-deep')}>{p.meta}</span></span><button onClick={() => approve(p.text)} className="h-[26px] w-[26px] rounded-[7px] bg-ok text-white inline-flex items-center justify-center"><Check size={13} strokeWidth={3} /></button><button onClick={() => { setPending((ps) => ps.filter((x) => x !== p)); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[26px] w-[26px] rounded-[7px] bg-surface border border-line text-muted inline-flex items-center justify-center"><X size={12} strokeWidth={2.4} /></button></div>)}
+                {pending.map((p, i) => <div key={p.text} className={cn('min-h-[46px] py-1.5 px-3 flex items-center gap-2.5', i < pending.length - 1 && 'border-b border-[#E3C7BA]')}><span className="flex-1 min-w-0 flex flex-col"><span className="text-md text-ink lg:truncate">{p.text}</span><span className={cn('text-[10.5px]', p.danger ? 'text-danger' : 'text-accent-deep')}>{p.meta}</span></span><button onClick={() => approve(p.text)} aria-label="Aprobar" className="h-[26px] w-[26px] max-lg:h-8 max-lg:w-8 shrink-0 rounded-[7px] bg-ok text-white inline-flex items-center justify-center"><Check size={13} strokeWidth={3} /></button><button onClick={() => { setPending((ps) => ps.filter((x) => x !== p)); notify(PENDIENTE_ADMIN, 'aviso') }} aria-label="Descartar" className="h-[26px] w-[26px] max-lg:h-8 max-lg:w-8 shrink-0 rounded-[7px] bg-surface border border-line text-muted inline-flex items-center justify-center"><X size={12} strokeWidth={2.4} /></button></div>)}
               </div>
             </>
           )}
@@ -287,18 +323,18 @@ function RuleDrawer({ r, onClose, isNew }: { r: Rule; onClose: () => void; isNew
         <div className="flex flex-col gap-4">
           <Field label="Síntoma principal" required><Select value={isNew ? 'Elige un síntoma…' : r.name.split(' · ')[0]} muted={isNew} /></Field>
           <Field label="Condiciones" hint="Cuantas más condiciones, más prioridad tiene la regla sobre las genéricas."><div className="flex flex-col gap-2">{(isNew ? ['+ Añadir condición'] : r.conditions.split(' + ').map((c) => c.replace(/^\w/, (m) => m.toUpperCase()))).map((c) => <div key={c} className={cn('h-9 rounded-md border px-3 flex items-center text-base', c.startsWith('+') ? 'border-dashed border-line text-accent font-medium bg-chrome' : 'border-line bg-surface text-ink')}>{c}{!c.startsWith('+') && <button className="ml-auto text-faint hover:text-danger" onClick={() => notify(PENDIENTE_ADMIN, 'aviso')}><X size={13} /></button>}</div>)}</div></Field>
-          <div className="flex items-center justify-between pt-3 border-t border-line-soft"><div className="flex flex-col"><span className="text-base font-medium text-ink">Solo deriva, no recomienda</span><span className="text-xs text-faint">Para casos que tienen que pasar por el médico</span></div><Toggle on={!!r.derive} onChange={() => notify(PENDIENTE_ADMIN, 'aviso')} /></div>
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-line-soft"><div className="flex flex-col min-w-0"><span className="text-base font-medium text-ink">Solo deriva, no recomienda</span><span className="text-xs text-faint">Para casos que tienen que pasar por el médico</span></div><Toggle on={!!r.derive} onChange={() => notify(PENDIENTE_ADMIN, 'aviso')} /></div>
         </div>
       )}
       {tab === 'what' && (
         <>
-          <div className="flex items-baseline justify-between"><span className="label-faint">En este orden</span><span className="text-xs text-faint">arrastra para cambiarlo</span></div>
+          <div className="flex items-baseline justify-between"><span className="label-faint">En este orden</span><span className="hidden sm:inline text-xs text-faint">arrastra para cambiarlo</span></div>
           <div className="mt-2 flex flex-col gap-2">
             {prods.map((p, i) => (
               <div key={p.code + i} className="rounded-lg bg-surface border border-line p-[11px] flex gap-3">
                 <ProductArt art={i === 0 ? 'bottle' : i === 1 ? 'jar' : 'dropper'} size={26} className="h-[54px] w-[54px] rounded-lg shrink-0" />
                 <div className="flex-1 min-w-0 flex flex-col">
-                  <div className="flex items-center gap-2"><span className="flex-1 text-base font-semibold text-ink truncate">{p.name}</span><Badge size="sm" tone={i === 0 ? 'accent' : 'neutral'}>{p.tag}</Badge><button onClick={() => setProds((ps) => ps.filter((_, j) => j !== i))} className="text-faint hover:text-danger"><X size={13} /></button></div>
+                  <div className="flex items-center gap-2"><span className="flex-1 min-w-0 text-base font-semibold text-ink lg:truncate">{p.name}</span><Badge size="sm" tone={i === 0 ? 'accent' : 'neutral'}>{p.tag}</Badge><button onClick={() => setProds((ps) => ps.filter((_, j) => j !== i))} aria-label={`Quitar ${p.name}`} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-danger"><X size={13} /></button></div>
                   {p.dose && <span className="text-xs text-muted mt-[2px]">{p.dose}</span>}
                   <div className={cn('mt-2 rounded-[7px] border p-2 flex flex-col', p.why ? 'bg-chrome border-line-soft' : 'bg-chrome border-dashed border-line')}>
                     <span className="text-[9.5px] font-semibold tracking-[0.06em] text-faint uppercase">Por qué este</span>

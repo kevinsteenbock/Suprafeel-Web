@@ -13,6 +13,7 @@ import { Avatar } from '@/ui/Avatar'
 import { ProductArt } from '@/ui/ProductArt'
 import { Textarea } from '@/ui/Field'
 import { cn } from '@/lib/cn'
+import { tactilBase } from '@/ui/tactil'
 
 /** '2026-11-07' → «viernes, 7 de noviembre» (sin pasar por UTC). */
 function fechaLarga(iso?: string) {
@@ -87,7 +88,7 @@ export function Farmacia() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col gap-6">
-          <Section title="Lo que tiene en el lineal" right={<Link to="/comercial/catalogo" className="text-base font-medium text-accent">Ver catálogo</Link>}>
+          <Section title="Lo que tiene en el lineal" right={<Link to="/comercial/catalogo" className={`${tactilBase} text-base font-medium text-accent`}>Ver catálogo</Link>}>
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {enLineal.length === 0 && <div className="p-8 text-center text-base text-muted">Todavía no tiene ninguna referencia Suprafeel en el lineal.</div>}
               {enLineal.map((x, i) => (
@@ -104,7 +105,7 @@ export function Farmacia() {
             <Section title={`Para proponer · ${faltan.length === 1 ? '1 referencia' : `${faltan.length} referencias`}`}>
               <div className="flex flex-wrap gap-2">
                 {faltan.map((x) => (
-                  <Link key={x.id} to={`/comercial/catalogo/${x.id}`} className="h-[27px] rounded-full bg-surface border border-line px-3 inline-flex items-center text-md text-ink-soft hover:bg-chrome">{x.name}</Link>
+                  <Link key={x.id} to={`/comercial/catalogo/${x.id}`} className="h-[27px] max-lg:h-8 rounded-full bg-surface border border-line px-3 inline-flex items-center text-md text-ink-soft hover:bg-chrome">{x.name}</Link>
                 ))}
               </div>
             </Section>
@@ -195,7 +196,7 @@ function VisitDrawer({ name, owner, initials, notes, onClose }: { name: string; 
       <div className="mt-2.5 flex flex-wrap gap-2">
         {['Revisión de lineal', 'Novedades', 'Formación', 'Entrega de PLV', 'Incidencia'].map((t) => {
           const on = done.includes(t)
-          return <button key={t} onClick={() => toggle(t)} aria-pressed={on} className={cn('h-[27px] rounded-full px-3 text-md font-medium inline-flex items-center gap-1.5', on ? 'bg-accent-wash text-accent-deep border border-accent-line' : 'bg-surface border border-line text-ink-soft hover:bg-chrome')}>{on && <Check size={11} strokeWidth={2.5} />}{t}</button>
+          return <button key={t} onClick={() => toggle(t)} aria-pressed={on} className={cn('h-[27px] max-lg:h-8 rounded-full px-3 text-md font-medium inline-flex items-center gap-1.5', on ? 'bg-accent-wash text-accent-deep border border-accent-line' : 'bg-surface border border-line text-ink-soft hover:bg-chrome')}>{on && <Check size={11} strokeWidth={2.5} />}{t}</button>
         })}
       </div>
       <span className="label mt-6">Con quién has hablado</span>

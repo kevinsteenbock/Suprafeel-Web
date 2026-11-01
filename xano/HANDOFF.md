@@ -2,6 +2,164 @@
 
 > Este archivo lo rellena el agente que configura Xano (ver `xano/PROMPT.md`).
 
+## Consejo con Claude (31 de octubre de 2026, noche)
+
+Backend del chat «Consejo por síntomas»: la farmacia (o el comercial, o admin) describe el caso y Claude
+(`claude-opus-5-5`, esfuerzo `medium`) responde con un JSON que cumple el esquema del prompt. Todo vive en Xano
+(grupo 40); el front todavía no lo usa. **Cada pregunta cobra de la cuenta de Anthropic cuya clave esté en Xano.**
+
+### Cómo poner la clave
+
+1. En console.anthropic.com › API keys, crear una clave (mejor en un workspace «Suprafeel» con límite de gasto mensual
+   puesto en la consola, para que un error no pueda gastar sin tope).
+2. En Xano › workspace Suprafeel › Settings › Environment variables › Add: nombre `ANTHROPIC_API_KEY`, valor la clave.
+   No hay que tocar nada más ni volver a publicar.
+3. Comprobar sin gastar: `POST /consejo` como admin con `{"mensaje": "prueba", "debug": true}` → `clave_configurada: true`.
+   (Si algún día no hubiera versión activa del prompt, respondería 503 «El consejo con IA aún no está listo: faltan las
+   instrucciones de Claude en Xano.»)
+
+La clave solo se lee en el servidor: nunca sale en una respuesta ni se guarda en una tabla. Si la clave deja de valer,
+el chat dice «la clave de Claude que hay en Xano no es válida»; si la cuenta se queda sin saldo, «La cuenta de Claude se
+ha quedado sin saldo».
+
+### El prompt (`sf_consejo_prompt`, tabla 163)
+
+Cargada la **versión 1** (fila 2, activa): `texto` = `xano/consejo/prompt.md` exacto (83.810 caracteres, sha256
+79c362505e37), `esquema_texto` = `xano/consejo/schema.json` tal cual, `esquema` = el mismo JSON, `claude-opus-5-5`,
+`medium`. La fila provisional (versión 0) se borró: no tenía consultas. Las consultas nuevas usan la versión activa más
+alta; cada consulta guarda la suya (`prompt_version`) y la usa hasta el final, porque el system no puede cambiar a mitad de
+conversación. **No editar el texto ni el esquema de una versión que ya tenga consultas**: se añade otra (pasos en
+`xano/consejo/LEEME.md`).
+
+**`esquema_texto` es el que se manda.** El campo json de Xano (jsonb) guarda las claves reordenadas por largo, y en las
+salidas estructuradas el orden de `properties` es el orden en que Claude escribe la respuesta: con `esquema` a secas,
+Claude escribiría `derivar` lo primero y `antes_de_recomendar` lo último, y en cada producto el `encaje` antes del
+`por_que`. `POST /consejo` hace `json_decode` de `esquema_texto` (que conserva el orden) y solo usa `esquema` si el texto
+está vacío.
+
+El esquema: objetos con `additionalProperties: false` y `required`; sin `minimum`, `maximum`, `minLength` ni `maxLength`;
+`enum` sí. El backend lee de la respuesta dos cosas, por nombre de campo (columnas de la misma fila):
+
+- `campo_productos` (por defecto `productos`): lista de primer nivel con los productos recomendados, cada uno un objeto
+  con el slug de la tabla `products` en `campo_producto_id` (por defecto `id`). Los slugs que no existen se quitan de la
+  respuesta antes de devolverla (salen en `productos_descartados`).
+- `campo_derivar` (por defecto `derivar.necesario`): ruta con puntos hasta el booleano que dice si hay que derivar al
+  médico. Los valores por defecto ya encajan con `xano/consejo/schema.json` (`productos[].id` y `derivar.necesario`).
+
+### Límites (`sf_consejo_limites`, tabla 164, fila 1)
+
+- 40 preguntas por usuario y día (admin, 200). El día es el de Madrid. Cuentan las que llegan a Claude, también las
+  rechazadas o cortadas; no cuentan las que fallan sin respuesta (Claude caído, saturado, clave mala).
+- 2.000 caracteres por pregunta (letras, no bytes). Más largo: 400.
+- 12 preguntas por consulta. Al pasarse: 429 «Esta consulta ya tiene 12 preguntas. Empieza una consulta nueva para seguir.»
+- Del día: 429 «Has llegado al máximo de 40 preguntas de hoy. Mañana podrás seguir consultando.»
+
+Se cambian editando la fila 1 (sin tocar código).
+
+### Coste
+
+Precios de Claude Opus 5.5 por millón de tokens: entrada 4 $, salida 20 $ (el razonamiento cuenta como salida),
+escritura de caché (5 min) 5 $, lectura de caché 0,20 $. El system va con caché: la primera pregunta lo escribe y las de
+los 5 minutos siguientes lo leen casi gratis. Si una pregunta la acaba respondiendo el modelo de reserva (ver abajo), ese
+intento se cobra a su precio (Opus 5 / 4.8: 5 $ y 25 $). Estimación, sin medir todavía (sin clave no se pueden contar
+los tokens): prompt de 83.810 caracteres + esquema de 5.000 ≈ 26.000 tokens fijos; la salida (razonamiento + JSON),
+2.000–5.000 tokens. Pregunta con la caché fría ≈ 0,17–0,23 $; con la caché caliente (otra pregunta de cualquier usuario
+en los 5 minutos anteriores, misma versión del prompt) ≈ 0,05–0,10 $; cada pregunta de seguimiento suma ≈ 0,01 $ por cada
+pregunta anterior de la consulta (el historial va sin caché, a 4 $). Tabla para Kevin en `xano/consejo/LEEME.md`. Lo real
+queda apuntado: `sf_consulta.coste_usd` (acumulado por consulta), `sf_consejo_mensaje.coste_usd` (por pregunta) y
+los totales de hoy, del mes y de siempre en `GET /admin/consultas`.
+
+### Tablas
+
+- `sf_consejo_prompt` (163): `version` (única), `texto`, `esquema`, `esquema_texto` (el que se manda), `modelo`
+  (`claude-opus-5-5`), `esfuerzo` (`medium`), `activo`, `campo_productos`, `campo_producto_id`, `campo_derivar`, `nota`.
+- `sf_consejo_limites` (164): `max_mensajes_dia`, `max_mensajes_dia_admin`, `max_caracteres`, `max_turnos`.
+- `sf_consulta` (165): una fila por conversación. `user`, `rol`, `prompt_version`, `mensajes` (el array `messages` tal cual
+  se manda a Anthropic, con cada turno de assistant completo; nunca sale por la API), `ultima` (la última respuesta ya
+  leída), `historial` ([{pregunta, respuesta, fecha}], lo legible), `turnos`, `tokens_entrada`, `tokens_salida`,
+  `cache_escritura`, `cache_lectura`, `coste_usd` (acumulados), `modelo_servido`, `valoracion` (-1/0/1), `comentario`,
+  `primera_frase`, `productos` (slugs recomendados en toda la consulta), `derivo`, `created_at`, `updated_at`.
+  Índices por `user` y `created_at`.
+- `sf_consejo_mensaje` (166): una fila por pregunta mandada a Claude, para el límite diario y el coste: `user`, `rol`,
+  `consulta`, `estado` (enviado | ok | rechazo | cortada | error), `http`, `stop_reason`, `categoria` (del rechazo),
+  `modelo_servido`, tokens, `coste_usd`, `ms`, `error` (tipo y mensaje de Anthropic, nunca la clave).
+
+### Endpoints (todos con token; pasan primero por `sf_sesion`)
+
+| Método y ruta | Quién | Qué |
+|---|---|---|
+| `POST /consejo` (799) | farmacia, comercial, admin | body `{ consulta_id?, mensaje }` → `{ consulta_id, respuesta, turnos, coste_usd_turno, productos_descartados, quedan_hoy, quedan_turnos }`. Solo admin: con `debug: true` no llama a Claude ni guarda nada y devuelve `{ depuracion: true, llamada_hecha: false, clave_configurada, url, cabeceras (clave tapada), cuerpo_json, prompt_version, consulta_id }` (también sin clave); con otro rol `debug` se ignora |
+| `GET /consejo` (800) | farmacia, comercial, admin | mis consultas, 30 por página (`?pagina=`): `[{ id, created_at, updated_at, primera_frase, turnos, valoracion, derivo }]` |
+| `GET /consejo/{consulta_id}` (801) | el dueño; admin, cualquiera | `{ id, created_at, updated_at, turnos, valoracion, comentario, productos, derivo, ultima, historial: [{ pregunta, respuesta, fecha }] }`; admin además `rol, prompt_version, modelo_servido, coste_usd`. Sin thinking, sin system, sin quién la escribió |
+| `PATCH /consejo/{consulta_id}/valoracion` (802) | solo el dueño | `{ valoracion: -1 \| 0 \| 1, comentario? }` (hasta 1.000 caracteres; sin `comentario` se queda el que había) → `{ consulta_id, valoracion, comentario }` |
+| `GET /admin/consultas` (803) | admin (`sf_admin_guard`) | «Registro de consultas»: `?pagina=1&por_pagina=25&desde=AAAA-MM-DD&hasta=AAAA-MM-DD` → `{ consultas: [{ id, created_at, updated_at, rol, primera_frase, productos, derivo, valoracion, comentario, turnos, coste_usd, modelo_servido, prompt_version }], pagina, paginas, total, totales: { consultas_hoy, consultas_mes, consultas_total, mensajes_hoy, mensajes_mes, mensajes_total, coste_usd_hoy, coste_usd_mes, coste_usd_total } }`. Sin nombre, correo ni id de quien escribe |
+
+`POST /consejo` sin `consulta_id` empieza una consulta; con él la sigue (404 si no existe, 403 si no es tuya). La
+respuesta es el JSON que pide el esquema del prompt. Los errores llegan siempre como `{ code, message }` con un texto en
+español para enseñar tal cual:
+
+| Código | Cuándo |
+|---|---|
+| 400 | mensaje vacío o de más de 2.000 caracteres; valoración que no es -1, 0 o 1; fechas mal escritas |
+| 401 | sin sesión o sesión caducada |
+| 403 / 404 | la consulta no es tuya / no existe; `admin/consultas` sin ser admin |
+| 429 | 12 preguntas en la consulta, o el máximo del día |
+| 503 | falta la clave; prompt provisional; clave no válida; cuenta sin saldo; Claude saturado (429/529 de Anthropic) o caído; sin respuesta en 120 s |
+| 422 | Claude no responde a esa consulta (rechazo de sus filtros de seguridad, también tras probar con el modelo de reserva) |
+| 502 | la respuesta salió cortada (`max_tokens`), no se puede leer como JSON, o Anthropic devolvió otro error |
+
+Lo que falla no toca la consulta: la pregunta no se añade y se puede repetir. El front tiene que esperar hasta ~2 minutos
+(un «Pensando…»): Opus 5.5 razona antes de contestar.
+
+### Cómo se llama a Claude
+
+`POST https://api.anthropic.com/v1/messages` con `content-type: application/json`, `x-api-key`, `anthropic-version:
+2026-10-21` y `anthropic-beta: server-side-fallback-2026-07-01`. Cuerpo: `model` y `output_config.effort` de la versión
+del prompt, `max_tokens: 16000`, `fallbacks: "default"` (si un filtro de seguridad rechaza, Anthropic reintenta en el
+modelo que recomienda para ese caso), `system` con el texto y `cache_control: ephemeral`, `messages` (el historial más la
+pregunta nueva) y `output_config.format` `json_schema` con el esquema (`esquema_texto`). El turno del usuario va como
+bloques de texto: en la primera pregunta de una consulta, `[{text: "[Contexto del sistema] rol: <rol> · fecha:
+AAAA-MM-DD"}, {text: <mensaje>}]` (fecha de Madrid; el prompt la usa para el rol y la estación); en las siguientes,
+`[{text: <mensaje>}]`. Comprobado el 31 oct con `debug`: el cuerpo de Xano es idéntico, byte a byte en JSON, al que
+construye `xano/consejo/eval.mjs`. Los productos de la respuesta se filtran: solo ids del enum del esquema que existan en
+`products`, sin repetir y como mucho 3 (el resto sale en `productos_descartados`). Sin `thinking`, `temperature`, `top_p`, `top_k`,
+prefill ni `tool_choice` (los cuatro dan 400 en este modelo). Se mira `stop_reason` antes que `content`: `refusal` → 422,
+`max_tokens` → 502, `end_turn` → se leen los bloques `text`; los `thinking` y `fallback` no se leen pero se guardan, y el
+turno de assistant se guarda con su `content` completo para reenviarlo tal cual en la siguiente pregunta (si se edita un
+turno viejo, la API da 400). `timeout` de `api.request`: 120 s.
+
+Límite de tiempo de Xano: no hay uno documentado para los endpoints. Probado el 31 oct: un endpoint que espera 125 s
+responde bien (200 en 126 s), y una llamada que no contesta corta a los 120,4 s y el endpoint responde su 503 a los ~122 s.
+120 s caben.
+
+### Probado (sin clave, el 31 oct)
+
+Con las cuentas de prueba: `POST /consejo` → 503 con el mensaje de la clave; sin token → 401; vacío, solo espacios o de
+2.001 caracteres → 400 (2.000 «a» o 1.999 «ñ» pasan); `admin/consultas` con farmacia o comercial → 403, con admin → 200
+vacío; consulta ajena → 403 (ver, seguir y valorar); 404; límite de 12 preguntas y del día → 429. Además, con un
+Anthropic de imitación montado un rato en Xano (ya borrado): respuesta buena, segunda pregunta en la misma consulta (el
+historial se reenvía con el bloque thinking y su firma), productos inexistentes quitados, `derivar` por ruta con puntos,
+coste con y sin fallback, rechazo → 422, `max_tokens` → 502, JSON roto → 502, 401 → 503 clave, 429 → 503 saturado, 500 →
+503, sin saldo → 503, 125 s sin respuesta → 503 a los 120 s. Las filas de prueba se borraron: `sf_consulta` y
+`sf_consejo_mensaje` están vacías.
+
+Repetido con la versión 1 cargada (31 oct, más tarde): 503 de la clave para los tres roles y al seguir una consulta propia;
+401; 400 (vacío, sin mensaje, 2.001 caracteres); 404; 403 (seguir, ver y valorar una consulta ajena; `admin/consultas`
+con farmacia o comercial); `debug` con farmacia o comercial se ignora (503). Con `debug` de admin, el cuerpo es JSON
+válido, con `system` = array de un bloque y `cache_control`, el texto idéntico a `prompt.md`, el esquema idéntico a
+`schema.json` (mismo orden de claves), `fallbacks: "default"`, la cabecera beta, la línea de contexto en el primer turno y
+el historial con el thinking y su firma en el segundo. Después, `sf_consulta` y `sf_consejo_mensaje` siguen vacías.
+
+### Pendiente
+
+- La clave (Kevin; pasos en `xano/consejo/LEEME.md`). El prompt de verdad ya está cargado (versión 1).
+- Primera llamada real: mirar `coste_usd` y `cache_lectura` en `sf_consejo_mensaje` (la segunda pregunta en 5 minutos debe
+  leer caché) y pasar `xano/consejo/eval.mjs` (≈ 1,5–3 $).
+- Conectar el front (`src/screens/shared/Consejo.tsx`, `src/screens/admin/Registro.tsx`): no se ha tocado.
+- Dos envíos a la vez en la misma consulta: el segundo que acabe pisa al primero (se pierde una pregunta). El front debe
+  bloquear el botón mientras espera.
+- Lo que se escribe en el chat queda guardado tal cual: el front debe pedir que no se pongan nombres de pacientes.
+
 ## Actualización del 31 de octubre de 2026 (noche): sesiones viejas fuera
 
 - **Tokens viejos invalidados.** Todos los endpoints con sesión pasan primero por la función `sf_sesion`:

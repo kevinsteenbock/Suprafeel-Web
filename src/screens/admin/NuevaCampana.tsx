@@ -29,7 +29,7 @@ export function NuevaCampana() {
       toolbar={<Toolbar back="/admin/plv" crumbs={[{ label: 'Materiales PLV', to: '/admin/plv' }, { label: 'Nueva campaña' }]} right={<span className="text-sm text-muted flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Sin guardar</span>} />}
       footer={
         <FooterBar title="La campaña se crea vacía" subtitle="Al crearla se abre su ficha y ahí añades los materiales">
-          <Link to="/admin/plv"><Button size="lg">Cancelar</Button></Link>
+          <Link className="max-sm:hidden" to="/admin/plv"><Button size="lg">Cancelar</Button></Link>
           <Button size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/plv') }}>Guardar borrador</Button>
           <Button
             variant="primary"
@@ -64,22 +64,23 @@ export function NuevaCampana() {
     >
       <PageHeader title="Nueva campaña" subtitle="Primero el nombre y las condiciones. Los materiales se añaden después, dentro de la campaña." />
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-6 flex flex-col gap-5">
+        <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-4 sm:p-6 flex flex-col gap-5">
           <Field label="Nombre de la campaña" required labelClass="label"><Input value={f.name} onChange={set('name')} /></Field>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Desde" required labelClass="label"><Input value={f.from} onChange={set('from')} /></Field>
             <Field label="Hasta" required labelClass="label"><Input value={f.to} onChange={set('to')} /></Field>
             <Field label="Tema" labelClass="label"><Select value="Mujer y hormonal" chevron="down" /></Field>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Entre 1024 y 1280 la columna del formulario es estrecha: cada selector en su fila, para que quepan sus opciones. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
             <Field label="Farmacias destinatarias" labelClass="label">
               <div className="h-[34px] rounded-md bg-surface border border-line p-[3px] flex">
                 {['Todas', 'Por zona', 'Manual'].map((o) => <button key={o} onClick={() => setTarget(o)} className={cn('flex-1 rounded-[6px] text-base font-medium', target === o ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}>{o === 'Todas' ? todas : o}</button>)}
               </div>
             </Field>
             <Field label="Tipo de material" labelClass="label">
-              <div className="flex gap-2">
-                {['Impreso', 'Digital', 'Merchandising'].map((t) => { const on = types.includes(t); return <button key={t} onClick={() => toggleType(t)} className={cn('h-[34px] flex-1 rounded-md border text-base font-medium inline-flex items-center justify-center gap-1.5', on ? 'bg-accent-wash border-accent-line text-accent-deep' : 'bg-surface border-line text-ink-soft')}>{on && <Check size={12} strokeWidth={2.5} />}{t}</button> })}
+              <div className="flex flex-wrap gap-2">
+                {['Impreso', 'Digital', 'Merchandising'].map((t) => { const on = types.includes(t); return <button key={t} onClick={() => toggleType(t)} className={cn('h-[34px] flex-1 px-2 rounded-md border text-base font-medium inline-flex items-center justify-center gap-1.5', on ? 'bg-accent-wash border-accent-line text-accent-deep' : 'bg-surface border-line text-ink-soft')}>{on && <Check size={12} strokeWidth={2.5} />}{t}</button> })}
               </div>
             </Field>
           </div>
@@ -88,8 +89,8 @@ export function NuevaCampana() {
             <Field label="Límite por farmacia" labelClass="label"><Input value={f.limit} onChange={set('limit')} /></Field>
             <Field label="Cierre de solicitudes" labelClass="label"><Select value="15 días antes del fin" chevron="down" /></Field>
           </div>
-          <div className="pt-4 border-t border-line-soft flex items-center justify-between">
-            <div className="flex flex-col"><span className="text-base font-medium text-ink">Avisar a los comerciales al publicar</span><span className="text-sm text-muted">{cifras.comerciales === 1 ? 'El comercial recibe' : `Los ${cifras.comerciales} comerciales reciben`} la campaña en su panel de Materiales PLV</span></div>
+          <div className="pt-4 border-t border-line-soft flex items-center justify-between gap-3">
+            <div className="flex flex-col min-w-0"><span className="text-base font-medium text-ink">Avisar a los comerciales al publicar</span><span className="text-sm text-muted">{cifras.comerciales === 1 ? 'El comercial recibe' : `Los ${cifras.comerciales} comerciales reciben`} la campaña en su panel de Materiales PLV</span></div>
             <Toggle on={notifyReps} onChange={setNotifyReps} />
           </div>
         </div>

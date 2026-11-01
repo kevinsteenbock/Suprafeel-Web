@@ -1,0 +1,114 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["respuesta", "entendido", "productos", "antes_de_recomendar", "derivar", "preguntas", "fuera_de_tema", "datos_personales"],
+  "properties": {
+    "respuesta": {
+      "type": "string",
+      "description": "De 1 a 3 frases con lo esencial: qué se recomienda (o por qué nada) y lo más importante que vigilar. Texto plano, sin markdown."
+    },
+    "entendido": {
+      "type": "array",
+      "description": "Chips «He entendido»: los datos del caso tal como se han entendido. Nunca nombres ni datos identificativos.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["etiqueta", "tipo"],
+        "properties": {
+          "etiqueta": { "type": "string", "description": "De 1 a 4 palabras. Ej.: «Insomnio de mantenimiento», «Mujer · 52 años», «Toma levotiroxina»." },
+          "tipo": {
+            "type": "string",
+            "enum": ["sintoma", "persona", "medicacion", "situacion"],
+            "description": "sintoma = lo que le pasa o lo que busca (chip de color); persona = edad, sexo, dieta; medicacion = lo que toma; situacion = embarazo, enfermedad, alergia, deporte, duración…"
+          }
+        }
+      }
+    },
+    "productos": {
+      "type": "array",
+      "description": "De 0 a 3 productos del catálogo, de mayor a menor encaje. Vacío si nada encaja, si toca derivar por ese problema (señal de alarma o síntoma que ya pasa del plazo) o si la persona no puede tomarlos (embarazo, lactancia, menor de 18, contraindicación).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "encaje", "papel", "por_que", "pauta", "chapas"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "magnesio", "colageno-1", "omega", "vitamina-d3-k2", "multivitaminico",
+              "immune-defense", "vitamin-c", "zinc", "curcuma", "maca-negra",
+              "hierro-liposomado", "levadura-de-arroz-rojo", "vitamina-b12", "glucosamina", "creatina",
+              "biotina", "hair-forte", "ashwagandha", "brain-support", "colageno-marino"
+            ]
+          },
+          "encaje": { "type": "integer", "description": "Grado de encaje según la regla del prompt (motivo + perfil + seguridad + respaldo), entre 50 y 100. Como mucho 60 si necesita antes el visto bueno de su médico." },
+          "papel": { "type": "string", "enum": ["primera_opcion", "alternativa", "acompana"] },
+          "por_que": { "type": "string", "description": "De 1 a 3 frases que unen el caso con la ficha y nombran la cautela principal si la hay." },
+          "pauta": { "type": "string", "description": "Cómo tomarlo: dosis, momento del día y duración, según el modo de empleo de la ficha." },
+          "chapas": {
+            "type": "array",
+            "description": "Hasta 3 etiquetas de 1 a 4 palabras.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["texto", "tono"],
+              "properties": {
+                "texto": { "type": "string" },
+                "tono": { "type": "string", "enum": ["ok", "warn", "neutral"] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "antes_de_recomendar": {
+      "type": "array",
+      "description": "De 0 a 4 avisos para quien está en el mostrador: interacciones, contraindicaciones, cómo separar tomas, cuándo volver o ir al médico.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["titulo", "detalle", "tipo"],
+        "properties": {
+          "titulo": { "type": "string", "description": "Corto. Ej.: «Magnesio y levotiroxina: separar 4 h»." },
+          "detalle": { "type": "string", "description": "Una o dos frases." },
+          "tipo": { "type": "string", "enum": ["interaccion", "contraindicacion", "precaucion", "consejo"] }
+        }
+      }
+    },
+    "derivar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["necesario", "urgencia", "a_quien", "motivo"],
+      "properties": {
+        "necesario": { "type": "boolean" },
+        "urgencia": {
+          "type": "string",
+          "enum": ["no", "cita", "pronto", "urgente"],
+          "description": "no = no hace falta; cita = que lo hable con su médico en su próxima consulta; pronto = su médico en los próximos días; urgente = urgencias o 112 ahora."
+        },
+        "a_quien": { "type": "string", "description": "Médico de cabecera, pediatra, matrona, oncólogo, nefrólogo, urgencias o 112, 024… Vacío si no hace falta derivar." },
+        "motivo": { "type": "string", "description": "Una frase. Vacío si no hace falta derivar." }
+      }
+    },
+    "preguntas": {
+      "type": "array",
+      "description": "Hasta 3 preguntas para afinar, la más importante primero. Vacío si el caso está claro.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pregunta", "clave", "opciones"],
+        "properties": {
+          "pregunta": { "type": "string" },
+          "clave": { "type": "boolean", "description": "true si la respuesta puede cambiar lo que se recomienda." },
+          "opciones": {
+            "type": "array",
+            "description": "De 2 a 4 respuestas cortas que el usuario puede tocar para contestar, escritas como las diría él.",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "fuera_de_tema": { "type": "boolean", "description": "true si el mensaje no es una consulta de consejo de complementos en la farmacia." },
+    "datos_personales": { "type": "boolean", "description": "true si el mensaje traía datos que identifican a la persona (nombre, apellidos, DNI o NIE, fecha de nacimiento, teléfono, dirección, correo, tarjeta sanitaria, número de historia clínica o de la Seguridad Social). Esos datos no se copian en ningún campo." }
+  }
+}

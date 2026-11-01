@@ -12,6 +12,7 @@ import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
 import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
+import { porFilaInicial, vistaInicial } from './AccesoCelda'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { RowActions } from './Cuentas'
 import { CampaignCover } from '../shared/PLV'
@@ -36,7 +37,7 @@ export function AdminPLV() {
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState('recent')
   const removed: string[] = []
-  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 3 })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(3) })
   const gridStyle = useGridCols(vista)
   const allRows = [
     ...campaigns.map((c) => ({ id: c.id, code: c.code, name: c.id === 'otono' ? otoño() : c.id === 'navidad' ? `Navidad ${año}` : c.id === 'marca' ? 'Marca Suprafeel' : c.id === 'cole' ? 'Vuelta al colegio' : c.id === 'piel' ? 'Colágeno · lanzamiento' : c.name, period: `${c.period} · ${c.theme.charAt(0).toUpperCase() + c.theme.slice(1)}`, materials: c.materials, pharmacies: c.pharmacies, requests: c.requests, adminState: c.adminState, updated: c.updated, real: true })),

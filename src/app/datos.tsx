@@ -296,7 +296,7 @@ export function DatosListos() {
   if (datos.estado === 'cargando') return <Cargando />
   if (datos.estado === 'error') {
     return (
-      <div className="min-h-screen w-full bg-canvas flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-dvh w-full bg-canvas flex flex-col items-center justify-center px-4 py-12">
         <div className="flex items-center gap-3 mb-9">
           <span className="h-[30px] w-[30px] rounded-[8px] bg-accent text-on-accent inline-flex items-center justify-center"><Plus size={16} strokeWidth={2.4} /></span>
           <span className="text-lg font-semibold text-ink">Suprafeel <span className="font-normal text-muted">Soft</span></span>

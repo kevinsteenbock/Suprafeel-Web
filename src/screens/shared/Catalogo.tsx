@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { Bookmark, ChevronRight, Search, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
-import { catalogFiltersWithCounts, filterProducts, euro, type Product } from '@/data/products'
+import { catalogFilters, filterProducts, euro, type Product } from '@/data/products'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
@@ -45,6 +45,13 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
   const label = (p: Product) => (isComercial && p.tag === 'MÁS VENDIDO' ? 'MÁS CONSULTADO' : p.tag)
   const tagTone = (t?: string) => (t === 'NOVEDAD' ? 'accent' : t === 'MÁS VENDIDO' || t === 'MÁS CONSULTADO' ? 'dark' : 'neutral')
   const big = vista.perRow === 2 || vista.perRow === 3
+  const nNuevas = filterProducts('new').length
+  // Los filtros sin productos detrás no se ofrecen, salvo el que está puesto (p. ej. «Novedades» sin
+  // ninguna novedad): si se quitara, el botón no tendría qué nombre enseñar.
+  const filterOptions = catalogFilters
+    .map((f) => ({ key: f.key as string, label: isComercial && f.key === 'best' ? 'Más consultados' : f.label, count: filterProducts(f.key).length }))
+    .filter((f) => f.key === 'all' || f.key === filter || f.count > 0)
+    .map((f) => ({ ...f, count: f.key === 'all' ? undefined : f.count }))
 
   const cells: Record<string, { th: ReactNode; td: (p: Product) => ReactNode }> = {
     cat: { th: <Th key="h-cat" className="w-[150px]">Categoría</Th>, td: (p) => <Td key="cat" className="w-[150px]">{p.categoryLabel}</Td> },
@@ -61,9 +68,9 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
           title={initialFilter === 'new' ? 'Novedades' : 'Catálogo'}
           right={
             <>
-              <div className="h-7 flex-1 min-w-0 lg:flex-none lg:w-[208px] rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]">
+              <div className="h-7 max-lg:h-9 flex-1 min-w-0 lg:flex-none lg:w-[208px] rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px]">
                 <Search size={13} className="text-faint shrink-0" strokeWidth={2} />
-                <input className="flex-1 min-w-0 bg-transparent text-md" placeholder="Buscar producto o CN" aria-label="Buscar producto o CN" value={q} onChange={(e) => setQ(e.target.value)} />
+                <input className="flex-1 min-w-0 self-stretch bg-transparent text-md" placeholder="Buscar producto o CN" aria-label="Buscar producto o CN" value={q} onChange={(e) => setQ(e.target.value)} />
               </div>
               <div className="shrink-0"><MiListaButton /></div>
             </>
@@ -73,13 +80,14 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
     >
       <PageHeader
         title={initialFilter === 'new' ? 'Novedades del catálogo' : 'Catálogo Suprafeel'}
-        subtitle={initialFilter === 'new' ? `${filterProducts('new').length} referencias nuevas · las ves antes que nadie` : `${filterProducts('all').length} referencias · tarifa ${new Date().getFullYear()}`}
+        subtitle={initialFilter === 'new' ? (nNuevas ? `${nNuevas} referencias nuevas · las ves antes que nadie` : 'Las referencias nuevas, aquí antes que nadie') : `${filterProducts('all').length} referencias · tarifa ${new Date().getFullYear()}`}
       />
 
       <FilterBar
         right={
           <>
             <FilterMenuButton
+              align="right"
               icon={<ArrowUpDown size={13} strokeWidth={1.8} />}
               value={sort}
               options={[{ key: 'new', label: 'Novedad' }, { key: 'name', label: 'Nombre A-Z' }, { key: 'price', label: 'Precio' }]}
@@ -92,14 +100,14 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
         <FilterMenuButton
           icon={<Filter size={13} strokeWidth={1.8} />}
           value={filter}
-          options={catalogFiltersWithCounts().map((f) => ({ key: f.key, label: isComercial && f.key === 'best' ? 'Más consultados' : f.label, count: f.key === 'all' ? undefined : f.count }))}
+          options={filterOptions}
           onChange={setFilter}
         />
       </FilterBar>
 
       {list.length === 0 && (
         <div className="text-base text-muted py-10 text-center">
-          {q ? `Nada que encaje con «${q}».` : 'No hay productos en esta vista.'}
+          {q ? `Nada que encaje con «${q}».` : filter === 'new' ? 'Ahora mismo no hay novedades en el catálogo.' : 'No hay productos en esta vista.'}
         </div>
       )}
 
@@ -113,12 +121,13 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
                   <ProductArt art={p.art} photo={p.photo} size={big ? 120 : 96} className={cn('w-full border-b border-line-soft', big ? 'h-[200px]' : 'h-[166px]')} />
                   {label(p) && vista.extras.tags !== false && <Tag tone={tagTone(label(p))} className="absolute top-3 left-3">{label(p)}</Tag>}
                 </button>
-                <div className="p-[14px] pt-3 flex flex-col">
-                  <button onClick={() => setPeek(p)} className="text-base font-semibold text-ink hover:text-accent-deep truncate text-left">{p.name}</button>
+                {/* Por debajo de 1024 px la tarjeta es estrecha: el nombre cabe en dos líneas y el precio se alinea abajo. */}
+                <div className="flex-1 p-[14px] pt-3 flex flex-col">
+                  <button onClick={() => setPeek(p)} className="text-base font-semibold text-ink hover:text-accent-deep max-lg:line-clamp-2 lg:truncate text-left">{p.name}</button>
                   <span className="text-xs text-faint mt-[3px]">{[p.format, p.cn && `CN ${p.cn}`].filter(Boolean).join(' · ')}</span>
-                  <div className="mt-3 flex items-center justify-between">
+                  <div className="mt-auto pt-3 flex items-center justify-between">
                     <span className="text-base font-semibold text-ink">PVP {euro(p.pvp)}</span>
-                    <button onClick={() => toggleLista(p.id)} aria-label="Guardar en Mi lista" aria-pressed={saved} className={cn('h-6 w-6 -mr-1 rounded-md inline-flex items-center justify-center hover:bg-chrome', saved ? 'text-accent' : 'text-faint')}>
+                    <button onClick={() => toggleLista(p.id)} aria-label="Guardar en Mi lista" aria-pressed={saved} className={cn('h-10 w-10 -my-2 -mr-2.5 lg:h-6 lg:w-6 lg:my-0 lg:-mr-1 rounded-md inline-flex items-center justify-center hover:bg-chrome', saved ? 'text-accent' : 'text-faint')}>
                       <Bookmark size={15} fill={saved ? 'currentColor' : 'none'} />
                     </button>
                   </div>

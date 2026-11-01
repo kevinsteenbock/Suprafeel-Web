@@ -17,7 +17,7 @@ const tabs = [
 ]
 
 /**
- * Panel lateral de producto: lo primero que se abre al pulsar un producto en
+ * Pop-up de producto (ventana centrada): lo primero que se abre al pulsar un producto en
  * cualquier lista. Desde aquí, «Ampliar» lleva a la ficha completa.
  */
 export function ProductPeek({ product, onClose }: { product: Product | null; onClose: () => void }) {
@@ -55,18 +55,21 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
     >
       <ProductArt art={p.art} photo={p.photo} size={124} className="h-[212px] border-b border-line-soft" />
 
-      <div className="px-5 py-4 border-b border-line-soft flex items-end gap-6">
-        <div className="flex flex-col">
-          <span className="label">PVP recomendado</span>
-          <span className="mt-1 text-display font-semibold tracking-tight leading-none text-ink">{euro(p.pvp)}</span>
+      {/* Las tres cifras en una fila; si no caben, lo que no cabe baja a una segunda fila en vez de partir el
+          precio o las etiquetas. En el teléfono el precio va solo arriba y margen y disponibilidad debajo.
+          Con la etiqueta larga del comercial («para la farmacia») el hueco es algo menor para que quepan en una fila. */}
+      <div className={cn('px-5 py-4 border-b border-line-soft flex flex-wrap items-end gap-y-3', isComercial ? 'gap-x-4' : 'gap-x-6')}>
+        <div className="basis-full sm:basis-auto flex flex-col">
+          <span className="label whitespace-nowrap">PVP recomendado</span>
+          <span className="mt-1 text-display font-semibold tracking-tight leading-none text-ink whitespace-nowrap">{euro(p.pvp)}</span>
         </div>
         <div className="flex flex-col pb-1">
-          <span className="text-sm text-muted">Margen {isComercial ? 'para la farmacia' : 'orientativo'}</span>
+          <span className="text-sm text-muted whitespace-nowrap">Margen {isComercial ? 'para la farmacia' : 'orientativo'}</span>
           <span className="text-base font-semibold text-ok mt-0.5">{p.margin} %</span>
         </div>
         <div className="ml-auto flex flex-col items-end pb-1">
-          <span className="text-sm text-muted">Disponibilidad</span>
-          <span className="text-base font-medium text-ink mt-0.5">En almacén</span>
+          <span className="text-sm text-muted whitespace-nowrap">Disponibilidad</span>
+          <span className="text-base font-medium text-ink mt-0.5 whitespace-nowrap">En almacén</span>
         </div>
       </div>
 
@@ -83,14 +86,15 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
           <div className="rounded-lg border border-line overflow-hidden">
             <div className="h-8 px-3 bg-chrome border-b border-line-soft flex items-center">
               <span className="label flex-1">Por {p.dose.match(/^\d+ \p{L}+/u)?.[0] ?? '1 toma'}</span>
-              <span className="label w-[74px] text-right">Cantidad</span>
-              <span className="label w-[54px] text-right">% VRN</span>
+              <span className="label w-[74px] shrink-0 text-right">Cantidad</span>
+              <span className="label w-[54px] shrink-0 text-right">% VRN</span>
             </div>
+            {/* El nombre entero, en dos líneas si hace falta: cortado no se sabe de qué ingrediente es cada cantidad. */}
             {p.composition.map((c, i) => (
-              <div key={`${i}-${c.name}`} className={cn('h-9 px-3 flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
-                <span className="flex-1 text-md text-ink truncate">{c.name}</span>
-                <span className="w-[74px] text-right text-md font-semibold text-ink">{c.qty}</span>
-                <span className="w-[54px] text-right text-md text-muted">{c.vrn}</span>
+              <div key={`${i}-${c.name}`} className={cn('min-h-9 py-1.5 px-3 flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
+                <span className="flex-1 min-w-0 pr-2 text-md text-ink">{c.name}</span>
+                <span className="min-w-[74px] shrink-0 text-right text-md font-semibold text-ink whitespace-nowrap">{c.qty}</span>
+                <span className="w-[54px] shrink-0 text-right text-md text-muted whitespace-nowrap">{c.vrn}</span>
               </div>
             ))}
           </div>

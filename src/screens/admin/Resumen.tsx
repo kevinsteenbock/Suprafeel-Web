@@ -10,6 +10,7 @@ import { Avatar } from '@/ui/Avatar'
 import { Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { accesosPorComercial, accesosPorFarmacia, fechaDeHoy, plural } from './accesos'
+import { tactilBase } from '@/ui/tactil'
 
 function saludo(d = new Date()) {
   const h = d.getHours()
@@ -83,26 +84,27 @@ export function Resumen() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col gap-6">
+          {/* Por debajo de 1024 px los nombres y las notas de las filas bajan de línea en vez de cortarse con «…». */}
           <Section title="Pendiente de ti">
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {tareas.length === 0 && <div className="p-6 text-center text-base text-muted">Nada pendiente: todas las farmacias tienen acceso y la formación está al día.</div>}
               {tareas.map((x, i) => (
                 <Link key={x.key} to={x.to} className={cn('min-h-[58px] py-2 px-4 flex items-center gap-3 hover:bg-canvas', i < tareas.length - 1 && 'border-b border-line-soft')}>
                   <span className="h-[30px] w-[30px] rounded-[7px] bg-accent-wash text-accent inline-flex items-center justify-center shrink-0">{x.icon}</span>
-                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{x.title}</span><span className="text-xs text-faint truncate">{x.meta}</span></span>
+                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{x.title}</span><span className="text-xs text-faint lg:truncate">{x.meta}</span></span>
                   <ChevronRight size={14} className="text-faint shrink-0" />
                 </Link>
               ))}
             </div>
           </Section>
 
-          <Section title="Próximas formaciones" right={proximas.length > 0 ? <Link to="/admin/cuentas?formacion=prevista" className="text-base font-medium text-accent">Ver todas las previstas</Link> : undefined}>
+          <Section title="Próximas formaciones" right={proximas.length > 0 ? <Link to="/admin/cuentas?formacion=prevista" className={cn(tactilBase, 'text-base font-medium text-accent')}>Ver todas las previstas</Link> : undefined}>
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {proximas.length === 0 && <div className="p-6 text-center text-base text-muted">No hay ninguna formación programada de hoy en adelante.</div>}
               {proximas.slice(0, 6).map((p, i, l) => (
                 <Link key={p.id} to={`/admin/cuentas/${p.id}`} className={cn('min-h-[54px] py-2 px-4 flex items-center gap-3 hover:bg-canvas', i < l.length - 1 && 'border-b border-line-soft')}>
                   <Avatar initials={p.code} size={30} tone="neutral" />
-                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{p.name}</span><span className="text-xs text-faint truncate">{[p.city, p.rep].filter(Boolean).join(' · ')}</span></span>
+                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink lg:truncate">{p.name}</span><span className="text-xs text-faint lg:truncate">{[p.city, p.rep].filter(Boolean).join(' · ')}</span></span>
                   <span className="flex flex-col items-end shrink-0">
                     <span className="text-base font-medium text-ink">{p.formacionDate}{p.formacionHora ? ` · ${p.formacionHora}` : ''}</span>
                     <span className="text-xs text-faint">{cuandoEs(p.formacionFecha ?? hoy, hoy)}</span>
@@ -117,21 +119,21 @@ export function Resumen() {
           <Section title="Formación en el mostrador">
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {formacion.map((f, i) => (
-                <Link key={f.label} to={`/admin/cuentas?formacion=${f.to}`} className={cn('h-[46px] px-4 flex items-center gap-3 hover:bg-canvas', i < formacion.length - 1 && 'border-b border-line-soft')}>
-                  <span className="flex-1 min-w-0 text-base text-ink truncate">{f.label}</span>
+                <Link key={f.label} to={`/admin/cuentas?formacion=${f.to}`} className={cn('min-h-[46px] lg:h-[46px] py-2 lg:py-0 px-4 flex items-center gap-3 hover:bg-canvas', i < formacion.length - 1 && 'border-b border-line-soft')}>
+                  <span className="flex-1 min-w-0 text-base text-ink lg:truncate">{f.label}</span>
                   <Bar value={pct(f.n)} width={90} tone={f.tone} />
                   <span className="w-[34px] text-right text-base font-semibold text-ink">{f.n}</span>
                 </Link>
               ))}
             </div>
           </Section>
-          <Section title="Comerciales" right={reps.length > 0 ? <Link to="/admin/comerciales" className="text-base font-medium text-accent">Ver todos</Link> : undefined}>
+          <Section title="Comerciales" right={reps.length > 0 ? <Link to="/admin/comerciales" className={cn(tactilBase, 'text-base font-medium text-accent')}>Ver todos</Link> : undefined}>
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {reps.length === 0 && <div className="p-6 text-center text-base text-muted">Ninguna farmacia tiene comercial asignado.</div>}
               {reps.slice(0, 5).map((r, i, l) => (
-                <Link key={r.rep} to={`/admin/cuentas?comercial=${encodeURIComponent(r.rep)}`} className={cn('h-[52px] px-4 flex items-center gap-3 hover:bg-canvas', i < l.length - 1 && 'border-b border-line-soft')}>
+                <Link key={r.rep} to={`/admin/cuentas?comercial=${encodeURIComponent(r.rep)}`} className={cn('min-h-[52px] lg:h-[52px] py-2 lg:py-0 px-4 flex items-center gap-3 hover:bg-canvas', i < l.length - 1 && 'border-b border-line-soft')}>
                   <Avatar initials={iniciales(r.rep)} size={28} tone="neutral" rounded="full" />
-                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{r.rep}</span><span className="text-xs text-faint truncate">{[r.zona, plural(r.hechas, 'formación hecha', 'formaciones hechas')].filter(Boolean).join(' · ')}</span></span>
+                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink lg:truncate">{r.rep}</span><span className="text-xs text-faint lg:truncate">{[r.zona, plural(r.hechas, 'formación hecha', 'formaciones hechas')].filter(Boolean).join(' · ')}</span></span>
                   <span className="text-sm text-muted shrink-0">{plural(r.farmacias, 'farmacia', 'farmacias')}</span>
                   <ChevronRight size={14} className="text-faint shrink-0" />
                 </Link>

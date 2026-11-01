@@ -15,6 +15,16 @@ Lo que se añadió en Xano el 31 de octubre de 2026 (workspace 6 «Suprafeel», 
 | `function/sf_sesion.xs` | función `sf_sesion` (id 124): 401 si el token no trae `emitido` o es anterior a `sesion_desde` |
 | `table/user.xs` | tabla `user` (id 64), con `sesion_desde` |
 | `table/sf_login_intento.xs` | tabla `sf_login_intento` (id 162): intentos fallidos (md5 del correo + IP, sin contraseña) |
+| `table/sf_consejo_prompt.xs` | tabla `sf_consejo_prompt` (id 163): prompt (system) y esquema JSON del consejo con Claude, por versiones |
+| `table/sf_consejo_limites.xs` | tabla `sf_consejo_limites` (id 164): límites del consejo (fila 1) |
+| `table/sf_consulta.xs` | tabla `sf_consulta` (id 165): una fila por conversación con Claude |
+| `table/sf_consejo_mensaje.xs` | tabla `sf_consejo_mensaje` (id 166): registro de cada pregunta mandada a Claude (límite diario y coste) |
+| `function/sf_consejo_coste.xs` | función `sf_consejo_coste` (id 125): tokens y dólares de una respuesta, con o sin fallback |
+| `api/consejo_post.xs` | `POST /consejo` (id 799): pregunta a Claude |
+| `api/consejo_get.xs` | `GET /consejo` (id 800): mis consultas |
+| `api/consejo_id_get.xs` | `GET /consejo/{consulta_id}` (id 801): una consulta, legible |
+| `api/consejo_valoracion_patch.xs` | `PATCH /consejo/{consulta_id}/valoracion` (id 802) |
+| `api/admin_consultas_get.xs` | `GET /admin/consultas` (id 803): «Registro de consultas», solo admin |
 
 Además, ese día:
 
@@ -37,3 +47,30 @@ Más tarde, el mismo 31 de octubre (las sesiones abiertas con la contraseña ant
   cuenta. `POST /admin/usuarios` pone `sesion_desde = ahora` en las cuentas nuevas.
 - Swagger del grupo 40 desactivado (`apispec:suprafeel-soft` → 404).
 - Copia previa de todo lo tocado: `~/clone-web/suprafeel-xano/backup/2026-10-31-sesiones/`.
+
+## Consejo con Claude (31 oct 2026, noche)
+
+El chat de consejo por síntomas llama a Claude (`claude-opus-5-5`) desde Xano con `api.request` y cobra de la cuenta de
+Anthropic cuya clave esté en **Xano › Settings › Environment variables › `ANTHROPIC_API_KEY`**. Sin clave, `POST /consejo`
+responde 503 «El consejo con IA aún no está activado: falta la clave de Claude en Xano.» y no llama a nadie.
+El detalle (cómo poner la clave, límites, coste, tablas, endpoints, errores) está en `xano/HANDOFF.md`, sección
+«Consejo con Claude». Lo esencial para tocar el código:
+
+- La conversación solo se alarga. `sf_consulta.mensajes` es el array `messages` tal cual se manda: cada turno de assistant
+  lleva el `content` completo que devolvió la API (thinking con firma, fallback, text). No editar ni recortar turnos viejos:
+  la API rechaza (400) un historial editado.
+- Cada consulta usa siempre la versión del prompt con la que empezó (`prompt_version`). Un prompt nuevo es una fila nueva
+  en `sf_consejo_prompt`, nunca una edición de una versión con consultas. Cargada la versión 1 (`xano/consejo/`).
+- Los campos `json` de Xano (jsonb) guardan las claves reordenadas. El esquema se manda desde `esquema_texto` (texto,
+  `json_decode` conserva el orden), porque el orden de `properties` es el orden en que Claude escribe la respuesta.
+- La primera pregunta de una consulta lleva delante el bloque `[Contexto del sistema] rol: … · fecha: AAAA-MM-DD` que
+  espera el prompt. Con `debug: true` (solo admin) `POST /consejo` devuelve el cuerpo exacto sin llamar ni guardar nada.
+- Respuestas con código propio: `util.set_header` con `"HTTP/1.1 503 Service Unavailable"` (y 502, 422) cambia el
+  estado de la respuesta; el cuerpo va como `{code, message}`, igual que los errores de Xano.
+- Trampas de XanoScript que salieron aquí: con `paging`, `output` lleva el prefijo `items.` (si no, la lista sale vacía);
+  `0 != null` es falso (comparación floja), así que para nulos se usa `|is_null`; `\d` en un regex entre comillas no
+  funciona (usar `[0-9]`); un filtro dentro de un objeto de varias líneas se come las líneas siguientes si no va entre
+  paréntesis; `now - $x` da «Not numeric» (usar `"now"|to_ms`).
+- Copia previa de lo que había: `~/clone-web/suprafeel-xano/backup/2026-10-31-consejo/` (aquí no se cambió nada existente:
+  todo es nuevo). Antes de cargar la versión 1 y tocar `POST /consejo` y `sf_consejo_prompt`, en la misma carpeta:
+  `api_799_antes_contexto_y_depuracion.json`, `table_163_antes_esquema_texto.json` y `table_163_content_antes_v1.json`.

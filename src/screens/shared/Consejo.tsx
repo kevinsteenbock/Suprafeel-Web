@@ -92,12 +92,12 @@ export function Consejo() {
             <Badge tone="neutral" className="mr-1">Caso de ejemplo</Badge>
             <span className="label mr-1">He entendido</span>
             {facts.map((f, i) => (
-              <span key={`${i}-${f.label}`} className={cn('h-[26px] rounded-full pl-3 pr-2 inline-flex items-center gap-1.5 text-md font-medium', f.tone === 'accent' ? 'bg-accent-wash text-accent-deep' : 'bg-surface border border-line text-ink-soft')}>
+              <span key={`${i}-${f.label}`} className={cn('h-[26px] max-lg:h-8 rounded-full pl-3 pr-px inline-flex items-center gap-1.5 text-md font-medium', f.tone === 'accent' ? 'bg-accent-wash text-accent-deep' : 'bg-surface border border-line text-ink-soft')}>
                 {f.label}
-                <button onClick={() => setFacts((fs) => fs.filter((x) => x !== f))} aria-label={`Quitar «${f.label}»`} className="opacity-60 hover:opacity-100"><X size={11} strokeWidth={2.5} /></button>
+                <button onClick={() => setFacts((fs) => fs.filter((x) => x !== f))} aria-label={`Quitar «${f.label}»`} className="h-6 w-6 max-lg:h-[30px] max-lg:w-[30px] -ml-1.5 shrink-0 rounded-full inline-flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-chrome-deep/60"><X size={11} strokeWidth={2.5} /></button>
               </span>
             ))}
-            <button onClick={() => setFacts((fs) => [...fs, { label: 'Sin alergias', tone: 'neutral' }])} className="h-[26px] rounded-full border border-dashed border-line px-3 text-md text-muted inline-flex items-center gap-1 hover:bg-chrome"><Plus size={11} /> Añadir dato</button>
+            <button onClick={() => setFacts((fs) => [...fs, { label: 'Sin alergias', tone: 'neutral' }])} className="h-[26px] max-lg:h-8 rounded-full border border-dashed border-line px-3 text-md text-muted inline-flex items-center gap-1 hover:bg-chrome"><Plus size={11} /> Añadir dato</button>
           </div>
         )}
       </div>
@@ -142,7 +142,7 @@ export function Consejo() {
                       </div>
                     </div>
                     <p className="mt-3 text-base leading-[19px] text-ink-soft">{r.why}</p>
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {r.badges.map((b, i) => (
                         <Badge key={`${i}-${b.label}`} tone={b.tone} className="h-[22px] px-2.5 rounded-[6px]">
                           {b.tone === 'ok' && <Check size={11} strokeWidth={2.5} className="mr-1" />}

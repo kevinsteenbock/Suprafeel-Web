@@ -13,7 +13,7 @@ import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { accesosPorFarmacia, ataduraDe, fechaAlta, norm, plural, ROL_LABEL } from './accesos'
-import { AccesoCelda, Principal, vistaInicial } from './AccesoCelda'
+import { AccesoCelda, FilaLista, Principal, principal, porFilaInicial, vistaInicial } from './AccesoCelda'
 
 /** Acciones de fila (la usa la lista de campañas PLV). */
 export function RowActions({ onEdit, onDup, onDel, className }: { onEdit?: () => void; onDup?: () => void; onDel?: () => void; className?: string }) {
@@ -60,7 +60,7 @@ export function Cuentas() {
   const navigate = useNavigate()
   const { farmacias, usuarios } = useDatos()
   const [sp, setSp] = useSearchParams()
-  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), columns: columnOptions })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(4), columns: columnOptions })
   const gridStyle = useGridCols(vista)
   const hoy = hoyISO()
 
@@ -194,7 +194,7 @@ export function Cuentas() {
 
       {ver === 'cuentas' ? (
         <TableCard footer={`${cuentas.length} de ${plural(usuarios.length, 'cuenta', 'cuentas')}`}>
-          <THead>
+          <THead className="hidden lg:flex">
             <Principal min={220}><Th>Cuenta</Th></Principal>
             <Th className="w-[110px] shrink-0">Rol</Th>
             <Th className="w-[240px] shrink-0">Entra a</Th>
@@ -204,12 +204,25 @@ export function Cuentas() {
           {cuentas.map((u, i) => {
             const huerfana = u.role === 'farmacia' && !farmacias.some((p) => p.id === u.pharmacy_slug)
             return (
-              <Tr key={u.id} onClick={u.role === 'admin' || huerfana ? undefined : () => irACuenta(u)} last={i === cuentas.length - 1}>
-                <Principal min={220}><TdMain title={u.name || u.email} meta={u.email} avatar={<Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone={u.role === 'admin' ? 'soft' : 'neutral'} rounded="full" />} /></Principal>
-                <div className="w-[110px] shrink-0"><Badge tone={u.role === 'admin' ? 'accent' : 'neutral'}>{ROL_LABEL[u.role]}</Badge></div>
-                <Td className={cn('w-[240px] shrink-0', huerfana && 'text-warn')}>{ataduraDe(u, farmacias)}</Td>
-                <Td className="w-[96px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
-              </Tr>
+              <FilaLista key={u.id} onClick={u.role === 'admin' || huerfana ? undefined : () => irACuenta(u)} last={i === cuentas.length - 1}>
+                {/* En el móvil y la tableta: nombre, correo entero y rol arriba; a qué entra y el alta, debajo. */}
+                <div style={principal(220)} className="flex items-center max-lg:min-w-0!">
+                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                    <Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone={u.role === 'admin' ? 'soft' : 'neutral'} rounded="full" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-base font-medium text-ink break-words lg:truncate">{u.name || u.email}</span>
+                      <span className="text-xs mt-[2px] text-faint break-all lg:break-normal lg:truncate">{u.email}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="lg:w-[110px] shrink-0 self-start lg:self-auto"><Badge tone={u.role === 'admin' ? 'accent' : 'neutral'}>{ROL_LABEL[u.role]}</Badge></div>
+                <div className="lg:hidden w-full pl-[42px] flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span className={cn('min-w-0 break-words', huerfana ? 'text-warn' : 'text-ink-soft')}>{ataduraDe(u, farmacias)}</span>
+                  <span className="text-faint whitespace-nowrap">Alta: {fechaAlta(u.created_at)}</span>
+                </div>
+                <Td className={cn('hidden lg:block w-[240px] shrink-0', huerfana && 'text-warn')}>{ataduraDe(u, farmacias)}</Td>
+                <Td className="hidden lg:block w-[96px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
+              </FilaLista>
             )
           })}
         </TableCard>

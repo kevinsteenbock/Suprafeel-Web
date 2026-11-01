@@ -29,7 +29,7 @@ export function Curso() {
 
   return (
     <Screen
-      toolbar={<Toolbar back={`${base}/formacion/cursos`} crumbs={[{ label: 'Cursos', to: `${base}/formacion/cursos` }, { label: c.title.length > 32 ? c.title.slice(0, 30) + '…' : c.title }]} right={<Button onClick={() => { void navigator.clipboard?.writeText(window.location.href).then(() => notify('Enlace copiado'), () => notify('No se ha podido copiar el enlace', 'aviso')) }}>Copiar el enlace</Button>} />}
+      toolbar={<Toolbar back={`${base}/formacion/cursos`} crumbs={[{ label: 'Cursos', to: `${base}/formacion/cursos` }, { label: c.title.length > 32 ? <><span className="lg:hidden">{c.title}</span><span className="max-lg:hidden">{c.title.slice(0, 30) + '…'}</span></> : c.title }]} right={<Button onClick={() => { void navigator.clipboard?.writeText(window.location.href).then(() => notify('Enlace copiado'), () => notify('No se ha podido copiar el enlace', 'aviso')) }}>Copiar el enlace</Button>} />}
     >
       <div className="flex flex-col sm:flex-row gap-5">
         <img src={c.cover} alt="" className="w-full h-[160px] sm:w-[216px] sm:h-[140px] sm:shrink-0 rounded-xl object-cover bg-chrome-deep" />
@@ -54,14 +54,14 @@ export function Curso() {
             <button
               key={l.n}
               onClick={() => l.state !== 'locked' ? navigate(`${base}/formacion/cursos/${c.id}/leccion/${l.n}`) : notify('Se desbloquea al terminar las lecciones anteriores')}
-              className={cn('w-full h-14 px-4 flex items-center gap-3.5 text-left', i < c.lessons.length - 1 && 'border-b border-line-soft', l.state === 'current' ? 'bg-accent-wash' : 'hover:bg-canvas')}
+              className={cn('w-full min-h-14 py-2.5 px-4 flex items-center gap-3.5 text-left', i < c.lessons.length - 1 && 'border-b border-line-soft', l.state === 'current' ? 'bg-accent-wash' : 'hover:bg-canvas')}
             >
               <LessonIcon state={l.state} />
               <span className="flex-1 min-w-0 flex flex-col">
                 <span className="text-base font-medium text-ink">{l.n} · {l.title}</span>
                 <span className="text-xs text-faint mt-[2px]">{l.meta}</span>
               </span>
-              <span className="text-sm text-muted">{l.minutes} min</span>
+              <span className="text-sm text-muted shrink-0 whitespace-nowrap">{l.minutes} min</span>
             </button>
           ))}
         </div>
@@ -70,7 +70,7 @@ export function Curso() {
       <Section title="Material del curso">
         <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
           {c.materials.map((m, i) => (
-            <button key={`${i}-${m.name}`} onClick={() => notify(PENDIENTE, 'aviso')} className={cn('w-full h-[46px] px-4 flex items-center gap-3 text-left hover:bg-canvas', i < c.materials.length - 1 && 'border-b border-line-soft')}>
+            <button key={`${i}-${m.name}`} onClick={() => notify(PENDIENTE, 'aviso')} className={cn('w-full min-h-[46px] py-1.5 px-4 flex items-center gap-3 text-left hover:bg-canvas', i < c.materials.length - 1 && 'border-b border-line-soft')}>
               <FileBadge kind={m.kind} />
               <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.meta}</span></span>
               {m.kind === 'URL' ? <ExternalLink size={14} className="text-muted" /> : <Download size={14} className="text-muted" />}

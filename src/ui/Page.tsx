@@ -3,7 +3,14 @@ import { Link } from 'react-router'
 import { ChevronLeft, Search } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
-/** Barra superior fina (52 px) */
+/**
+ * Barra superior fina (52 px). En el móvil:
+ * · la flecha «Volver» tiene 36 px de zona táctil (el icono sigue igual);
+ * · con flecha, por debajo de 1024 px solo se ve la última miga: la flecha ya sube de nivel y la
+ *   miga se lee entera (baja a dos líneas en vez de cortarse con «…»);
+ * · si el grupo de la derecha lleva un buscador, baja a su propia fila y ocupa todo el ancho
+ *   (buscador estirado, botón dentro del margen). Sin buscador, se queda junto al título si cabe.
+ */
 export function Toolbar({ title, crumbs, right, back, meta }: {
   title?: ReactNode
   crumbs?: { label: ReactNode; to?: string }[]
@@ -15,7 +22,7 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
     <header className="min-h-[52px] lg:h-[52px] shrink-0 px-4 lg:px-7 py-2 lg:py-0 bg-chrome/60 border-b border-line-soft flex flex-wrap items-center justify-between gap-2 lg:gap-4">
       <div className="flex items-center gap-2 min-w-0">
         {back && (
-          <Link to={back} className="text-ink-soft hover:text-ink -ml-1 mr-1" aria-label="Volver">
+          <Link to={back} className="h-9 w-9 -ml-[14px] -mr-1.5 shrink-0 inline-flex items-center justify-center text-ink-soft hover:text-ink" aria-label="Volver">
             <ChevronLeft size={16} />
           </Link>
         )}
@@ -24,11 +31,11 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
             {crumbs.map((c, i) => {
               const lastCrumb = i === crumbs.length - 1
               return (
-                <span key={i} className="flex items-center gap-2 min-w-0">
+                <span key={i} className={cn('items-center gap-2 min-w-0', !lastCrumb && back ? 'hidden lg:flex' : 'flex')}>
                   {c.to && !lastCrumb ? (
                     <Link to={c.to} className="min-w-0 shrink text-muted hover:text-ink truncate">{c.label}</Link>
                   ) : (
-                    <span className={cn('min-w-0 shrink truncate', lastCrumb ? 'font-semibold text-ink' : 'text-muted')}>{c.label}</span>
+                    <span className={cn('min-w-0 shrink', lastCrumb ? 'font-semibold text-ink lg:truncate max-lg:line-clamp-2 max-lg:break-words' : 'text-muted truncate')}>{c.label}</span>
                   )}
                   {!lastCrumb && <span className="text-faint shrink-0">/</span>}
                 </span>
@@ -40,16 +47,25 @@ export function Toolbar({ title, crumbs, right, back, meta }: {
         )}
         {meta}
       </div>
-      {right && <div className="flex items-center flex-wrap gap-2.5 shrink-0">{right}</div>}
+      {right && <div className="flex items-center flex-wrap gap-2.5 shrink-0 min-w-0 max-w-full max-lg:has-[input:not([data-sin-conectar]_input)]:w-full">{right}</div>}
     </header>
   )
 }
 
-export function SearchField({ placeholder = 'Buscar', width = 208, value, className }: { placeholder?: string; width?: number; value?: string; className?: string }) {
+/**
+ * Buscador de la barra. Sin `onChange` no filtra nada todavía: entonces no se enseña en el móvil
+ * (ocupaba una fila entera para nada) y en escritorio queda como estaba. Con `onChange`, busca de
+ * verdad y se ve en todos los anchos.
+ */
+export function SearchField({ placeholder = 'Buscar', width = 208, value, onChange, className }: { placeholder?: string; width?: number; value?: string; onChange?: (v: string) => void; className?: string }) {
   return (
-    <div style={{ '--sf-w': `${width}px` } as CSSProperties} className={cn('h-7 rounded-[7px] bg-surface border border-line px-[10px] flex items-center gap-[7px] flex-1 min-w-0 lg:flex-none lg:w-[var(--sf-w)]', className)}>
+    <div data-sin-conectar={onChange ? undefined : ''} style={{ '--sf-w': `${width}px` } as CSSProperties} className={cn('h-7 max-lg:h-9 rounded-[7px] bg-surface border border-line px-[10px] items-center gap-[7px] flex-1 min-w-0 lg:flex-none lg:w-[var(--sf-w)]', onChange ? 'flex' : 'hidden lg:flex', className)}>
       <Search size={13} className="text-faint shrink-0" strokeWidth={2} />
-      <input className="flex-1 min-w-0 bg-transparent text-md text-ink" placeholder={placeholder} defaultValue={value} />
+      {onChange ? (
+        <input className="flex-1 min-w-0 self-stretch bg-transparent text-md text-ink" placeholder={placeholder} aria-label={placeholder} value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+      ) : (
+        <input className="flex-1 min-w-0 self-stretch bg-transparent text-md text-ink" placeholder={placeholder} aria-label={placeholder} defaultValue={value} />
+      )}
     </div>
   )
 }
@@ -101,12 +117,12 @@ export function KeyValue({ rows, className, labelWidth = 120 }: { rows: { k: Rea
 export function Stat({ label, value, sub, tone, bar, className }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'accent' | 'ok' | 'warn' | 'danger'; bar?: number; className?: string }) {
   const vt = tone === 'accent' ? 'text-accent' : tone === 'ok' ? 'text-ok' : tone === 'warn' ? 'text-warn' : tone === 'danger' ? 'text-danger' : 'text-ink'
   return (
-    <div className={cn('flex-1 min-w-0 px-5 py-4 flex flex-col', className)}>
+    <div className={cn('flex-1 min-w-0 px-4 py-3 sm:px-5 sm:py-4 flex flex-col', className)}>
       <span className="label">{label}</span>
-      <span className={cn('mt-2 text-h1 font-semibold tracking-tight leading-8', vt)}>{value}</span>
+      <span className={cn('mt-1.5 sm:mt-2 text-title leading-6 sm:text-h1 sm:leading-8 font-semibold tracking-tight break-words hyphens-auto', vt)}>{value}</span>
       {sub && <span className="mt-1 text-sm text-muted">{sub}</span>}
       {bar !== undefined && (
-        <span className="mt-2.5 h-[5px] w-[208px] rounded-full bg-chrome-deep overflow-hidden">
+        <span className="mt-2.5 h-[5px] w-full max-w-[208px] rounded-full bg-chrome-deep overflow-hidden">
           <span style={{ width: `${bar}%` }} className="block h-full rounded-full bg-accent" />
         </span>
       )}
@@ -114,8 +130,9 @@ export function Stat({ label, value, sub, tone, bar, className }: { label: strin
   )
 }
 
+/** Fila de cifras: en el teléfono, rejilla de 2 × 2 (ver .stat-row en index.css); desde 640px, en fila. */
 export function StatRow({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('rounded-xl bg-surface border border-line shadow-card flex flex-col sm:flex-row divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-line-soft', className)}>{children}</div>
+  return <div className={cn('stat-row rounded-xl bg-surface border border-line shadow-card grid grid-cols-2 sm:flex sm:flex-row sm:divide-x divide-line-soft', className)}>{children}</div>
 }
 
 export function Notice({ tone = 'warn', title, children, icon, className, right }: { tone?: 'warn' | 'danger' | 'accent' | 'neutral' | 'ok'; title?: ReactNode; children?: ReactNode; icon?: ReactNode; className?: string; right?: ReactNode }) {

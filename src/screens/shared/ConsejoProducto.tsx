@@ -8,6 +8,7 @@ import { Button } from '@/ui/Button'
 import { ProductArt } from '@/ui/ProductArt'
 import { demoCase, ScoreCircle } from './Consejo'
 import { cn } from '@/lib/cn'
+import { tactilSm } from '@/ui/tactil'
 
 const detail: Record<string, { why: { t: string; d: string }[]; say: string; remember: string[]; dose: string[]; ask: string[] }> = {
   magnesio: {
@@ -60,10 +61,11 @@ export function ConsejoProducto() {
       padded={false}
       toolbar={<Toolbar back={`${base}/consejo`} crumbs={[{ label: 'Consejo por síntomas', to: `${base}/consejo` }, { label: p.name }]} right={<Button onClick={saveCase}>Guardar el caso</Button>} />}
     >
-      <div className="h-[38px] shrink-0 px-4 lg:px-7 bg-accent-wash border-b border-accent-line flex items-center gap-3 text-sm">
+      {/* En escritorio, una línea. Por debajo de 1024 px: etiqueta y «Volver» arriba y el caso debajo, en dos líneas como mucho. */}
+      <div className="min-h-[38px] py-2 shrink-0 px-4 lg:px-7 bg-accent-wash border-b border-accent-line flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         <span className="label text-accent">Caso de ejemplo</span>
-        <span className="text-ink-soft flex-1 truncate">{demoCase.query} · Mujer 52 años · Toma levotiroxina</span>
-        <Link to={`${base}/consejo`} className="font-medium text-accent">Volver a los {demoCase.results.length} resultados</Link>
+        <span className="text-ink-soft basis-full order-last max-lg:line-clamp-2 lg:order-none lg:basis-auto lg:flex-1 lg:min-w-0 lg:truncate">{demoCase.query} · Mujer 52 años · Toma levotiroxina</span>
+        <Link to={`${base}/consejo`} className={`${tactilSm} ml-auto font-medium text-accent`}>Volver a los {demoCase.results.length} resultados</Link>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 px-4 pt-4 pb-4 lg:px-7 lg:pt-6 lg:pb-7">
@@ -91,7 +93,7 @@ export function ConsejoProducto() {
           <div className="rounded-xl bg-[#7B3A24] text-on-accent p-5 flex flex-col">
             <div className="flex items-center justify-between">
               <span className="label text-on-accent-soft">Qué decirle en el mostrador</span>
-              <button onClick={() => { navigator.clipboard?.writeText(d.say); notify('Copiado') }} className="text-sm font-semibold hover:underline">Copiar</button>
+              <button onClick={() => { navigator.clipboard?.writeText(d.say); notify('Copiado') }} className={`${tactilSm} text-sm font-semibold hover:underline`}>Copiar</button>
             </div>
             <p className="mt-3.5 text-[17px] leading-[26px] font-medium">{d.say}</p>
           </div>

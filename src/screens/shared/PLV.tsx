@@ -62,7 +62,7 @@ export function SolicitudButton() {
         open={open}
         onClose={() => setOpen(false)}
         title="Tu solicitud de material"
-        subtitle={count ? `${count} unidades · se envía por correo a Suprafeel` : 'Todavía no has marcado nada'}
+        subtitle={count ? `${count} ${count === 1 ? 'unidad' : 'unidades'} · se envía por correo a Suprafeel` : 'Todavía no has marcado nada'}
         footer={
           <>
             <span className="text-sm text-muted">Se abre tu correo con la lista</span>
@@ -73,10 +73,10 @@ export function SolicitudButton() {
         <div className="rounded-xl bg-surface border border-line overflow-hidden">
           {items.length === 0 && <div className="p-6 text-center text-base text-muted">Entra en una campaña y marca lo que quieras.</div>}
           {items.map(({ m, qty }, i) => (
-            <div key={m.id} className={cn('h-[64px] px-3.5 flex items-center gap-3', i < items.length - 1 && 'border-b border-line-soft')}>
+            <div key={m.id} className={cn('min-h-[64px] py-2.5 px-3.5 flex items-center gap-3', i < items.length - 1 && 'border-b border-line-soft')}>
               <MaterialArt art={m.art} size={32} className="h-11 w-11 rounded-md border border-line-soft" />
-              <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
-              <div className="h-[30px] rounded-[7px] bg-surface border border-line flex items-center">
+              <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
+              <div className="h-[30px] shrink-0 rounded-[7px] bg-surface border border-line flex items-center">
                 <button onClick={() => setQty(m.id, qty - 1)} aria-label={`Quitar una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
                 <span className="w-6 text-center text-base font-semibold">{qty}</span>
                 <button onClick={() => setQty(m.id, qty + 1)} aria-label={`Añadir una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>

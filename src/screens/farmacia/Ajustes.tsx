@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink, Navigate, useParams } from 'react-router'
 import { UserRound, Building2, Users, Bell, ShieldCheck, Sun, Search } from 'lucide-react'
 import { Screen } from '@/app/Shell'
@@ -12,6 +12,7 @@ import { Toggle } from '@/ui/Toggle'
 import { Avatar } from '@/ui/Avatar'
 import { Select } from '@/ui/Field'
 import { cn } from '@/lib/cn'
+import { tactilBase, tactilSm } from '@/ui/tactil'
 
 const sections = [
   { key: 'perfil', label: 'Perfil', icon: UserRound },
@@ -74,6 +75,16 @@ export function Ajustes() {
   const { logout } = useAuth()
   const { farmacia } = useMiFarmacia()
   const sec = sections.find((s) => s.key === section)
+  const navRef = useRef<HTMLElement>(null)
+  // En el móvil las secciones son una tira que se desliza de lado: la activa se trae al centro,
+  // para que se vea cuál está marcada aunque sea de las últimas. En escritorio la lista cabe entera y no se mueve.
+  useEffect(() => {
+    const nav = navRef.current
+    const a = nav?.querySelector<HTMLElement>('a[aria-current="page"]')
+    if (!nav || !a || nav.scrollWidth <= nav.clientWidth) return
+    const x = a.getBoundingClientRect().left - nav.getBoundingClientRect().left + nav.scrollLeft
+    nav.scrollLeft = Math.max(0, x - (nav.clientWidth - a.offsetWidth) / 2)
+  }, [section])
   if (!sec) return <Navigate to="/farmacia/ajustes/perfil" replace />
   const de = farmacia ? ` · ${nombreDe(farmacia)}` : ''
   // Los ajustes todavía no se guardan en Suprafeel: los cambios se piden por correo, nada de «guardado» falso.
@@ -85,12 +96,13 @@ export function Ajustes() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
-      <aside className="w-full lg:w-[236px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line bg-canvas flex flex-col px-3 pt-4 lg:pt-5">
-        <span className="text-lg font-semibold text-ink px-1.5">Ajustes</span>
-        <div className="mt-4 h-8 rounded-[7px] bg-surface border border-line px-2.5 flex items-center gap-2 text-md text-faint"><Search size={13} /> Buscar en ajustes</div>
-        <nav className="mt-4 flex gap-0.5 overflow-x-auto no-scrollbar scroll-hint pb-3 lg:flex-col lg:overflow-visible lg:pb-0">
+      {/* En el móvil solo queda la tira de secciones: el título de la sección ya va en la barra de debajo. */}
+      <aside className="w-full lg:w-[236px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line bg-canvas flex flex-col px-3 pt-2.5 lg:pt-5">
+        <span className="hidden lg:block text-lg font-semibold text-ink px-1.5">Ajustes</span>
+        <div className="hidden lg:flex mt-4 h-8 rounded-[7px] bg-surface border border-line px-2.5 items-center gap-2 text-md text-faint"><Search size={13} /> Buscar en ajustes</div>
+        <nav ref={navRef} className="lg:mt-4 flex gap-0.5 overflow-x-auto no-scrollbar scroll-hint pb-2.5 pr-7 lg:pr-0 lg:flex-col lg:overflow-visible lg:pb-0">
           {sections.map((s) => (
-            <NavLink key={s.key} to={`/farmacia/ajustes/${s.key}`} className={({ isActive }) => cn('h-[35px] shrink-0 whitespace-nowrap rounded-md px-2.5 flex items-center gap-2.5 text-base', isActive ? 'bg-surface border border-line font-semibold text-ink shadow-card' : 'text-ink-soft hover:bg-chrome')}>
+            <NavLink key={s.key} to={`/farmacia/ajustes/${s.key}`} className={({ isActive }) => cn('h-10 lg:h-[35px] shrink-0 whitespace-nowrap rounded-md px-2.5 flex items-center gap-2.5 text-base', isActive ? 'bg-surface border border-line font-semibold text-ink shadow-card' : 'text-ink-soft hover:bg-chrome')}>
               <s.icon size={14} className="text-muted" />{s.label}
             </NavLink>
           ))}
@@ -129,11 +141,11 @@ function Perfil({ onLogout }: { onLogout: () => void }) {
       </div>
       <Group title="Acceso y seguridad">
         <Row label="Tipo de cuenta"><span className="text-base font-semibold text-ink">Farmacia</span><span className="text-sm text-faint">Solo Suprafeel puede cambiarlo</span></Row>
-        <Row label="Contraseña" last><span className="flex-1 text-base text-ink">••••••••••</span><button className="text-sm font-medium text-accent" onClick={() => escribir('Cambiar la contraseña de Suprafeel Soft')}>Cambiar</button></Row>
+        <Row label="Contraseña" last><span className="flex-1 text-base text-ink">••••••••••</span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Cambiar la contraseña de Suprafeel Soft')}>Cambiar</button></Row>
       </Group>
       <Group title="Sesión">
         <Row label="Este navegador"><span className="flex-1 min-w-0 text-base text-ink break-all">{user?.email ? `Sesión iniciada con ${user.email}` : 'Sesión iniciada'}</span></Row>
-        <Row label={<button className="text-danger font-medium" onClick={onLogout}>Cerrar sesión</button>} last />
+        <Row label={<button className={`${tactilBase} text-danger font-medium`} onClick={onLogout}>Cerrar sesión</button>} last />
       </Group>
     </>
   )
@@ -168,8 +180,11 @@ function DatosFarmacia() {
         <Pie>Para cambiar algún dato de la farmacia, escribe a <Correo />.</Pie>
       </div>
       <Group title="Tu comercial">
-        <Row label={<span className="text-ink">{p?.rep ? [p.rep, p.zona].filter(Boolean).join(' · ') : 'Sin comercial asignado todavía'}</span>}><span className="flex-1" /><NavLink to="/farmacia/mi-comercial" className="text-sm font-medium text-accent">Ver ficha</NavLink></Row>
-        <Row label={<button className="text-accent font-medium text-left whitespace-nowrap" onClick={() => escribir(`Cambio de comercial${p ? ` · ${nombreDe(p)}` : ''}`)}>Solicitar cambio de comercial</button>} last />
+        <Row label={<span className="text-ink">{p?.rep ? [p.rep, p.zona].filter(Boolean).join(' · ') : 'Sin comercial asignado todavía'}</span>}><span className="flex-1" /><NavLink to="/farmacia/mi-comercial" className={`${tactilSm} text-sm font-medium text-accent`}>Ver ficha</NavLink></Row>
+        {/* Fila de una sola acción: sin la columna de etiqueta de 160 px, que no da para el texto entero. */}
+        <div className="min-h-[46px] px-[14px] flex items-center">
+          <button className={`${tactilBase} text-base text-accent font-medium text-left`} onClick={() => escribir(`Cambio de comercial${p ? ` · ${nombreDe(p)}` : ''}`)}>Solicitar cambio de comercial</button>
+        </div>
       </Group>
     </>
   )
@@ -220,7 +235,7 @@ function Notificaciones() {
         <ToggleRow title="Resumen mensual" hint="Un correo el día 1 con novedades, formación pendiente y campañas." on={s.resumen} disabled last />
       </Group>
       <Group title="Cómo y cuándo">
-        <Row label="Correo de avisos"><span className="flex-1 min-w-0 text-base text-ink break-all">{user?.email}</span><button className="text-sm font-medium text-accent" onClick={() => escribir('Cambiar el correo de avisos de Suprafeel Soft')}>Cambiar</button></Row>
+        <Row label="Correo de avisos"><span className="flex-1 min-w-0 text-base text-ink break-all">{user?.email}</span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Cambiar el correo de avisos de Suprafeel Soft')}>Cambiar</button></Row>
         <ToggleRow title="No molestar" hint="Fuera del horario de la farmacia." on={s.dnd} disabled last />
       </Group>
     </>
@@ -240,8 +255,8 @@ function Privacidad() {
         <ToggleRow title="Compartir Mi lista con tu comercial" hint={`${farmacia?.rep || 'Tu comercial'} verá lo que has guardado antes de la visita, para llegar preparado.`} on={s.lista} disabled last />
       </Group>
       <Group title="Tus datos">
-        <Row label={<span className="text-ink">Descargar una copia de tus datos</span>}><span className="flex-1" /><button className="text-sm font-medium text-accent" onClick={() => escribir('Copia de mis datos de Suprafeel Soft')}>Pedir copia</button></Row>
-        <Row label={<span className="text-ink">Historial del buscador</span>}><span className="flex-1" /><button className="text-sm font-medium text-accent" onClick={() => escribir('Borrar el historial del buscador de Suprafeel Soft')}>Pedir que se borre</button></Row>
+        <Row label={<span className="text-ink">Descargar una copia de tus datos</span>}><span className="flex-1" /><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Copia de mis datos de Suprafeel Soft')}>Pedir copia</button></Row>
+        <Row label={<span className="text-ink">Historial del buscador</span>}><span className="flex-1" /><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Borrar el historial del buscador de Suprafeel Soft')}>Pedir que se borre</button></Row>
         <Row label={<span className="text-danger font-medium">Dar de baja a la farmacia</span>} last><span className="flex-1" /><span className="text-sm text-faint">Lo gestiona tu comercial</span></Row>
       </Group>
     </>
@@ -255,7 +270,7 @@ function Apariencia() {
   const [dense, setDense] = useState(false)
   return (
     <>
-      <div className="flex flex-col"><h2 className="text-title font-semibold tracking-tight text-ink">Cómo se ve en tu Mac</h2><p className="text-base text-muted mt-1.5">Piensa en la luz de tu mostrador. Muchas farmacias trabajan con fluorescente y agradecen el modo claro.</p></div>
+      <div className="flex flex-col">{/* En el teléfono y la tableta no es un Mac: allí dice «en esta pantalla». */}<h2 className="max-lg:hidden text-title font-semibold tracking-tight text-ink">Cómo se ve en tu Mac</h2><h2 className="lg:hidden text-title font-semibold tracking-tight text-ink">Cómo se ve en esta pantalla</h2><p className="text-base text-muted mt-1.5">Piensa en la luz de tu mostrador. Muchas farmacias trabajan con fluorescente y agradecen el modo claro.</p></div>
       <div className="flex flex-col gap-2.5">
         <span className="label">Tema</span>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -271,11 +286,11 @@ function Apariencia() {
       </div>
       <Group title="Lectura">
         <Row label="Tamaño del texto">
-          <div className="h-[30px] rounded-[7px] border border-line bg-surface p-[2px] flex">
+          <div className="h-[30px] max-lg:h-9 rounded-[7px] border border-line bg-surface p-[2px] flex">
             {['Pequeño', 'Normal', 'Grande'].map((o) => <button key={o} onClick={() => setSize(o)} className={cn('px-3 rounded-[5px] text-sm font-medium', size === o ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}>{o}</button>)}
           </div>
         </Row>
-        <Row label="Densidad de las listas"><span className="flex-1 text-base text-ink">{dense ? 'Compacta · más filas por pantalla' : 'Cómoda · más aire entre filas'}</span><button className="text-sm font-medium text-accent" onClick={() => setDense((d) => !d)}>{dense ? 'Cambiar a cómoda' : 'Cambiar a compacta'}</button></Row>
+        <Row label="Densidad de las listas"><span className="flex-1 text-base text-ink">{dense ? 'Compacta · más filas por pantalla' : 'Cómoda · más aire entre filas'}</span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => setDense((d) => !d)}>{dense ? 'Cambiar a cómoda' : 'Cambiar a compacta'}</button></Row>
         <Row label="Abrir al iniciar en" last><div className="w-[110px] shrink-0"><Select value="Catálogo" size="sm" /></div></Row>
       </Group>
     </>

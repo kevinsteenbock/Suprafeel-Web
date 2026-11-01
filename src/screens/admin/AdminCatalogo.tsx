@@ -13,6 +13,7 @@ import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
 import { ProductArt, Thumb, FileBadge } from '@/ui/ProductArt'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
+import { porFilaInicial, vistaInicial } from './AccesoCelda'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
@@ -32,7 +33,7 @@ export function AdminCatalogo() {
   const [sort, setSort] = useState('recent')
   const [open, setOpen] = useState<Product | null>(null)
   const [tab, setTab] = useState('general')
-  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 4, columns: columnOptions })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(4), columns: columnOptions })
   const gridStyle = useGridCols(vista)
   const filtrados = products.filter((p) => filter === 'all' || (filter === 'pub' ? p.status === 'Publicado' : filter === 'draft' ? p.status === 'Borrador' : filter === 'new' ? p.isNew : !p.pitch || p.composition.length < 2))
   // «Más reciente» deja el orden del catálogo; los otros dos ordenan de verdad.

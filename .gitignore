@@ -5,3 +5,6 @@ dist
 .vite
 .smoke.mjs
 xano/.accesos*
+xano/consejo/eval-out/
+xano/consejo/prompt.md
+xano/consejo/revision.md

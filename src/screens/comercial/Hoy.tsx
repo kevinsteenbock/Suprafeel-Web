@@ -103,10 +103,12 @@ export function Hoy() {
       </StatRow>
 
       <div className="flex flex-col lg:flex-row gap-6">
+        {/* Los enlaces de las cabeceras («Abrir en Mapas», «Ver todo») tienen 44 px de zona táctil: los
+            márgenes negativos los dejan en el sitio del texto y la cabecera no crece. */}
         <Section
           className="flex-1 min-w-0"
           title="Formación agendada"
-          right={mapas ? <a href={mapas} target="_blank" rel="noreferrer" className="text-base font-medium text-accent">Abrir en Mapas</a> : undefined}
+          right={mapas ? <a href={mapas} target="_blank" rel="noreferrer" className="h-11 -my-[13px] px-2 -mx-2 inline-flex items-center text-base font-medium text-accent">Abrir en Mapas</a> : undefined}
         >
           <TableCard footer={agenda.length ? `${plural(agenda.length, 'formación programada', 'formaciones programadas')} de hoy en adelante` : undefined}>
             {agenda.length === 0 && (
@@ -122,8 +124,8 @@ export function Hoy() {
                   <span className="text-xs text-faint mt-[2px]">{diaDe(r.formacionFecha!).toLocaleDateString('es-ES', { weekday: 'long' })}</span>
                 </span>
                 <span className="flex-1 min-w-0 flex flex-col">
-                  <span className="text-base font-medium text-ink truncate">{r.name}</span>
-                  <span className="text-xs text-faint mt-[2px] truncate">{[r.city, r.formacionNote].filter(Boolean).join(' · ')}</span>
+                  <span className="text-base font-medium text-ink lg:truncate">{r.name}</span>
+                  <span className="text-xs text-faint mt-[2px] lg:truncate">{[r.city, r.formacionNote].filter(Boolean).join(' · ')}</span>
                 </span>
                 <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 pl-[78px] sm:pl-0">
                   {r.formacionFecha === hoy ? <Badge tone="solid">Hoy</Badge> : <Badge tone="warn">Prevista</Badge>}
@@ -135,19 +137,20 @@ export function Hoy() {
         </Section>
 
         <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-5">
-          <Section title="Requieren atención" right={porAtender.length > atencion.length ? <Link to="/comercial/farmacias?filtro=to-train" className="text-base font-medium text-accent">Ver todo</Link> : undefined}>
+          <Section title="Requieren atención" right={porAtender.length > atencion.length ? <Link to="/comercial/farmacias?filtro=to-train" className="h-11 -my-[13px] px-2 -mx-2 inline-flex items-center text-base font-medium text-accent">Ver todo</Link> : undefined}>
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {atencion.length === 0 && <div className="px-4 py-5 text-base text-muted">Ninguna de tus farmacias tiene la formación pendiente ni sin cerrar.</div>}
               {atencion.map(({ p: x, motivo, urgente }) => (
                 <div key={x.id} className="px-4 py-3 flex items-center gap-3 border-b border-line-soft">
                   <span className={`w-[3px] h-9 rounded-full shrink-0 ${urgente ? 'bg-danger' : 'bg-warn'}`} />
                   <Link to={`/comercial/farmacias/${x.id}`} className="flex-1 min-w-0 flex flex-col hover:text-accent-deep">
-                    <span className="text-base font-medium text-ink truncate">{x.name}</span>
-                    <span className="text-xs text-faint mt-[2px] leading-4 truncate">{[motivo, x.city].filter(Boolean).join(' · ')}</span>
+                    <span className="text-base font-medium text-ink lg:truncate">{x.name}</span>
+                    <span className="text-xs text-faint mt-[2px] leading-4 lg:truncate">{[motivo, x.city].filter(Boolean).join(' · ')}</span>
                   </Link>
+                  {/* Mismo aspecto, pero con 44 px de zona táctil: los márgenes negativos la dejan en el sitio del texto. */}
                   {x.telefono
-                    ? <a href={`tel:${x.telefono.replace(/\s+/g, '')}`} className="text-sm font-medium text-accent">Llamar</a>
-                    : <Link to={`/comercial/farmacias/${x.id}`} className="text-sm font-medium text-accent">Ver ficha</Link>}
+                    ? <a href={`tel:${x.telefono.replace(/\s+/g, '')}`} className="h-11 -my-3 px-2 -mx-2 shrink-0 inline-flex items-center text-sm font-medium text-accent">Llamar</a>
+                    : <Link to={`/comercial/farmacias/${x.id}`} className="h-11 -my-3 px-2 -mx-2 shrink-0 inline-flex items-center text-sm font-medium text-accent">Ver ficha</Link>}
                 </div>
               ))}
               {porAtender.length > 0 && (
@@ -157,7 +160,7 @@ export function Hoy() {
               )}
             </div>
           </Section>
-          <Section title="Más referencias en el lineal" right={masRefs.length ? <Link to="/comercial/farmacias?filtro=top" className="text-base font-medium text-accent">Ver todo</Link> : undefined}>
+          <Section title="Más referencias en el lineal" right={masRefs.length ? <Link to="/comercial/farmacias?filtro=top" className="h-11 -my-[13px] px-2 -mx-2 inline-flex items-center text-base font-medium text-accent">Ver todo</Link> : undefined}>
             <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
               {masRefs.length === 0 && <div className="px-4 py-5 text-base text-muted border-b border-line-soft">Ninguna de tus farmacias tiene referencias Suprafeel todavía.</div>}
               {masRefs.map((p) => (

@@ -43,7 +43,7 @@ export function NuevoMaterial() {
       toolbar={<Toolbar back={`/admin/plv/${c.id}`} crumbs={[{ label: 'Materiales PLV', to: '/admin/plv' }, { label: name, to: `/admin/plv/${c.id}` }, { label: editing ? 'Editar material' : 'Nuevo material' }]} right={<span className="text-sm text-muted flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Sin guardar</span>} />}
       footer={
         <FooterBar title={ready ? 'Listo para publicar' : 'Para publicarlo hacen falta foto y existencias'} subtitle={ready ? `Lo verán ${verán} farmacias en cuanto guardes` : 'Sin foto la farmacia no reconoce el material que está pidiendo'}>
-          <Link to={`/admin/plv/${c.id}`}><Button size="lg">Cancelar</Button></Link>
+          <Link className="max-sm:hidden" to={`/admin/plv/${c.id}`}><Button size="lg">Cancelar</Button></Link>
           <Button size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate(`/admin/plv/${c.id}`) }}>Guardar borrador</Button>
           <Button variant="primary" size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate(`/admin/plv/${c.id}`) }}>{editing ? 'Guardar cambios' : 'Añadir a la campaña'}</Button>
         </FooterBar>
@@ -51,7 +51,7 @@ export function NuevoMaterial() {
     >
       <PageHeader title={editing ? 'Editar material' : 'Nuevo material'} subtitle={editing ? name : `Se añade a ${name}`} right={<span className="text-base text-muted">Lo verán {verán} farmacias</span>} />
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-6 flex flex-col gap-5">
+        <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-4 sm:p-6 flex flex-col gap-5">
           <Field label="Nombre del material" required labelClass="label"><Input value={f.name} onChange={set('name')} /></Field>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Tipo" labelClass="label"><Segmented options={['Impreso', 'Digital']} value={f.tipo} onChange={set('tipo')} /></Field>
@@ -63,8 +63,8 @@ export function NuevoMaterial() {
             <Field label="Límite por farmacia" required labelClass="label"><Select value="Máx. 1" chevron="down" /></Field>
           </div>
           <Field label="Descripción que ve la farmacia" labelClass="label"><Textarea rows={7} value={f.desc} onChange={set('desc')} /></Field>
-          <div className="pt-4 border-t border-line-soft flex items-center justify-between">
-            <div className="flex flex-col"><span className="text-base font-medium text-ink">Publicar en cuanto se añada</span><span className="text-sm text-muted">Si lo dejas apagado queda como borrador dentro de la campaña</span></div>
+          <div className="pt-4 border-t border-line-soft flex items-center justify-between gap-3">
+            <div className="flex flex-col min-w-0"><span className="text-base font-medium text-ink">Publicar en cuanto se añada</span><span className="text-sm text-muted">Si lo dejas apagado queda como borrador dentro de la campaña</span></div>
             <Toggle on={publish} onChange={setPublish} />
           </div>
         </div>
@@ -74,7 +74,7 @@ export function NuevoMaterial() {
             {photo ? (
               <MaterialArt art={editing?.art ?? 'shelf'} size={78} className="mt-4 h-[130px] rounded-lg border border-line" />
             ) : (
-              <button onClick={() => { setPhoto(true); notify(PENDIENTE_ADMIN, 'aviso') }} className="mt-4 h-[130px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center text-center hover:bg-chrome-deep/50"><span className="text-base font-medium text-ink">Arrastra la foto aquí</span><span className="text-xs text-faint mt-1">o haz clic para elegirla</span></button>
+              <button onClick={() => { setPhoto(true); notify(PENDIENTE_ADMIN, 'aviso') }} className="mt-4 h-[130px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center text-center hover:bg-chrome-deep/50"><span className="text-base font-medium text-ink"><span className="hidden sm:inline">Arrastra la foto aquí</span><span className="sm:hidden">Toca para elegir la foto</span></span><span className="hidden sm:inline text-xs text-faint mt-1">o haz clic para elegirla</span></button>
             )}
             <div className="mt-3 flex gap-3 text-sm font-medium"><button className="text-ink" onClick={() => notify('Elige otra foto')}>Cambiar foto</button><button className="text-accent" onClick={() => setPhoto(false)}>Quitar</button></div>
             <span className="mt-2.5 text-xs text-faint">JPG o PNG · mínimo 1200 px · se recorta a 4:3</span>

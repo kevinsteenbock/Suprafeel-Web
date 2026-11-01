@@ -9,7 +9,7 @@ import { Toolbar, PageHeader, Stat, StatRow, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
-import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
+import { TableCard, THead, Th, Tr, Td } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { accesosPorFarmacia, fechaAlta, plural } from './accesos'
 import { Principal } from './AccesoCelda'
@@ -82,7 +82,7 @@ export function Cuenta() {
         <div className="flex-1 min-w-0 flex flex-col gap-6">
           <Section title="Personas con acceso">
             <TableCard footer={cuentas.length ? plural(cuentas.length, 'cuenta de esta farmacia', 'cuentas de esta farmacia') : undefined} footerRight={cuentas.length ? <button onClick={darAcceso}>Dar acceso a otra persona</button> : undefined}>
-              {cuentas.length > 0 && <THead><Principal min={160}><Th>Persona</Th></Principal><Th className="w-[110px] shrink-0" align="right">Alta</Th></THead>}
+              {cuentas.length > 0 && <THead className="hidden sm:flex"><Principal min={160}><Th>Persona</Th></Principal><Th className="w-[110px] shrink-0" align="right">Alta</Th></THead>}
               {cuentas.length === 0 && (
                 <div className="px-6 py-10 flex flex-col items-center text-center">
                   <span className="text-base font-medium text-ink">Nadie de esta farmacia puede entrar todavía</span>
@@ -91,9 +91,19 @@ export function Cuenta() {
                 </div>
               )}
               {cuentas.map((u, i) => (
-                <Tr key={u.id} last={i === cuentas.length - 1}>
-                  <Principal min={160}><TdMain title={u.name || u.email} meta={u.email} avatar={<Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone="neutral" rounded="full" />} /></Principal>
-                  <Td className="w-[110px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
+                <Tr key={u.id} wrap last={i === cuentas.length - 1}>
+                  {/* En el teléfono no hay columna «Alta»: el correo se lee entero y la fecha va debajo. */}
+                  <Principal min={160}>
+                    <div className="flex-1 min-w-0 flex items-center gap-3">
+                      <Avatar initials={iniciales(u.name || u.email) || '··'} size={30} tone="neutral" rounded="full" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-base font-medium text-ink break-words sm:truncate">{u.name || u.email}</span>
+                        <span className="text-xs mt-[2px] text-faint break-all sm:break-normal sm:truncate">{u.email}</span>
+                        <span className="sm:hidden text-xs mt-[2px] text-faint">Alta: {fechaAlta(u.created_at)}</span>
+                      </div>
+                    </div>
+                  </Principal>
+                  <Td className="hidden sm:block w-[110px] shrink-0" align="right">{fechaAlta(u.created_at)}</Td>
                 </Tr>
               ))}
             </TableCard>

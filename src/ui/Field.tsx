@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronsUpDown, ChevronDown, Check, Plus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
@@ -29,7 +29,7 @@ export function Input({ value, placeholder, focus, right, left, readOnly = true,
     <div className={cn('field gap-2', size === 'sm' && 'h-[30px] rounded-[7px]', focus && 'is-focus', className)}>
       {left}
       <input
-        className={cn('flex-1 min-w-0 bg-transparent text-base text-ink', mono && 'font-mono')}
+        className={cn('flex-1 min-w-0 self-stretch bg-transparent text-base text-ink', mono && 'font-mono')}
         value={value ?? ''}
         placeholder={placeholder}
         readOnly={readOnly && !onChange}
@@ -66,7 +66,11 @@ export function Select({ value, className, size = 'md', muted, chevron = 'updown
   )
 }
 
-/** Desplegable de verdad: elige de la lista o crea una opción nueva sin salir. */
+/**
+ * Desplegable de verdad: elige de la lista o crea una opción nueva sin salir.
+ * Se abre hacia abajo; si debajo no cabe (pie fijo, final de la zona con scroll) y arriba hay más
+ * sitio, se abre hacia arriba. Nunca más alto que el hueco que tiene: la lista hace scroll dentro.
+ */
 export function Picker({ value, options, onChange, onCreate, createLabel = 'Crear', className, size = 'md', placeholder }: {
   value: string
   options: string[]
@@ -81,6 +85,34 @@ export function Picker({ value, options, onChange, onCreate, createLabel = 'Crea
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState('')
   const ref = useRef<HTMLDivElement>(null)
+  const listaRef = useRef<HTMLDivElement>(null)
+  const [hueco, setHueco] = useState<{ arriba: boolean; alto: number } | null>(null)
+
+  useLayoutEffect(() => {
+    if (!open) { setHueco(null); return }
+    const caja = ref.current
+    const lista = listaRef.current
+    if (!caja || !lista) return
+    const r = caja.getBoundingClientRect()
+    // El hueco visible es el de la zona con scroll que lo contiene (o la ventana).
+    let top = 0
+    let bottom = window.innerHeight
+    for (let el = caja.parentElement; el; el = el.parentElement) {
+      const oy = getComputedStyle(el).overflowY
+      if (oy === 'auto' || oy === 'scroll') {
+        const b = el.getBoundingClientRect()
+        top = Math.max(top, b.top)
+        bottom = Math.min(bottom, b.bottom)
+        break
+      }
+    }
+    const necesita = Math.min(280, lista.scrollHeight)
+    const abajo = bottom - r.bottom - 12
+    const arriba = r.top - top - 12
+    const haciaArriba = abajo < necesita && arriba > abajo
+    const alto = Math.max(120, Math.min(280, haciaArriba ? arriba : abajo))
+    setHueco((h) => (h && h.arriba === haciaArriba && h.alto === alto ? h : { arriba: haciaArriba, alto }))
+  }, [open, creating])
 
   useEffect(() => {
     if (!open) return
@@ -109,7 +141,11 @@ export function Picker({ value, options, onChange, onCreate, createLabel = 'Crea
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-lg bg-surface border border-line shadow-pop py-1.5 max-h-[280px] overflow-y-auto">
+        <div
+          ref={listaRef}
+          style={hueco ? { maxHeight: hueco.alto } : undefined}
+          className={cn('absolute left-0 right-0 z-40 rounded-lg bg-surface border border-line shadow-pop py-1.5 max-h-[280px] overflow-y-auto', hueco?.arriba ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]')}
+        >
           {options.map((o) => (
             <button key={o} type="button" onClick={() => { onChange(o); setOpen(false) }} className="h-8 w-full px-3 flex items-center gap-2 text-base text-ink hover:bg-chrome text-left">
               <span className="w-4 shrink-0 flex justify-center">{o === value && <Check size={13} strokeWidth={2.5} className="text-accent" />}</span>

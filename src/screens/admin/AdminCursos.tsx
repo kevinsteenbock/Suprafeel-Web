@@ -9,6 +9,7 @@ import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { Thumb } from '@/ui/ProductArt'
 import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
+import { porFilaInicial, vistaInicial } from './AccesoCelda'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
@@ -16,7 +17,7 @@ export function AdminCursos() {
   const navigate = useNavigate()
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState('recent')
-  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 3 })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(3) })
   const gridStyle = useGridCols(vista)
   const list = adminCourses.filter((c) => filter === 'all' || (filter === 'pub' ? c.state === 'Publicado' : filter === 'draft' ? c.state === 'Borrador' : c.lessons === 0))
   const totalLessons = adminCourses.reduce((a, c) => a + c.lessons, 0)

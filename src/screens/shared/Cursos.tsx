@@ -10,6 +10,7 @@ import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { MiListaButton } from './Catalogo'
+import { tactilSm } from '@/ui/tactil'
 
 export function Cursos() {
   const base = useBase()
@@ -52,10 +53,10 @@ export function Cursos() {
                   <span className={cn('label', c.state === 'progress' ? 'text-accent' : 'text-muted')}>{c.itinerary}</span>
                   <Link to={to} className="mt-1.5 text-lg font-semibold text-ink leading-[21px] hover:text-accent-deep">{c.title}</Link>
                   <span className="text-sm text-faint mt-1.5">{c.lessons.length} lecciones · {c.teacher}</span>
-                  <Bar value={c.progress} width={999} className="w-full mt-3.5" tone={c.state === 'done' ? 'ok' : 'accent'} />
+                  <Bar value={c.progress} width="full" className="mt-3.5" tone={c.state === 'done' ? 'ok' : 'accent'} />
                   <div className="mt-2.5 flex items-center justify-between">
                     <span className="text-sm text-muted">{c.stateLabel}</span>
-                    <Link to={c.state === 'progress' ? `${to}/leccion/3` : to} className={cn('text-sm font-semibold', c.state === 'done' ? 'text-ink' : 'text-accent')}>{action}</Link>
+                    <Link to={c.state === 'progress' ? `${to}/leccion/3` : to} className={cn(tactilSm, 'text-sm font-semibold', c.state === 'done' ? 'text-ink' : 'text-accent')}>{action}</Link>
                   </div>
                 </div>
               </div>

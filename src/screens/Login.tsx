@@ -19,7 +19,7 @@ export function Login() {
   // Si la guarda le mandó aquí desde una pantalla de su propia área, vuelve a ella.
   const from = (location.state as { from?: string } | null)?.from
 
-  if (status === 'checking') return <div className="h-screen w-full bg-canvas" aria-busy="true" />
+  if (status === 'checking') return <div className="h-dvh w-full bg-canvas" aria-busy="true" />
   if (status === 'in' && user && !busy) return <Navigate to={homeOf[user.role]} replace />
 
   const enter = async () => {
@@ -40,7 +40,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-canvas">
+    <div className="min-h-dvh w-full flex flex-col lg:flex-row bg-canvas">
       <aside className="hidden lg:flex w-[496px] shrink-0 bg-[#7B3A24] text-on-accent flex-col p-12">
         <div className="flex items-center gap-3">
           <span className="h-[30px] w-[30px] rounded-[8px] bg-white/15 inline-flex items-center justify-center"><Plus size={16} strokeWidth={2.4} /></span>
@@ -72,11 +72,11 @@ export function Login() {
 
           <div className="mt-5 flex items-center justify-between">
             <label htmlFor="login-pwd" className="text-sm text-ink-soft">Contraseña</label>
-            <button type="button" className="text-sm font-medium text-accent" onClick={() => setError('Para cambiar la contraseña, escribe a info@suprafeel.es desde el correo de tu cuenta.')}>¿La olvidaste?</button>
+            <button type="button" className="h-11 -my-[14px] px-2 -mx-2 inline-flex items-center text-sm font-medium text-accent" onClick={() => setError('Para cambiar la contraseña, escribe a info@suprafeel.es desde el correo de tu cuenta.')}>¿La olvidaste?</button>
           </div>
           <div className="field mt-[6px] h-10 gap-2">
             <input id="login-pwd" className={cn('flex-1 bg-transparent text-base', !show && 'tracking-[0.15em]')} type={show ? 'text' : 'password'} value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="current-password" />
-            <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'} className="text-faint hover:text-ink">{show ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+            <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-ink">{show ? <EyeOff size={15} /> : <Eye size={15} />}</button>
           </div>
 
           {error && <p role="alert" className="mt-4 text-sm text-danger">{error}</p>}

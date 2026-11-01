@@ -13,6 +13,7 @@ import { MaterialArt } from '@/ui/MaterialArt'
 import { TableCard, Tr } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { SolicitudButton, useEnviarSolicitud } from './PLV'
+import { tactilSm } from '@/ui/tactil'
 
 export function Campana() {
   const { id } = useParams()
@@ -43,7 +44,7 @@ export function Campana() {
     <Screen
       toolbar={<Toolbar back={`${base}/plv`} crumbs={[{ label: 'Materiales PLV', to: `${base}/plv` }, { label: c.name }]} right={<><SearchField placeholder="Buscar material" /><SolicitudButton /></>} />}
       footer={
-        <FooterBar title={`${count} materiales en tu solicitud`} subtitle={isComercial ? 'Se envía por correo a la central' : 'Se envía por correo a Suprafeel'}>
+        <FooterBar title={`${count} ${count === 1 ? 'material' : 'materiales'} en tu solicitud`} subtitle={isComercial ? 'Se envía por correo a la central' : 'Se envía por correo a Suprafeel'}>
           <SolicitudButtonInline />
           <Button variant="primary" size="lg" disabled={!count} onClick={enviar}>Enviar por correo</Button>
         </FooterBar>
@@ -78,7 +79,7 @@ export function Campana() {
                   <span className="text-xs text-faint mt-[3px] leading-4">{m.meta}</span>
                   <div className="mt-3.5 flex items-center justify-between">
                     <span className="text-xs text-muted">{m.limit}</span>
-                    <button onClick={a.onClick} className={cn('text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
+                    <button onClick={a.onClick} className={cn(tactilSm, 'text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
                   </div>
                 </div>
               </div>
@@ -94,7 +95,7 @@ export function Campana() {
                 <MaterialArt art={m.art} size={28} className="h-10 w-10 rounded-md border border-line-soft shrink-0" />
                 <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.meta}</span></span>
                 <span className="w-[160px] text-md text-muted">{m.limit}</span>
-                <button onClick={(e) => { e.stopPropagation(); a.onClick() }} className={cn('w-[90px] text-right text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
+                <button onClick={(e) => { e.stopPropagation(); a.onClick() }} className={cn('w-[90px] h-11 -my-[14px] inline-flex items-center justify-end text-right text-sm font-semibold', a.tone === 'accent-deep' ? 'text-accent-deep' : 'text-accent')}>{a.label}</button>
                 <ChevronRight size={14} className="text-faint" />
               </Tr>
             )
@@ -157,17 +158,17 @@ function SolicitudPeek({ onClose, count }: { onClose: () => void; count: number 
   const { solicitud, setQty } = useStore()
   const rows = Object.entries(solicitud)
   return (
-    <Drawer open onClose={onClose} title="Tu solicitud de material" subtitle={`${count} unidades en total`} footer={<Button variant="primary" className="w-full h-9" onClick={onClose}>Seguir eligiendo</Button>}>
+    <Drawer open onClose={onClose} title="Tu solicitud de material" subtitle={`${count} ${count === 1 ? 'unidad' : 'unidades'} en total`} footer={<Button variant="primary" className="w-full h-9" onClick={onClose}>Seguir eligiendo</Button>}>
       <div className="rounded-xl bg-surface border border-line overflow-hidden">
         {rows.length === 0 && <div className="p-6 text-center text-base text-muted">Todavía no has marcado nada.</div>}
         {rows.map(([mid, qty], i) => {
           const m = materials.find((x) => x.id === mid)
           if (!m) return null
           return (
-            <div key={mid} className={cn('h-[64px] px-3.5 flex items-center gap-3', i < rows.length - 1 && 'border-b border-line-soft')}>
+            <div key={mid} className={cn('min-h-[64px] py-2.5 px-3.5 flex items-center gap-3', i < rows.length - 1 && 'border-b border-line-soft')}>
               <MaterialArt art={m.art} size={32} className="h-11 w-11 rounded-md border border-line-soft" />
-              <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
-              <div className="h-[30px] rounded-[7px] bg-surface border border-line flex items-center">
+              <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">{m.name}</span><span className="text-xs text-faint">{m.limit}</span></span>
+              <div className="h-[30px] shrink-0 rounded-[7px] bg-surface border border-line flex items-center">
                 <button onClick={() => setQty(mid, qty - 1)} aria-label={`Quitar una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Minus size={12} /></button>
                 <span className="w-6 text-center text-base font-semibold">{qty}</span>
                 <button onClick={() => setQty(mid, qty + 1)} aria-label={`Añadir una unidad de ${m.name}`} className="w-8 h-full inline-flex items-center justify-center text-muted hover:text-ink"><Plus size={12} /></button>

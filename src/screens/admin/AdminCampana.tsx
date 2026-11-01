@@ -12,6 +12,7 @@ import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { MaterialArt } from '@/ui/MaterialArt'
 import { VistaButton, useVista, useGridCols } from '@/ui/Vista'
+import { porFilaInicial, vistaInicial } from './AccesoCelda'
 import { TableCard, THead, Th, Tr, Td } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 
@@ -24,7 +25,7 @@ export function AdminCampana() {
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState('recent')
   const [removed, setRemoved] = useState<string[]>([])
-  const { vista, setVista, resetVista } = useVista({ mode: 'list', perRow: 4 })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(4) })
   const gridStyle = useGridCols(vista)
   if (!c) return <Navigate to="/admin/plv" replace />
   // Las campañas de ejemplo enseñan el material de Otoño; una recién creada nace vacía.

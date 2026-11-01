@@ -12,6 +12,7 @@ import { Field, Input, Select, Textarea } from '@/ui/Field'
 import { Avatar } from '@/ui/Avatar'
 import { FileBadge } from '@/ui/ProductArt'
 import { cn } from '@/lib/cn'
+import { tactilSm } from '@/ui/tactil'
 
 interface L { n: number; title: string; meta: string; minutes: string; type: 'video' | 'text'; processing?: number }
 
@@ -60,8 +61,8 @@ export function CrearCurso() {
   return (
     <Screen
       toolbar={
-        <Toolbar back="/admin/cursos" crumbs={[{ label: 'Cursos', to: '/admin/cursos' }, { label: existing ? existing.title.slice(0, 34) + (existing.title.length > 34 ? '…' : '') : 'Nuevo curso' }]}
-          meta={<><Badge tone={published ? 'ok' : 'warn'} className="ml-1">{published ? 'Publicado' : 'Borrador'}</Badge><span className="text-sm text-muted">{saved}</span></>}
+        <Toolbar back="/admin/cursos" crumbs={[{ label: 'Cursos', to: '/admin/cursos' }, { label: existing ? (existing.title.length > 34 ? <><span className="lg:hidden">{existing.title}</span><span className="max-lg:hidden">{existing.title.slice(0, 34) + '…'}</span></> : existing.title) : 'Nuevo curso' }]}
+          meta={<><Badge tone={published ? 'ok' : 'warn'} className="ml-1">{published ? 'Publicado' : 'Borrador'}</Badge><span className="hidden sm:inline text-sm text-muted">{saved}</span></>}
           right={<><Link to={real ? `/farmacia/formacion/cursos/${real.id}` : '/farmacia/formacion/cursos'}><Button>Vista previa</Button></Link><Button variant="primary" disabled={!ready && !published} onClick={() => notify(ready ? PENDIENTE_ADMIN : 'Falta la portada para publicar', 'aviso')}>{published ? 'Publicado' : 'Publicar'}</Button></>}
         />
       }
@@ -77,24 +78,24 @@ export function CrearCurso() {
             </Field>
           </div>
 
-          <div className="mt-7 flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Lecciones</h2><span className="text-sm text-faint">Arrastra para reordenar</span></div>
-          <div className="mt-3 flex-1 rounded-xl bg-surface border border-line shadow-card flex flex-col min-h-[420px]">
+          <div className="mt-7 flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Lecciones</h2><span className="hidden sm:inline text-sm text-faint">Arrastra para reordenar</span></div>
+          <div className="mt-3 flex-1 rounded-xl bg-surface border border-line shadow-card flex flex-col min-h-[200px] lg:min-h-[420px]">
             {lessons.length === 0 && <div className="flex-1 flex flex-col items-center justify-center text-center px-10 text-muted"><span className="text-base font-medium text-ink">Este curso aún no tiene lecciones</span><span className="text-sm mt-1">Añade la primera abajo: puede llevar vídeo, texto y archivos a la vez.</span></div>}
             {lessons.map((l) => (
-              <button key={l.n} onClick={() => navigate(`/admin/cursos/${courseId}/leccion/${l.n}`)} className={cn('h-[58px] px-3.5 flex items-center gap-3 text-left border-b border-line-soft hover:bg-canvas', l.processing !== undefined && l.processing < 100 && 'bg-accent-wash border-accent-line')}>
-                <GripVertical size={14} className="text-faint" />
+              <button key={l.n} onClick={() => navigate(`/admin/cursos/${courseId}/leccion/${l.n}`)} className={cn('min-h-[58px] py-1 px-3.5 flex items-center gap-3 text-left border-b border-line-soft hover:bg-canvas', l.processing !== undefined && l.processing < 100 && 'bg-accent-wash border-accent-line')}>
+                <GripVertical size={14} className="hidden sm:block shrink-0 text-faint" />
                 <span className={cn('h-7 w-7 rounded-[7px] inline-flex items-center justify-center shrink-0', l.type === 'video' ? 'bg-accent-wash text-accent' : 'bg-chrome-deep text-ink-soft')}>{l.type === 'video' ? <Play size={11} fill="currentColor" /> : <AlignLeft size={12} />}</span>
                 <span className="flex-1 min-w-0 flex flex-col gap-[3px]">
-                  <span className="text-md font-medium text-ink truncate">{l.n} · {l.title}</span>
+                  <span className="text-md font-medium text-ink max-sm:line-clamp-2 sm:truncate">{l.n} · {l.title}</span>
                   {l.processing !== undefined && l.processing < 100 ? (<><span className="h-1 rounded-full bg-accent-line overflow-hidden"><span style={{ width: `${l.processing}%` }} className="block h-full bg-accent transition-all" /></span><span className="text-xs text-accent-deep">Procesando el vídeo · {l.processing} % · quedan {Math.max(2, Math.round((100 - l.processing) * 1.2))} s</span></>) : <span className="text-xs text-faint">{l.meta}</span>}
                 </span>
                 <span className="text-sm text-muted w-[46px] text-right">{l.minutes}</span>
                 <ChevronRight size={14} className="text-faint" />
               </button>
             ))}
-            <div className="mt-auto h-[54px] px-3.5 flex items-center justify-between">
+            <div className="mt-auto min-h-[54px] py-2 px-3.5 flex items-center justify-between gap-3">
               <Button variant="soft" icon={<Plus size={12} strokeWidth={2.5} />} onClick={() => setPanel('nueva')}>Añadir lección</Button>
-              <span className="text-sm text-faint">O arrastra aquí un vídeo o un PDF y te creamos la lección</span>
+              <span className="hidden sm:inline text-sm text-faint text-right">O arrastra aquí un vídeo o un PDF y te creamos la lección</span>
             </div>
           </div>
         </div>
@@ -105,7 +106,7 @@ export function CrearCurso() {
             <div className="px-4 py-3.5 border-b border-line-soft flex flex-col gap-1.5"><span className="text-sm text-ink-soft">Itinerario</span><Select value={existing?.itinerary === 'Vitaminas' || !existing ? 'Vitaminas y minerales' : existing.itinerary} /></div>
             <div className="px-4 py-3.5 border-b border-line-soft flex flex-col gap-1.5"><span className="text-sm text-ink-soft">Quién lo ve</span><Select value="Farmacias y comerciales" /></div>
           </div>
-          <div className="rounded-xl bg-surface border border-line shadow-card px-4 py-3.5 flex items-center gap-3"><Avatar initials="ES" size={32} tone="neutral" rounded="full" /><span className="flex-1 flex flex-col"><span className="text-base font-medium text-ink">Dra. Elena Sanz</span><span className="text-xs text-faint">Docente del curso</span></span><button className="text-sm font-medium text-accent" onClick={() => notify('Elige otro docente')}>Cambiar</button></div>
+          <div className="rounded-xl bg-surface border border-line shadow-card px-4 py-3.5 flex items-center gap-3"><Avatar initials="ES" size={32} tone="neutral" rounded="full" /><span className="flex-1 flex flex-col"><span className="text-base font-medium text-ink">Dra. Elena Sanz</span><span className="text-xs text-faint">Docente del curso</span></span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => notify('Elige otro docente')}>Cambiar</button></div>
           <div className="rounded-xl bg-chrome border border-line p-4 flex flex-col gap-2.5 flex-1">
             <span className="label">Antes de publicar</span>
             {checks.map(([l, ok]) => <div key={l} className="flex items-center gap-2.5 text-base"><span className={cn('h-4 w-4 rounded-full inline-flex items-center justify-center', ok ? 'bg-ok-wash text-ok' : 'bg-warn-wash text-warn')}>{ok ? <Check size={10} strokeWidth={3} /> : <span className="text-[10px] font-bold">!</span>}</span><span className={ok ? 'text-ink' : 'text-warn'}>{ok || l !== 'Portada del curso' ? l : 'Falta la portada'}</span></div>)}
@@ -153,7 +154,7 @@ function NuevaLeccion({ n, course, fromLibrary, onLibrary, onClose, onCreate }: 
           {video ? (
             <div className="h-14 rounded-md bg-canvas border border-line px-3 flex items-center gap-3"><span className="h-9 w-14 rounded bg-video inline-flex items-center justify-center text-[10px] text-white/70 font-medium">7:12</span><span className="flex-1 min-w-0 flex flex-col"><span className="text-md font-medium text-ink truncate">{video}</span><span className="text-xs text-faint">1080p · 184 MB · biblioteca</span></span><button onClick={() => setVideo(null)} className="text-faint hover:text-ink"><X size={13} /></button></div>
           ) : (
-            <div className="h-24 rounded-md border border-dashed border-line bg-chrome flex flex-col items-center justify-center gap-2"><span className="text-md font-medium text-ink-soft">Arrastra aquí un mp4 o mov</span><div className="flex gap-2"><Button variant="primary" size="sm" onClick={() => setVideo('vitamina-d-leccion-4-k2.mp4')}>Subir archivo</Button><Button size="sm" onClick={onLibrary}>Elegir de la biblioteca</Button></div></div>
+            <div className="h-24 rounded-md border border-dashed border-line bg-chrome flex flex-col items-center justify-center gap-2"><span className="text-md font-medium text-ink-soft"><span className="hidden sm:inline">Arrastra aquí un mp4 o mov</span><span className="sm:hidden">Sube un mp4 o mov</span></span><div className="flex gap-2"><Button variant="primary" size="sm" onClick={() => setVideo('vitamina-d-leccion-4-k2.mp4')}>Subir archivo</Button><Button size="sm" onClick={onLibrary}>Elegir de la biblioteca</Button></div></div>
           )}
         </Block>
         <Block icon={<AlignLeft size={12} className="text-ink-soft" />} title="Texto" right={text ? `${text.length} caracteres` : 'se ve bajo el vídeo'}>

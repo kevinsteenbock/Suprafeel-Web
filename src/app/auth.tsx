@@ -87,7 +87,7 @@ const EMAIL_MAL = 'Escribe un correo válido, por ejemplo nombre@farmacia.es.'
 
 /** Hueco mientras se comprueba la sesión o se cargan los datos: la pantalla no se pinta a medias. */
 export function Cargando() {
-  return <div className="h-screen w-full bg-canvas" aria-busy="true" />
+  return <div className="h-dvh w-full bg-canvas" aria-busy="true" />
 }
 
 const Ctx = createContext<Auth | null>(null)

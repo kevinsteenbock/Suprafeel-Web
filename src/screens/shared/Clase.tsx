@@ -9,6 +9,7 @@ import { Button } from '@/ui/Button'
 import { FileBadge } from '@/ui/ProductArt'
 import { LessonIcon } from './Curso'
 import { cn } from '@/lib/cn'
+import { tactilBase } from '@/ui/tactil'
 
 export function Clase() {
   const { id, n } = useParams()
@@ -29,9 +30,10 @@ export function Clase() {
     <Screen toolbar={<Toolbar back={courseTo} crumbs={[{ label: c.title.length > 28 ? c.title.slice(0, 26) + '…' : c.title, to: courseTo }, { label: `Lección ${lesson.n} · ${lesson.title}` }]} right={<Button onClick={() => { void navigator.clipboard?.writeText(window.location.href).then(() => notify('Enlace copiado'), () => notify('No se ha podido copiar el enlace', 'aviso')) }}>Copiar el enlace</Button>} />}>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col">
-          <div className="relative rounded-xl bg-video h-[366px] overflow-hidden flex items-center justify-center">
+          {/* Caja de vídeo 16:9 en el móvil y la tableta; en escritorio, el alto fijo de siempre. */}
+          <div className="relative rounded-xl bg-video aspect-video lg:aspect-auto lg:h-[366px] overflow-hidden flex items-center justify-center">
             {lesson.type === 'text' ? (
-              <div className="px-12 text-center text-[#CFCAC2] text-base leading-6 max-w-[560px]">Esta lección es de lectura. Abajo tienes el texto y los archivos que la acompañan.</div>
+              <div className="px-6 lg:px-12 text-center text-[#CFCAC2] text-base leading-6 max-w-[560px]">Esta lección es de lectura. Abajo tienes el texto y los archivos que la acompañan.</div>
             ) : (
               <button onClick={() => setPlaying((p) => !p)} className="h-[60px] w-[60px] rounded-full bg-[#F3E2D9] text-accent inline-flex items-center justify-center shadow-pop hover:scale-105 transition-transform">
                 {playing ? <span className="flex gap-1"><span className="w-[4px] h-4 bg-accent rounded-sm" /><span className="w-[4px] h-4 bg-accent rounded-sm" /></span> : <Play size={18} fill="currentColor" className="ml-1" />}
@@ -55,7 +57,7 @@ export function Clase() {
           </div>
           <div className="mt-7 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-ink">Archivos de esta clase</h2>
-            <button onClick={() => notify(PENDIENTE, 'aviso')} className="text-base font-medium text-accent">Descargar todo</button>
+            <button onClick={() => notify(PENDIENTE, 'aviso')} className={`${tactilBase} text-base font-medium text-accent`}>Descargar todo</button>
           </div>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {files.map((f, i) => (
@@ -72,10 +74,11 @@ export function Clase() {
           <div className="flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Lecciones del curso</h2><span className="text-sm text-muted">{done} de {c.lessons.length}</span></div>
           <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden -mt-1">
             {c.lessons.map((l, i) => (
-              <Link key={l.n} to={`${courseTo}/leccion/${l.n}`} className={cn('h-[50px] px-3.5 flex items-center gap-3 text-left', i < c.lessons.length - 1 && 'border-b border-line-soft', l.n === lesson.n ? 'bg-accent-wash' : 'hover:bg-canvas')}>
+              <Link key={l.n} to={`${courseTo}/leccion/${l.n}`} className={cn('min-h-[50px] py-2 px-3.5 flex items-center gap-3 text-left', i < c.lessons.length - 1 && 'border-b border-line-soft', l.n === lesson.n ? 'bg-accent-wash' : 'hover:bg-canvas')}>
                 <LessonIcon state={l.n === lesson.n ? 'current' : l.state} />
-                <span className="flex-1 min-w-0 text-base text-ink truncate">{l.title}</span>
-                <span className="text-xs text-faint">{l.minutes} min</span>
+                {/* El título en dos líneas como mucho: en una sola se cortaban casi todos (también en la columna de escritorio). */}
+                <span className="flex-1 min-w-0 text-base text-ink line-clamp-2">{l.title}</span>
+                <span className="text-xs text-faint shrink-0 whitespace-nowrap">{l.minutes} min</span>
               </Link>
             ))}
           </div>

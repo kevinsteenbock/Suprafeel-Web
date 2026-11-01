@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { SlidersHorizontal, Check, ChevronDown, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useMenuPos } from './menuPos'
 
 export type VistaMode = 'list' | 'cards'
 export type PerRow = 'fit' | 2 | 3 | 4 | 5 | 6
@@ -71,7 +72,7 @@ function Item({ on, label, indent, onClick, right, className }: { on?: boolean; 
   return (
     <button type="button" onClick={onClick} className={cn('h-[30px] w-full pr-3 flex items-center gap-2 text-base text-ink hover:bg-chrome text-left', indent ? 'pl-9' : 'pl-3', className)}>
       {!indent && <span className="w-4 shrink-0 flex justify-center">{on && <Check size={13} strokeWidth={2.5} className="text-ink" />}</span>}
-      {indent && on && <Check size={13} strokeWidth={2.5} className="text-ink -ml-[22px] mr-[9px] shrink-0" />}
+      {indent && on && <Check size={13} strokeWidth={2.5} className="text-ink -ml-[22px] mr-px shrink-0" />}
       <span className="flex-1 truncate">{label}</span>
       {right}
     </button>
@@ -93,19 +94,24 @@ function GroupHeader({ label, open, onToggle, right }: { label: string; open: bo
 /**
  * Control «Vista»: formato de la lista, tarjetas por fila y qué columnas se ven
  * y en qué orden (se arrastran por el asa de la derecha).
+ * `align`: lado preferido del menú (por defecto pegado al borde derecho del botón). Si por ese lado
+ * no cabe, se corre lo justo para no salirse de la pantalla.
  */
-export function VistaButton({ vista, onChange, onReset, columns, extra }: {
+export function VistaButton({ vista, onChange, onReset, columns, extra, align = 'right' }: {
   vista: VistaState
   onChange: (v: VistaState) => void
   onReset?: () => void
   columns?: ColumnOption[]
   extra?: ColumnOption
+  align?: 'left' | 'right'
 }) {
   const [open, setOpen] = useState(false)
   const [showCards, setShowCards] = useState(true)
   const [showCols, setShowCols] = useState(true)
   const [drag, setDrag] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const pos = useMenuPos(open, ref, menuRef, align)
 
   useEffect(() => {
     if (!open) return
@@ -131,15 +137,19 @@ export function VistaButton({ vista, onChange, onReset, columns, extra }: {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={cn('h-[27px] rounded-[7px] border border-line px-[11px] flex items-center gap-[7px] text-md font-medium text-ink', open ? 'bg-chrome-deep' : 'bg-chrome-deep/70 hover:bg-chrome-deep')}
+        className={cn('h-[27px] max-lg:h-8 rounded-[7px] border border-line px-[11px] flex items-center gap-[7px] text-md font-medium text-ink', open ? 'bg-chrome-deep' : 'bg-chrome-deep/70 hover:bg-chrome-deep')}
       >
         <SlidersHorizontal size={13} strokeWidth={1.8} />
         Vista
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[33px] z-40 w-[256px] rounded-[10px] bg-surface border border-line shadow-pop py-1.5 overflow-hidden">
-          <span className="absolute -top-[6px] right-[14px] h-3 w-3 rotate-45 bg-surface border-l border-t border-line" />
+        <div
+          ref={menuRef}
+          style={pos ? { left: pos.left, right: 'auto' } : undefined}
+          className={cn('absolute top-[33px] max-lg:top-[38px] z-40 w-[256px] max-w-[calc(100vw-32px)] rounded-[10px] bg-surface border border-line shadow-pop py-1.5 overflow-hidden', align === 'right' ? 'right-0' : 'left-0')}
+        >
+          <span style={pos ? { left: pos.arrow, right: 'auto' } : undefined} className={cn('absolute -top-[6px] h-3 w-3 rotate-45 bg-surface border-l border-t border-line', align === 'right' ? 'right-[14px]' : 'left-[14px]')} />
 
           <Item on={vista.mode === 'list'} label="Lista" onClick={() => onChange({ ...vista, mode: 'list' })} />
 

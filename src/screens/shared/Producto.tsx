@@ -68,12 +68,13 @@ export function Producto() {
 
           {tab === 'Composición' && (
             <div className="mt-4 rounded-xl bg-surface border border-line overflow-hidden">
-              <div className="h-8 px-[14px] bg-chrome border-b border-line flex items-center"><span className="label flex-1">Por {p.dose.match(/^\d+ \p{L}+/u)?.[0] ?? '1 toma'}</span><span className="label w-[110px] text-right">Cantidad</span><span className="label w-[70px] text-right">% VRN</span></div>
+              <div className="h-8 px-[14px] bg-chrome border-b border-line flex items-center"><span className="label flex-1 min-w-0">Por {p.dose.match(/^\d+ \p{L}+/u)?.[0] ?? '1 toma'}</span><span className="label w-[96px] sm:w-[110px] shrink-0 text-right">Cantidad</span><span className="label w-[60px] sm:w-[70px] shrink-0 text-right">% VRN</span></div>
+              {/* Las filas crecen con su texto: en el móvil un nombre largo ocupa 2 o 3 líneas sin pisar la fila siguiente. */}
               {p.composition.map((c, i) => (
-                <div key={`${i}-${c.name}`} className={cn('h-[38px] px-[14px] flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
-                  <span className="flex-1 text-base text-ink">{c.name}</span>
-                  <span className="w-[110px] text-right text-base font-semibold text-ink">{c.qty}</span>
-                  <span className="w-[70px] text-right text-base text-muted">{c.vrn}</span>
+                <div key={`${i}-${c.name}`} className={cn('min-h-[38px] py-2 px-[14px] flex items-center', i < p.composition.length - 1 && 'border-b border-line-soft')}>
+                  <span className="flex-1 min-w-0 pr-2 text-base text-ink">{c.name}</span>
+                  <span className="min-w-[96px] sm:min-w-[110px] shrink-0 text-right text-base font-semibold text-ink whitespace-nowrap">{c.qty}</span>
+                  <span className="w-[60px] sm:w-[70px] shrink-0 text-right text-base text-muted whitespace-nowrap">{c.vrn}</span>
                 </div>
               ))}
             </div>
@@ -94,7 +95,7 @@ export function Producto() {
           <span className="label mt-6">Se recomienda cuando el cliente cuenta</span>
           <div className="mt-2.5 flex flex-wrap gap-2">
             {p.symptoms.map((s, i) => (
-              <Link key={`${i}-${s}`} to={`${base}/consejo`} className="h-[27px] rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[13px] inline-flex items-center hover:bg-accent-line">{s}</Link>
+              <Link key={`${i}-${s}`} to={`${base}/consejo`} className="h-[27px] max-lg:h-8 rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[13px] inline-flex items-center hover:bg-accent-line">{s}</Link>
             ))}
           </div>
 

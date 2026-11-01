@@ -303,7 +303,7 @@ export function NuevaCuenta() {
           id="nueva-cuenta"
           noValidate
           onSubmit={(e) => { e.preventDefault(); void crear() }}
-          className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-6 flex flex-col gap-5"
+          className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card p-4 sm:p-6 flex flex-col gap-5"
         >
           {fallo && <div role="alert"><Notice tone="danger" title="No se ha creado la cuenta">{fallo}</Notice></div>}
 
@@ -317,7 +317,7 @@ export function NuevaCuenta() {
                   role="radio"
                   aria-checked={rol === r.key}
                   onClick={() => { setRol(r.key); setFallo('') }}
-                  className={cn('flex-1 rounded-[6px] text-base font-medium px-3', rol === r.key ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}
+                  className={cn('flex-1 rounded-[6px] text-base font-medium px-2 sm:px-3', rol === r.key ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}
                 >
                   {r.label}
                 </button>
@@ -371,11 +371,11 @@ export function NuevaCuenta() {
                 aria-describedby={`${ids.password}-nota`}
               />
               {password && (
-                <button type="button" onClick={() => void copiar()} aria-label={copiada ? 'Contraseña copiada' : 'Copiar la contraseña'} className="text-faint hover:text-ink">
+                <button type="button" onClick={() => void copiar()} aria-label={copiada ? 'Contraseña copiada' : 'Copiar la contraseña'} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-ink">
                   {copiada ? <Check size={15} className="text-ok" /> : <Copy size={15} />}
                 </button>
               )}
-              <button type="button" onClick={() => setVer((v) => !v)} aria-label={ver ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} aria-pressed={ver} className="text-faint hover:text-ink">
+              <button type="button" onClick={() => setVer((v) => !v)} aria-label={ver ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} aria-pressed={ver} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-ink">
                 {ver ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>

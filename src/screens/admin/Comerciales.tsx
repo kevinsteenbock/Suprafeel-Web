@@ -12,7 +12,7 @@ import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
 import { accesosPorComercial, norm, plural } from './accesos'
-import { AccesoCelda, Principal, vistaInicial } from './AccesoCelda'
+import { AccesoCelda, Principal, porFilaInicial, vistaInicial } from './AccesoCelda'
 
 const columnOptions = [
   { key: 'farmacias', label: 'Farmacias' },
@@ -28,7 +28,7 @@ export function Comerciales() {
   const navigate = useNavigate()
   const { farmacias, usuarios } = useDatos()
   const [sp, setSp] = useSearchParams()
-  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: 3, columns: columnOptions })
+  const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(3), columns: columnOptions })
   const gridStyle = useGridCols(vista)
 
   const acceso = sp.get('acceso') ?? 'all'

@@ -10,6 +10,7 @@ import { Badge } from '@/ui/Badge'
 import { Field, Input, Textarea } from '@/ui/Field'
 import { Toggle } from '@/ui/Toggle'
 import { FileBadge } from '@/ui/ProductArt'
+import { useMenuPos } from '@/ui/menuPos'
 import { cn } from '@/lib/cn'
 
 export function EditarLeccion() {
@@ -26,7 +27,17 @@ export function EditarLeccion() {
   const [s, setS] = useState({ oblig: true, skip: false, download: true })
   const [blocks, setBlocks] = useState<string[]>([])
   const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => { if (!gear) return; const h = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setGear(false); window.addEventListener('mousedown', h); return () => window.removeEventListener('mousedown', h) }, [gear])
+  const menuRef = useRef<HTMLDivElement>(null)
+  // Pegado al borde derecho del engranaje; si por ahí no cabe (en el móvil, la barra pone los botones a la izquierda), se corre lo justo para quedar dentro de la pantalla.
+  const pos = useMenuPos(gear, ref, menuRef, 'right')
+  useEffect(() => {
+    if (!gear) return
+    const h = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setGear(false)
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && setGear(false)
+    window.addEventListener('mousedown', h)
+    window.addEventListener('keydown', k)
+    return () => { window.removeEventListener('mousedown', h); window.removeEventListener('keydown', k) }
+  }, [gear])
   const back = `/admin/cursos/${id}`
   const courseTitle = course?.title ?? real?.title ?? 'Vitamina D'
 
@@ -34,19 +45,19 @@ export function EditarLeccion() {
     <Screen
       toolbar={
         <Toolbar back={back} crumbs={[{ label: courseTitle.split(':')[0], to: back }, { label: `Lección ${n} · ${title}` }]}
-          meta={<><Badge tone="accent" className="ml-1">Vídeo</Badge><span className="text-sm text-muted">Guardado hace 4 s</span></>}
+          meta={<><Badge tone="accent" className="ml-1">Vídeo</Badge><span className="hidden sm:inline text-sm text-muted">Guardado hace 4 s</span></>}
           right={
             <>
               <Link to={real ? `/farmacia/formacion/cursos/${real.id}/leccion/${n}` : '/farmacia/formacion/cursos'}><Button>Vista previa</Button></Link>
               <Button variant="primary" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate(back) }}>Hecho</Button>
               <div ref={ref} className="relative">
-                <button onClick={() => setGear((g) => !g)} className={cn('h-7 w-7 rounded-[7px] border border-line inline-flex items-center justify-center text-ink', gear ? 'bg-chrome-deep' : 'bg-chrome-deep/60 hover:bg-chrome-deep')}><Settings size={14} strokeWidth={1.7} /></button>
+                <button onClick={() => setGear((g) => !g)} aria-label="Ajustes de la lección" aria-expanded={gear} className={cn('h-7 w-7 rounded-[7px] border border-line inline-flex items-center justify-center text-ink', gear ? 'bg-chrome-deep' : 'bg-chrome-deep/60 hover:bg-chrome-deep')}><Settings size={14} strokeWidth={1.7} /></button>
                 {gear && (
-                  <div className="absolute right-0 top-9 z-40 w-[304px] rounded-lg bg-surface border border-line shadow-pop py-1.5">
+                  <div ref={menuRef} style={pos ? { left: pos.left, right: 'auto' } : undefined} className="absolute right-0 top-9 z-40 w-[304px] max-w-[calc(100vw-32px)] rounded-lg bg-surface border border-line shadow-pop py-1.5">
                     <div className="px-3.5 h-6 flex items-center label-faint">Ajustes de la lección</div>
-                    <div className="px-3.5 h-[42px] flex items-center justify-between"><div className="flex flex-col"><span className="text-base text-ink">Duración</span><span className="text-xs text-faint">Se calcula del vídeo</span></div><span className="text-base text-muted">6 min</span></div>
+                    <div className="px-3.5 h-[42px] flex items-center justify-between gap-3"><div className="flex flex-col min-w-0"><span className="text-base text-ink">Duración</span><span className="text-xs text-faint">Se calcula del vídeo</span></div><span className="text-base text-muted">6 min</span></div>
                     {[['oblig', 'Obligatoria', 'Hay que verla entera para avanzar'], ['skip', 'Se puede adelantar', 'Solo la primera vez'], ['download', 'Descargar los archivos', 'Farmacias y comerciales']].map(([k, t, h]) => (
-                      <div key={k} className="px-3.5 h-[42px] flex items-center justify-between"><div className="flex flex-col"><span className="text-base text-ink">{t}</span><span className="text-xs text-faint">{h}</span></div><Toggle size="sm" on={s[k as keyof typeof s]} onChange={(v) => setS({ ...s, [k]: v })} /></div>
+                      <div key={k} className="px-3.5 h-[42px] flex items-center justify-between gap-3"><div className="flex flex-col min-w-0"><span className="text-base text-ink">{t}</span><span className="text-xs text-faint">{h}</span></div><Toggle size="sm" on={s[k as keyof typeof s]} onChange={(v) => setS({ ...s, [k]: v })} /></div>
                     ))}
                     <div className="h-px bg-line-soft my-1.5" />
                     {[['Duplicar lección', '⌘D'], ['Mover a otro curso…', '›'], ['Descargar el vídeo original', '']].map(([t, r]) => <button key={t} onClick={() => { setGear(false); notify(t) }} className="w-full h-8 px-3.5 flex items-center justify-between text-base text-ink hover:bg-chrome">{t}<span className="text-xs text-faint">{r}</span></button>)}
@@ -65,22 +76,22 @@ export function EditarLeccion() {
           <div className="relative h-[300px] rounded-xl bg-video flex flex-col items-center justify-center overflow-hidden">
             <div className="absolute top-4 right-4 flex gap-2">{['Cambiar vídeo', 'Portada del vídeo'].map((t) => <button key={t} onClick={() => notify(t)} className="h-8 px-3 rounded-[7px] bg-white/10 text-[#F4F2EF] text-sm font-medium hover:bg-white/15">{t}</button>)}</div>
             <span className="h-[60px] w-[60px] rounded-full bg-[#F3E2D9] text-accent inline-flex items-center justify-center"><Play size={18} fill="currentColor" className="ml-1" /></span>
-            <span className="mt-6 text-base text-[#CFCAC2]">vitamina-d-leccion-{n}.mp4 · 6:12 · 1080p · 214 MB</span>
+            <span className="mt-6 px-4 text-center text-base text-[#CFCAC2]">vitamina-d-leccion-{n}.mp4 · 6:12 · 1080p · 214 MB</span>
           </div>
           <Field label="Título de la lección" required><Input value={title} onChange={setTitle} className="h-9" /></Field>
           <Field label="Qué se lleva el farmacéutico" right={<span className="text-xs text-faint">Se muestra bajo el vídeo</span>}><Textarea rows={7} value={text} onChange={setText} /></Field>
           {blocks.map((b, i) => <div key={i} className="rounded-xl bg-surface border border-line p-4 flex items-center justify-between"><span className="text-base text-ink">Bloque nuevo · {b}</span><button onClick={() => setBlocks((bs) => bs.filter((_, j) => j !== i))} className="text-faint hover:text-ink"><X size={14} /></button></div>)}
-          <div className="h-[46px] rounded-lg bg-chrome border border-line px-3 flex items-center gap-2">
-            <span className="text-sm text-muted mr-1">Añadir a esta lección</span>
+          <div className="min-h-[46px] py-2 rounded-lg bg-chrome border border-line px-3 flex flex-wrap items-center gap-2">
+            <span className="w-full sm:w-auto text-sm text-muted mr-1">Añadir a esta lección</span>
             {['Otro vídeo', 'Texto', 'Imagen', 'Archivo'].map((b) => <Button key={b} size="md" icon={<Plus size={11} strokeWidth={2.4} />} onClick={() => { if (b === 'Archivo') { setFiles((fs) => [...fs, { k: 'PDF', n: 'Nuevo archivo', m: 'PDF · 0 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') } else { setBlocks((bs) => [...bs, b]); notify(PENDIENTE_ADMIN, 'aviso') } }}>{b}</Button>)}
           </div>
         </div>
         <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-4">
           <div className="rounded-xl bg-surface border border-line shadow-card overflow-hidden">
             <div className="h-[34px] px-3.5 bg-chrome border-b border-line-soft flex items-center justify-between"><span className="label">Archivos de la lección</span><button onClick={() => { setFiles((fs) => [...fs, { k: 'PDF', n: 'Ficha de interacciones', m: 'PDF · 260 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="text-sm font-medium text-accent">Añadir</button></div>
-            {files.map((f, i) => <div key={f.n + i} className={cn('h-[50px] px-3.5 flex items-center gap-3', i < files.length - 1 && 'border-b border-line-soft')}><FileBadge kind={f.k} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{f.n}</span><span className="text-xs text-faint">{f.m}</span></span><button onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))} className="text-faint hover:text-ink"><X size={13} /></button></div>)}
+            {files.map((f, i) => <div key={f.n + i} className={cn('h-[50px] px-3.5 flex items-center gap-3', i < files.length - 1 && 'border-b border-line-soft')}><FileBadge kind={f.k} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{f.n}</span><span className="text-xs text-faint">{f.m}</span></span><button onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))} aria-label={`Quitar ${f.n}`} className="max-lg:h-8 max-lg:w-8 max-lg:-mr-2 shrink-0 inline-flex items-center justify-center text-faint hover:text-ink"><X size={13} /></button></div>)}
           </div>
-          <button onClick={() => { setFiles((fs) => [...fs, { k: 'A5', n: 'Cartel A5 arrastrado', m: 'Imprimible A5 · 210 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[104px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center hover:bg-chrome-deep/50"><Upload size={18} className="text-faint" /><span className="mt-2 text-md font-medium text-ink-soft">Arrastra archivos aquí</span><span className="text-xs text-faint mt-0.5">PDF, imagen o ficha imprimible · máx. 25 MB</span></button>
+          <button onClick={() => { setFiles((fs) => [...fs, { k: 'A5', n: 'Cartel A5 arrastrado', m: 'Imprimible A5 · 210 KB' }]); notify(PENDIENTE_ADMIN, 'aviso') }} className="h-[104px] rounded-lg border border-dashed border-line bg-chrome flex flex-col items-center justify-center hover:bg-chrome-deep/50"><Upload size={18} className="text-faint" /><span className="mt-2 text-md font-medium text-ink-soft"><span className="hidden sm:inline">Arrastra archivos aquí</span><span className="sm:hidden">Toca para elegir archivos</span></span><span className="text-xs text-faint mt-0.5">PDF, imagen o ficha imprimible · máx. 25 MB</span></button>
           <Link to={back} className="mt-auto h-10 rounded-lg bg-surface border border-line px-3.5 flex items-center justify-between text-base text-ink hover:bg-chrome">Volver al temario <ChevronRight size={14} className="text-faint" /></Link>
         </aside>
       </div>

@@ -90,14 +90,31 @@
   * { box-sizing: border-box; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
   input, textarea, select { font: inherit; color: inherit; }
+  /* Un campo dentro de una fila flex puede encoger: si no, su ancho «natural» (unos 20 caracteres)
+     empuja al botón de al lado fuera de la caja, y más con la letra de 16 px del móvil. */
+  input, textarea, select { min-width: 0; }
   a { color: inherit; text-decoration: none; }
   ::placeholder { color: var(--color-faint); }
   input:focus, textarea:focus, select:focus { outline: none; }
 }
 
-@layer utilities {
+/* Piezas con estilo propio que las clases de Tailwind pueden matizar: van en «components», que va
+   antes que «utilities». Así un text-accent o text-on-accent-soft puesto junto a .label gana. */
+@layer components {
   .label { font-size: 10.5px; line-height: 14px; font-weight: 600; letter-spacing: 0.08em; color: var(--color-muted); text-transform: uppercase; }
   .label-faint { font-size: 10.5px; line-height: 14px; font-weight: 600; letter-spacing: 0.08em; color: var(--color-faint); text-transform: uppercase; }
+
+  /* Fila de cifras (StatRow) en el teléfono: rejilla de 2 × 2 con líneas finas entre celdas.
+     Desde 640px vuelve a ser una fila con divisores verticales. */
+  @media (max-width: 639px) {
+    .stat-row > * { border-color: var(--color-line-soft); border-bottom-width: 1px; }
+    .stat-row > *:nth-child(odd):not(:last-child) { border-right-width: 1px; }
+    .stat-row > *:last-child, .stat-row > *:nth-last-child(2):nth-child(odd) { border-bottom-width: 0; }
+    .stat-row > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  }
+}
+
+@layer utilities {
   .field { height: 34px; border-radius: 8px; background: var(--color-surface); border: 1px solid var(--color-line); padding: 0 10px; display: flex; align-items: center; width: 100%; }
   .field:focus-within, .field.is-focus { border-color: var(--color-accent); box-shadow: var(--shadow-focus); }
   .scrollbar-thin { scrollbar-width: thin; }
@@ -110,5 +127,16 @@
       -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
       mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
     }
+  }
+}
+
+/* Safari de iPhone amplía la página al enfocar un campo con letra de menos de 16 px. En pantallas
+   táctiles y estrechas, todos los campos a 16 px. Va fuera de las capas a propósito: así gana a
+   text-md / text-base sin !important. En escritorio, cada campo conserva su tamaño. */
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
