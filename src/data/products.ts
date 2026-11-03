@@ -21,7 +21,7 @@ export interface Product {
   margin: number
   category: string
   categoryLabel: string
-  tag?: 'NOVEDAD' | 'MÁS VENDIDO' | 'CON FORMACIÓN' | 'CON PLV' | 'MÁS CONSULTADO'
+  tag?: 'NOVEDAD' | 'MÁS VENDIDO' | 'MÁS CONSULTADO'
   art: Art
   photo?: string
   video?: { src: string; poster: string; duracion: string }
@@ -38,11 +38,6 @@ export interface Product {
   suitable: string
   registry: string
   packaging: string
-  courseId?: string
-  plv?: string
-  consultations30d: number
-  hasCourse?: boolean
-  hasPLV?: boolean
   isNew?: boolean
   bestSeller?: boolean
 }
@@ -117,8 +112,6 @@ export const products: Product[] = [
     symptoms: ['Personas con estrés físico o mental', 'Sueño de baja calidad', 'Tensión muscular o calambres'],
     warning: 'Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    courseId: 'magnesio', hasCourse: true,
-    consultations30d: 0,
   },
   {
     id: 'colageno-1', photo: photo('colageno-1'), video: video('colageno-1', '2:31'), name: 'Colágeno', format: '60 cápsulas', cn: '',
@@ -141,8 +134,6 @@ export const products: Product[] = [
     symptoms: ['Personas activas o deportistas que someten sus', 'Adultos que buscan cuidar la firmeza y el aspecto de su', 'Cualquiera que quiera incorporar el colágeno hidrolizado'],
     warning: 'Si vas a hacerte un análisis de sangre, ten en cuenta que la biotina puede interferir en los resultados: coméntaselo a tu médico o al laboratorio. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    courseId: 'colageno', hasCourse: true,
-    consultations30d: 0,
   },
   {
     id: 'omega', photo: photo('omega'), video: video('omega', '2:30'), name: 'Omega 3', format: '60 perlas', cn: '',
@@ -160,7 +151,6 @@ export const products: Product[] = [
     symptoms: ['Adultos que quieran cubrir su aporte de omega-3 de forma', 'Personas cuyo consumo habitual de pescado azul es bajo', 'Cualquiera que busque un apoyo diario a la salud'],
     warning: 'Confirma el origen de la gelatina de la cápsula si sigues una dieta sin productos de origen animal. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '',
@@ -176,7 +166,6 @@ export const products: Product[] = [
     symptoms: ['Adultos con baja exposición solar durante gran parte del'],
     warning: 'Si estás en tratamiento anticoagulante (antivitamina K), consulta a tu médico antes de tomarlo. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'multivitaminico', photo: photo('multivitaminico'), video: video('multivitaminico', '2:09'), name: 'Multivitamínico', format: '60 cápsulas', cn: '',
@@ -204,7 +193,6 @@ export const products: Product[] = [
     symptoms: ['Producto de entrada para cualquier adulto que quiera'],
     warning: 'Consulta a un profesional sanitario si tomas medicamentos o estás bajo supervisión médica, especialmente anticoagulantes, insulina o tratamiento oncológico. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'immune-defense', photo: photo('immune-defense'), video: video('immune-defense', '2:22'), name: 'Immune Defense', format: '60 cápsulas', cn: '',
@@ -223,7 +211,6 @@ export const products: Product[] = [
     symptoms: ['Adultos mayores de 12 años que buscan un apoyo puntual de', 'Personas que quieren potenciar su sistema inmunológico en'],
     warning: 'Contiene equinácea: no recomendado en enfermedades autoinmunes ni en menores de 12 años. Contraindicado en lupus, esclerosis múltiple, artritis reumatoide o tratamiento inmunosupresor. No se recomienda su uso continuado más de 8 semanas seguidas. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'vitamin-c', photo: photo('vitamin-c'), video: video('vitamin-c', '2:40'), name: 'Vitamina C', format: '180 cápsulas', cn: '',
@@ -238,7 +225,6 @@ export const products: Product[] = [
     symptoms: ['Cualquier adulto que quiera cubrir de forma constante su', 'Personas que quieran un apoyo para prevenir gripes y', 'Personas cuya dieta es baja en fruta y verdura fresca, o'],
     warning: 'Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'zinc', photo: photo('zinc'), video: video('zinc', '2:32'), name: 'Zinc', format: '120 cápsulas', cn: '',
@@ -254,7 +240,6 @@ export const products: Product[] = [
     symptoms: ['Personas que buscan un apoyo nutricional para sus defensas,', 'Personas con acné, piel grasa o problemas de piel', 'Personas que siguen una alimentación vegetariana o vegana,'],
     warning: 'No se recomienda el consumo simultáneo de otros suplementos que contengan zinc. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'curcuma', photo: photo('curcuma'), video: video('curcuma', '2:39'), name: 'Cúrcuma', format: '120 cápsulas', cn: '',
@@ -273,7 +258,6 @@ export const products: Product[] = [
     symptoms: ['Personas con molestias articulares ocasionales o sobrecarga', 'Quienes buscan apoyo digestivo ocasional', 'Adultos que quieran mantener o mejorar su bienestar'],
     warning: 'Si toma medicación anticoagulante o tiene problemas biliares, consulte a su médico antes de usar este producto.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'maca-negra', photo: photo('maca-negra'), video: video('maca-negra', '1:46'), name: 'Maca negra', format: '120 cápsulas', cn: '',
@@ -293,7 +277,6 @@ export const products: Product[] = [
     symptoms: ['Adultos que buscan un extra de energía física y vitalidad', 'Especialmente en épocas de mayor desgaste físico o bajón de'],
     warning: 'La L-arginina puede potenciar el efecto de antihipertensivos, nitratos y tratamientos para la disfunción eréctil. Consulta con tu médico o farmacéutico antes de usarlo. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'hierro-liposomado', photo: photo('hierro-liposomado'), name: 'Hierro liposomado', format: '60 cápsulas', cn: '',
@@ -314,8 +297,6 @@ export const products: Product[] = [
     symptoms: ['Personas con deficiencia de hierro o con necesidades'],
     warning: 'El consumo excesivo de hierro puede ser perjudicial; mantener especialmente fuera del alcance de los niños. No combinar con otros complementos que contengan hierro. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    courseId: 'hierro', hasCourse: true,
-    consultations30d: 0,
   },
   {
     id: 'levadura-de-arroz-rojo', photo: photo('levadura-de-arroz-rojo'), video: video('levadura-de-arroz-rojo', '2:32'), name: 'Levadura de arroz rojo', format: '90 cápsulas', cn: '',
@@ -341,7 +322,6 @@ export const products: Product[] = [
     symptoms: ['Adultos (18–70 años) que desean un apoyo específico para su salud cardiovascular', 'Siempre bajo criterio médico si toman otra medicación'],
     warning: 'Contiene SOJA. No consumir junto a medicamentos hipolipemiantes (estatinas). No recomendado en menores de 18 ni mayores de 70 años. No recomendado durante el embarazo ni la lactancia. No superar 1 cápsula al día. Consulta a tu médico si tienes problemas musculares, hepáticos o renales. No combinar con otros productos que contengan arroz de levadura roja. No superar 3 g/día de esteroles vegetales añadidos si se combina con otras fuentes. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'vitamina-b12', photo: photo('vitamina-b12'), video: video('vitamina-b12', '2:11'), name: 'Vitamina B12', format: '120 cápsulas', cn: '',
@@ -359,7 +339,6 @@ export const products: Product[] = [
     symptoms: ['Personas con dietas vegetarianas o veganas', 'Adultos mayores (con absorción reducida por la edad)', 'Cualquier persona con cansancio persistente o que tome'],
     warning: 'Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'glucosamina', photo: photo('glucosamina'), video: video('glucosamina', '2:12'), name: 'Glucosamina', format: '120 cápsulas', cn: '',
@@ -379,7 +358,6 @@ export const products: Product[] = [
     symptoms: ['Personas con desgaste articular por la edad o la actividad', 'Deportistas que someten sus articulaciones a impacto', 'Adultos que quieren cuidar su movilidad'],
     warning: 'Contiene CRUSTÁCEOS. No recomendado en tratamiento anticoagulante o antidiabético sin control médico. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'creatina', photo: photo('creatina'), video: video('creatina', '2:23'), name: 'Creatina', format: '90 cápsulas', cn: '',
@@ -394,7 +372,6 @@ export const products: Product[] = [
     symptoms: ['Deportistas y personas físicamente activas que entrenan', 'Sprints u otros esfuerzos cortos e intensos', 'Buscan mejorar su rendimiento o su capacidad de repetir'],
     warning: 'No utilizar en caso de enfermedad renal preexistente. Si estás bajo supervisión médica o tomas medicamentos, consulta con un profesional sanitario antes de consumirla. Informa a tu médico del consumo de creatina antes de someterte a pruebas de función renal. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'biotina', photo: photo('biotina'), video: video('biotina', '1:22'), name: 'Biotina', format: '120 cápsulas', cn: '',
@@ -413,7 +390,6 @@ export const products: Product[] = [
     symptoms: ['Personas que buscan cuidar la piel', 'El cabello y las uñas', 'Como parte de una rutina diaria de belleza y bienestar'],
     warning: 'La biotina puede interferir con los resultados de determinados análisis clínicos; informa a tu médico o al laboratorio de tu consumo actual o reciente. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'hair-forte', photo: photo('hair-forte'), video: video('hair-forte', '2:26'), name: 'Hair forte', format: '90 cápsulas', cn: '',
@@ -444,7 +420,6 @@ export const products: Product[] = [
     symptoms: ['Personas que buscan reforzar su cabello', 'Especialmente en épocas de mayor demanda como cambios de', 'Estrés o cuando perciben un cabello más débil o frágil'],
     warning: 'La biotina puede interferir con los resultados de determinados análisis clínicos; informa a tu médico o al laboratorio de tu consumo. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'ashwagandha', photo: photo('ashwagandha'), video: video('ashwagandha', '3:01'), name: 'Ashwagandha', format: '60 cápsulas', cn: '',
@@ -460,7 +435,6 @@ export const products: Product[] = [
     symptoms: ['Para adultos que atraviesan periodos de estrés', 'Tensión o elevada exigencia diaria y buscan un complemento'],
     warning: 'Consulta a tu médico antes de tomarlo si padeces una enfermedad autoinmune o tiroidea, o si sigues tratamiento con sedantes o ansiolíticos. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'brain-support', photo: photo('brain-support'), video: video('brain-support', '2:20'), name: 'Brain support', format: '60 cápsulas', cn: '',
@@ -498,7 +472,6 @@ export const products: Product[] = [
     symptoms: ['Personas con alta demanda intelectual que buscan mantener', 'Como estudiantes y profesionales'],
     warning: 'Contiene ginkgo: consulta a tu médico si estás en tratamiento con anticoagulantes. Si sigues tratamiento médico (anticoagulante, antiagregante, antidiabético, antihipertensivo, inmunosupresor o tiroideo), consulta a un profesional sanitario antes de tomarlo. Informa de tu consumo antes de cualquier intervención quirúrgica. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    consultations30d: 0,
   },
   {
     id: 'colageno-marino', photo: photo('colageno-marino'), name: 'Colágeno marino', format: '60 cápsulas', cn: '',
@@ -515,8 +488,6 @@ export const products: Product[] = [
     symptoms: ['Personas que buscan mantener la firmeza', 'Elasticidad e hidratación de la piel'],
     warning: 'Contiene PESCADO. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
-    courseId: 'colageno', hasCourse: true,
-    consultations30d: 0,
   },
 ]
 
@@ -526,8 +497,7 @@ export const catalogFilters = [
   { key: 'all', label: 'Todo el catálogo' },
   { key: 'new', label: 'Novedades' },
   { key: 'best', label: 'Más vendidos' },
-  { key: 'course', label: 'Con formación disponible' },
-  { key: 'plv', label: 'Con material PLV' },
+  { key: 'course', label: 'Con vídeo de formación' },
 ] as const
 
 export function filterProducts(key: string) {
@@ -535,8 +505,7 @@ export function filterProducts(key: string) {
   switch (key) {
     case 'new': return pub.filter((p) => p.isNew)
     case 'best': return pub.filter((p) => p.bestSeller)
-    case 'course': return pub.filter((p) => p.hasCourse)
-    case 'plv': return pub.filter((p) => p.hasPLV)
+    case 'course': return pub.filter((p) => p.video)
     default: return pub
   }
 }

@@ -1,17 +1,16 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Plus, ArrowUpRight, ChevronRight, MoreHorizontal, Filter, ArrowUpDown } from 'lucide-react'
+import { Plus, ChevronRight, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { PENDIENTE_ADMIN, useStore } from '@/app/store'
 import { products, euro, historialDe, TARIFA, type Product } from '@/data/products'
 import { cuenta, useCifras } from '@/app/datos'
-import { otoño } from './AdminProducto'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
 import { Badge } from '@/ui/Badge'
 import { Drawer } from '@/ui/Drawer'
-import { ProductArt, Thumb, FileBadge } from '@/ui/ProductArt'
+import { ProductArt, Thumb } from '@/ui/ProductArt'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { porFilaInicial, vistaInicial } from './AccesoCelda'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
@@ -110,12 +109,12 @@ export function AdminCatalogo() {
           title={<span className="label-faint">Vista rápida</span>}
           width={372}
           bodyClass="p-0"
-          footer={<div className="flex flex-col w-full gap-2"><div className="flex gap-2"><Button variant="primary" className="flex-1 h-9" iconRight={<ChevronRight size={13} />} onClick={() => navigate(`/admin/catalogo/${open.id}`)}>Abrir ficha</Button><Button className="h-9 px-5" onClick={() => navigate(`/admin/catalogo/${open.id}/editar`)}>Editar</Button><Button className="h-9 w-9 px-0" onClick={() => notify('Duplicar · Despublicar · Eliminar')}><MoreHorizontal size={14} /></Button></div></div>}
+          footer={<div className="flex flex-col w-full gap-2"><div className="flex gap-2"><Button variant="primary" className="flex-1 h-9" iconRight={<ChevronRight size={13} />} onClick={() => navigate(`/admin/catalogo/${open.id}`)}>Abrir ficha</Button><Button className="h-9 px-5" onClick={() => navigate(`/admin/catalogo/${open.id}/editar`)}>Editar</Button></div></div>}
         >
           <ProductArt art={open.art} photo={open.photo} size={96} filled className="h-[130px] bg-chrome" />
           <nav className="h-[42px] px-5 gap-5 border-b border-line flex items-end overflow-x-auto no-scrollbar scroll-hint">
-            {[['general', 'General'], ['linked', 'Vinculado'], ['activity', 'Actividad']].map(([k, l]) => (
-              <button key={k} onClick={() => setTab(k)} className={cn('h-[41px] shrink-0 whitespace-nowrap pb-[2px] flex items-center gap-1.5 text-md font-medium border-b-2 -mb-px', tab === k ? 'text-ink font-semibold border-accent' : 'text-muted border-transparent')}>{l}{k === 'linked' && <span className="h-4 min-w-4 px-1 rounded-full bg-chrome-deep text-[10px] font-semibold inline-flex items-center justify-center">4</span>}</button>
+            {[['general', 'General'], ['activity', 'Actividad']].map(([k, l]) => (
+              <button key={k} onClick={() => setTab(k)} className={cn('h-[41px] shrink-0 whitespace-nowrap pb-[2px] flex items-center gap-1.5 text-md font-medium border-b-2 -mb-px', tab === k ? 'text-ink font-semibold border-accent' : 'text-muted border-transparent')}>{l}</button>
             ))}
           </nav>
           <div className="p-5 flex flex-col">
@@ -127,18 +126,9 @@ export function AdminCatalogo() {
                 <div className="mt-5 flex items-end gap-6"><div className="flex flex-col"><span className="label">PVP</span><span className="mt-1 text-display font-semibold tracking-tight leading-none">{open.pvp ? euro(open.pvp) : '—'}</span></div><div className="flex flex-col text-sm pb-1"><span className="text-muted">PVF {open.pvf ? euro(open.pvf) : '—'}</span><span className="text-ok font-semibold mt-1">Margen {open.margin || '—'} %</span></div></div>
                 <div className="mt-5 pt-4 border-t border-line-soft flex flex-col gap-2 text-base">
                   {[['Formato', open.format], ['Composición', open.composition.map((c) => c.name.split(' ')[0]).join(' · ')], ['Actualizado', `${open.updated} · ${open.updatedBy}`]].map(([k, v]) => <div key={k} className="flex gap-3"><span className="w-[110px] text-sm text-muted shrink-0">{k}</span><span className="text-ink">{v}</span></div>)}
-                  <div className="flex gap-3"><span className="w-[110px] text-sm text-muted shrink-0">Página pública</span><a className="text-accent font-medium inline-flex items-center gap-1" href="#" onClick={(e) => { e.preventDefault(); notify('suprafeel.com/producto/' + open.id) }}>Ver en la web <ArrowUpRight size={12} /></a></div>
                 </div>
                 <div className="mt-4 rounded-lg bg-chrome border border-line p-3.5 flex flex-col"><span className="label-faint">Argumentario de mostrador</span><p className="mt-2 text-base leading-[19px] text-ink">{open.pitch || 'Sin argumentario todavía.'}</p></div>
-                <div className="mt-4 pt-4 border-t border-line-soft grid grid-cols-3 gap-3">{[['3', 'Materiales PLV'], [open.hasCourse ? '1' : '0', 'Curso vinculado'], [String(open.consultations30d), 'Consultas · 30 d']].map(([n, l]) => <div key={l} className="flex flex-col"><span className="text-title font-semibold tracking-tight">{n}</span><span className="text-xs text-muted">{l}</span></div>)}</div>
               </>
-            )}
-            {tab === 'linked' && (
-              <div className="flex flex-col gap-2">
-                {[{ k: 'PDF' as const, n: 'Folleto ' + open.name.split(' ')[0], m: `${otoño()}` }, { k: 'PNG' as const, n: 'Stopper de lineal otoño', m: `${otoño()}` }, { k: 'CUR' as const, n: (open.courseId ? 'Curso · ' : 'Sin curso · ') + open.categoryLabel, m: '18 min · 94 completados' }, { k: 'DOC' as const, n: 'Regla del chat inteligente', m: 'Insomnio · adulto sin medicación' }].map((x) => (
-                  <div key={x.n} className="h-[54px] rounded-lg bg-surface border border-line px-3 flex items-center gap-3"><FileBadge kind={x.k} /><span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink truncate">{x.n}</span><span className="text-xs text-faint">{x.m}</span></span><ChevronRight size={14} className="text-faint" /></div>
-                ))}
-              </div>
             )}
             {tab === 'activity' && (
               <div className="flex flex-col gap-3.5">{historialDe(open).map(({ t, fecha, quien }) => [t, `${fecha} · ${quien}`]).map(([t, m]) => <div key={t} className="flex gap-3"><span className="mt-1.5 h-2 w-2 rounded-full bg-line shrink-0" /><div className="flex flex-col"><span className="text-base text-ink">{t}</span><span className="text-xs text-faint">{m}</span></div></div>)}</div>

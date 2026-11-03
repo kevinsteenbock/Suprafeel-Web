@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { Bookmark, ChevronRight, Search, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
-import { catalogFilters, filterProducts, euro, type Product } from '@/data/products'
+import { catalogFilters, filterProducts, euro, TARIFA, type Product } from '@/data/products'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
@@ -81,7 +81,7 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
     >
       <PageHeader
         title={initialFilter === 'new' ? 'Novedades del catálogo' : 'Catálogo Suprafeel'}
-        subtitle={initialFilter === 'new' ? (nNuevas ? `${nNuevas} referencias nuevas · las ves antes que nadie` : 'Las referencias nuevas, aquí antes que nadie') : `${filterProducts('all').length} referencias · tarifa ${new Date().getFullYear()}`}
+        subtitle={initialFilter === 'new' ? (nNuevas ? `${nNuevas} referencias nuevas · las ves antes que nadie` : 'Las referencias nuevas, aquí antes que nadie') : `${filterProducts('all').length} referencias · ${TARIFA.toLowerCase()}`}
       />
 
       <FilterBar
@@ -138,7 +138,7 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
           })}
         </div>
       ) : (
-        <TableCard footer={`${list.length} de ${filterProducts('all').length} referencias`} footerRight="Exportar tarifa">
+        <TableCard footer={`${list.length} de ${filterProducts('all').length} referencias`}>
           <THead>
             <Th className="flex-1">Producto</Th>
             {cols.map((k) => cells[k].th)}

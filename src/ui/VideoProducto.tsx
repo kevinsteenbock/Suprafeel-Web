@@ -9,7 +9,7 @@ type Video = NonNullable<Product['video']>
  * Portada del vídeo explicativo de un producto (vídeo de formación, en horizontal) con su duración.
  * Al pulsarla se abre el vídeo en grande, en una ventana centrada con el fondo oscurecido.
  */
-export function VideoProducto({ video, nombre }: { video: Video; nombre: string }) {
+export function VideoProducto({ video, nombre, titulo = 'Vídeo explicativo', detalle }: { video: Video; nombre: string; titulo?: string; detalle?: string }) {
   const [abierto, setAbierto] = useState(false)
   return (
     <>
@@ -22,8 +22,8 @@ export function VideoProducto({ video, nombre }: { video: Video; nombre: string 
           <span className="absolute bottom-2 right-2 h-5 px-1.5 rounded bg-black/60 text-[11px] text-white font-medium inline-flex items-center">{video.duracion}</span>
         </span>
         <span className="px-3.5 py-2.5 flex flex-col">
-          <span className="text-base font-medium text-ink">Vídeo explicativo</span>
-          <span className="text-xs text-muted mt-0.5">Formación sobre {nombre} · {video.duracion} min</span>
+          <span className="text-base font-medium text-ink">{titulo}</span>
+          <span className="text-xs text-muted mt-0.5">{detalle ?? `Formación sobre ${nombre} · ${video.duracion} min`}</span>
         </span>
       </button>
       {abierto && <VideoVentana video={video} nombre={nombre} onClose={() => setAbierto(false)} />}

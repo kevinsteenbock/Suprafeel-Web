@@ -162,3 +162,14 @@ export function EmptyDashed({ children, className, onClick }: { children: ReactN
     </button>
   )
 }
+
+/** Pantalla sin contenido todavía: icono, qué falta y qué pasará cuando lo haya. Nunca datos de ejemplo. */
+export function Vacio({ icon, title, children }: { icon: ReactNode; title: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="rounded-xl bg-surface border border-line shadow-card px-6 py-14 flex flex-col items-center text-center">
+      <span className="h-10 w-10 rounded-full bg-chrome text-muted inline-flex items-center justify-center">{icon}</span>
+      <h2 className="mt-4 text-lg font-semibold text-ink">{title}</h2>
+      {children && <p className="mt-1.5 text-base text-muted max-w-[440px]">{children}</p>}
+    </div>
+  )
+}

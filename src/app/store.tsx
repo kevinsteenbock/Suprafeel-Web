@@ -12,10 +12,6 @@ export type TonoAviso = 'ok' | 'aviso'
 interface Store {
   miLista: string[]
   toggleLista: (id: string) => void
-  solicitud: Record<string, number>
-  setQty: (id: string, n: number) => void
-  savedCases: number
-  saveCase: () => void
   toast: string | null
   toastTono: TonoAviso
   /** `tono = 'aviso'` para lo que no ha salido bien o aún no se puede hacer (no lleva el check verde). */
@@ -25,9 +21,9 @@ interface Store {
 const Ctx = createContext<Store | null>(null)
 
 /**
- * Mi lista, la solicitud de PLV y los casos guardados viven en este navegador, por cuenta:
- * `sf.lista.<id>`, `sf.solicitud.<id>` y `sf.casos.<id>`. Una cuenta nueva empieza vacía, y al cerrar
- * sesión se borra lo de esa cuenta, así que otra persona en el mismo navegador no hereda nada.
+ * Mi lista vive en este navegador, por cuenta: `sf.lista.<id>`. Una cuenta nueva empieza vacía, y al
+ * cerrar sesión se borra lo de esa cuenta, así que otra persona en el mismo navegador no hereda nada.
+ * `solicitud` y `casos` eran de la PLV y del caso de ejemplo, que ya no están: se siguen borrando al salir.
  */
 const CLAVES = ['lista', 'solicitud', 'casos'] as const
 const clave = (k: (typeof CLAVES)[number], uid: number) => `sf.${k}.${uid}`
@@ -67,14 +63,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 function StoreDeCuenta({ uid, children }: { uid: number | null; children: ReactNode }) {
   const k = (n: (typeof CLAVES)[number]) => (uid == null ? null : clave(n, uid))
   const [miLista, setMiLista] = useState<string[]>(() => load(k('lista'), []))
-  const [solicitud, setSolicitud] = useState<Record<string, number>>(() => load(k('solicitud'), {}))
-  const [savedCases, setSavedCases] = useState<number>(() => load(k('casos'), 0))
   const [toast, setToast] = useState<string | null>(null)
   const [toastTono, setToastTono] = useState<TonoAviso>('ok')
 
   useEffect(() => { save(uid == null ? null : clave('lista', uid), miLista) }, [uid, miLista])
-  useEffect(() => { save(uid == null ? null : clave('solicitud', uid), solicitud) }, [uid, solicitud])
-  useEffect(() => { save(uid == null ? null : clave('casos', uid), savedCases) }, [uid, savedCases])
 
   const toastTimer = useRef<number | undefined>(undefined)
   const notify = useCallback((msg: string, tono: TonoAviso = 'ok') => {
@@ -94,26 +86,11 @@ function StoreDeCuenta({ uid, children }: { uid: number | null; children: ReactN
           return has ? l.filter((x) => x !== id) : [...l, id]
         })
       },
-      solicitud,
-      setQty: (id, n) => {
-        setSolicitud((s) => {
-          const next = { ...s }
-          if (n <= 0) delete next[id]
-          else next[id] = n
-          return next
-        })
-      },
-      savedCases,
-      saveCase: () => {
-        setSavedCases((n) => n + 1)
-        // Se guarda en este navegador, en Mi lista. Todavía no llega a nadie más.
-        notify('Caso guardado en Mi lista')
-      },
       toast,
       toastTono,
       notify,
     }),
-    [miLista, solicitud, savedCases, toast, toastTono, notify],
+    [miLista, toast, toastTono, notify],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

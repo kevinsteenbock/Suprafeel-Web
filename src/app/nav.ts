@@ -1,18 +1,15 @@
 import {
   LayoutGrid, Sparkles, Search, GraduationCap, Presentation, UserRound,
   CalendarDays, MapPin,
-  ClipboardList, KeyRound, Briefcase, Package, BookOpen, Bot, ScrollText,
+  ClipboardList, KeyRound, Briefcase, Package, ScrollText,
 } from 'lucide-react'
 import type { ShellConfig } from './Shell'
 import type { User } from './auth'
 import { filterProducts } from '@/data/products'
-import { filterCourses } from '@/data/courses'
 import { comercialesDe, iniciales, nombreDe, type Pharmacy } from '@/data/pharmacies'
 
 /** Si no hay novedades, la chapa no se enseña (en vez de anunciar un 6 que no existe). */
 const novedades = filterProducts('new').length || undefined
-/** Cursos empezados y sin acabar (la chapa de Formación); sin ninguno, sin chapa. */
-const cursosAMedias = filterCourses('progress').length || undefined
 
 export const farmaciaShell: ShellConfig = {
   // La tarjeta de arriba la rellena shellDe() con la farmacia de la sesión.
@@ -29,7 +26,7 @@ export const farmaciaShell: ShellConfig = {
     {
       title: 'Apoyo',
       items: [
-        { label: 'Formación', to: '/farmacia/formacion', icon: GraduationCap, badge: cursosAMedias, badgeTone: 'accent' },
+        { label: 'Formación', to: '/farmacia/formacion', icon: GraduationCap },
         { label: 'Materiales PLV', to: '/farmacia/plv', icon: Presentation },
         { label: 'Mi comercial', to: '/farmacia/mi-comercial', icon: UserRound },
       ],
@@ -79,9 +76,8 @@ export const adminShell: ShellConfig = {
       title: 'Contenido',
       items: [
         { label: 'Catálogo', to: '/admin/catalogo', icon: Package },
-        { label: 'Cursos', to: '/admin/cursos', icon: BookOpen },
+        { label: 'Formación', to: '/admin/formacion', icon: GraduationCap },
         { label: 'Materiales PLV', to: '/admin/plv', icon: Presentation },
-        { label: 'Chat inteligente', to: '/admin/chat', icon: Bot },
         { label: 'Registro de consultas', to: '/admin/registro', icon: ScrollText },
       ],
     },

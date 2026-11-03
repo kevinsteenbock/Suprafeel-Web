@@ -10,7 +10,7 @@ import { cn } from '@/lib/cn'
 
 export function MiLista() {
   const base = useBase()
-  const { miLista, toggleLista, savedCases } = useStore()
+  const { miLista, toggleLista } = useStore()
   const items = miLista.map(productById).filter(Boolean) as NonNullable<ReturnType<typeof productById>>[]
   const isComercial = base === '/comercial'
   // Se manda de verdad: se abre el correo de quien la tiene, con la lista dentro, para enviarla a quien quiera.
@@ -24,7 +24,7 @@ export function MiLista() {
       <PageHeader
         title="Mi lista"
         subtitle={isComercial ? 'Referencias que quieres enseñar en las próximas visitas.' : 'Productos que has guardado para tenerlos a mano o comentarlos con tu comercial.'}
-        right={<span className="text-base text-muted">{items.length === 1 ? '1 producto' : `${items.length} productos`}{savedCases ? ` · ${savedCases === 1 ? '1 caso guardado' : `${savedCases} casos guardados`}` : ''}</span>}
+        right={<span className="text-base text-muted">{items.length === 1 ? '1 producto' : `${items.length} productos`}</span>}
       />
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 rounded-xl bg-surface border border-line shadow-card overflow-hidden">
@@ -51,12 +51,6 @@ export function MiLista() {
           <div className="rounded-xl bg-chrome border border-line p-4 flex flex-col">
             <span className="text-base font-semibold text-ink">Se guarda en este navegador</span>
             <span className="text-sm text-muted mt-1.5 leading-4">{isComercial ? 'Todavía no se comparte con las farmacias. Si quieres pasársela a alguien, envíala por correo.' : 'Todavía no se comparte con tu comercial. Si quieres pasársela, envíala por correo.'} Al cerrar sesión se borra.</span>
-          </div>
-          <div className="rounded-xl bg-surface border border-line shadow-card p-4 flex flex-col">
-            <span className="label">Casos guardados</span>
-            <span className="mt-2 text-h1 font-semibold tracking-tight">{savedCases}</span>
-            <span className="text-sm text-muted mt-1">del consejo por síntomas, en este navegador</span>
-            <Link to={`${base}/consejo`} className="mt-4 text-base font-medium text-accent">Abrir el consejo por síntomas →</Link>
           </div>
         </aside>
       </div>

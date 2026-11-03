@@ -19,23 +19,23 @@ export function NuevoProducto() {
   const navigate = useNavigate()
   const { notify } = useStore()
   const cifras = useCifras()
-  const [f, setF] = useState({ name: 'Cúrcuma Fitosomada', cn: '', ean: '', slug: 'curcuma-fitosomada', pvp: '24,50', pvf: '', format: '30 cápsulas', pitch: '', category: 'Digestivo' })
+  const [f, setF] = useState({ name: '', cn: '', ean: '', slug: '', pvp: '', pvf: '', format: '', pitch: '', category: '' })
   const [photo, setPhoto] = useState(false)
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v, ...(k === 'name' ? { slug: v.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') } : {}) })
-  const missing = [!f.pvf && 'PVF', !f.pitch && 'argumentario'].filter(Boolean) as string[]
+  const missing = [!f.name.trim() && 'nombre', !f.pvp && 'PVP', !f.pvf && 'PVF', !f.pitch && 'argumentario'].filter(Boolean) as string[]
+  const faltan = missing.length > 1 ? `${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}` : missing[0]
 
   return (
     <Screen
       toolbar={<Toolbar back="/admin/catalogo" crumbs={[{ label: 'Catálogo', to: '/admin/catalogo' }, { label: 'Nuevo producto' }]} right={<span className="text-sm text-muted flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Sin guardar</span>} />}
-      footer={<FooterBar title={missing.length ? `Faltan ${missing.length} campo${missing.length > 1 ? 's' : ''} para poder publicar` : 'Listo para crear'} subtitle={missing.length ? `${missing.join(' y ')} · puedes guardarlo como borrador igualmente` : 'Nace como borrador; lo publicas desde su ficha'}><Link className="max-sm:hidden" to="/admin/catalogo"><Button size="lg">Cancelar</Button></Link><Button size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/catalogo') }}>Guardar borrador</Button><Button variant="primary" size="lg" disabled={!f.name} onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/catalogo') }}>Crear producto</Button></FooterBar>}
+      footer={<FooterBar title={missing.length ? `Faltan ${missing.length} campo${missing.length > 1 ? 's' : ''} para poder publicar` : 'Listo para crear'} subtitle={missing.length ? `${faltan.charAt(0).toUpperCase() + faltan.slice(1)} · puedes guardarlo como borrador igualmente` : 'Nace como borrador; lo publicas desde su ficha'}><Link className="max-sm:hidden" to="/admin/catalogo"><Button size="lg">Cancelar</Button></Link><Button size="lg" onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/catalogo') }}>Guardar borrador</Button><Button variant="primary" size="lg" disabled={!f.name} onClick={() => { notify(PENDIENTE_ADMIN, 'aviso'); navigate('/admin/catalogo') }}>Crear producto</Button></FooterBar>}
     >
       <PageHeader title="Nuevo producto" subtitle="Nace como borrador. Solo lo ven las farmacias cuando lo publicas." />
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col gap-4">
             <Campo label="Nombre del producto" required labelClass="label"><Input value={f.name} onChange={set('name')} focus /></Campo>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><Campo label="Código nacional" labelClass="label"><Input value={f.cn} onChange={set('cn')} placeholder="Aún sin asignar" /></Campo><Campo label="EAN" labelClass="label"><Input value={f.ean} onChange={set('ean')} placeholder="8436017 …" /></Campo><Field label="Categoría" required labelClass="label"><Picker value={f.category} options={categories} onChange={set("category")} onCreate={(v) => { addCategory(v); notify(PENDIENTE_ADMIN, 'aviso') }} createLabel="Crear categoría" /></Field></div>
-            <Field label="Página pública en la web" labelClass="label" right={<span className="text-xs text-faint">Se genera del nombre</span>}><label className="flex min-w-0"><span className="sr-only">Página pública en la web: </span><span className="h-[34px] px-3 max-sm:px-2 max-sm:text-sm shrink-0 rounded-l-md bg-chrome border border-r-0 border-line text-base text-faint inline-flex items-center">suprafeel.com/producto/</span><Input className="rounded-l-none! flex-1 min-w-0" value={f.slug} onChange={set('slug')} /></label></Field>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><Campo label="Código nacional" labelClass="label"><Input value={f.cn} onChange={set('cn')} placeholder="Aún sin asignar" /></Campo><Campo label="EAN" labelClass="label"><Input value={f.ean} onChange={set('ean')} placeholder="8425402 …" /></Campo><Field label="Categoría" required labelClass="label"><Picker value={f.category} options={categories} onChange={set("category")} onCreate={(v) => { addCategory(v); notify(PENDIENTE_ADMIN, 'aviso') }} createLabel="Crear categoría" /></Field></div>
           </div>
           <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><Campo label="PVP" required labelClass="label"><Input value={f.pvp} onChange={set('pvp')} right={<span className="text-sm text-muted">€</span>} /></Campo><Campo label="PVF" required labelClass="label"><Input value={f.pvf} onChange={set('pvf')} placeholder="0,00" right={<span className="text-sm text-muted">€</span>} /></Campo><Campo label="Formato" required labelClass="label"><Input value={f.format} onChange={set('format')} /></Campo></div>

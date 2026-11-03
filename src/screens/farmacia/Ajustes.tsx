@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink, Navigate, useParams } from 'react-router'
-import { UserRound, Building2, Users, Bell, ShieldCheck, Sun, Search } from 'lucide-react'
+import { UserRound, Building2, Users, ShieldCheck } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useStore } from '@/app/store'
 import { useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
 import { iniciales, nombreDe, pharmacyById } from '@/data/pharmacies'
 import { Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
-import { Toggle } from '@/ui/Toggle'
 import { Avatar } from '@/ui/Avatar'
-import { Select } from '@/ui/Field'
 import { cn } from '@/lib/cn'
 import { tactilBase, tactilSm } from '@/ui/tactil'
 
@@ -18,9 +15,7 @@ const sections = [
   { key: 'perfil', label: 'Perfil', icon: UserRound },
   { key: 'farmacia', label: 'Datos de la farmacia', icon: Building2 },
   { key: 'equipo', label: 'Equipo y accesos', icon: Users },
-  { key: 'notificaciones', label: 'Notificaciones', icon: Bell },
   { key: 'privacidad', label: 'Privacidad y datos', icon: ShieldCheck },
-  { key: 'apariencia', label: 'Apariencia', icon: Sun },
 ]
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -38,15 +33,6 @@ function Row({ label, hint, children, last, height = 46, htmlFor }: { label: Rea
       <div className="w-full sm:w-[160px] sm:shrink-0 flex flex-col sm:py-2.5">{htmlFor ? <label htmlFor={htmlFor} className="text-base text-ink-soft">{label}</label> : <span className="text-base text-ink-soft">{label}</span>}{hint && <span className="text-xs text-faint">{hint}</span>}</div>
       <div className="flex-1 min-w-0 flex items-center gap-3">{children}</div>
     </div>
-  )
-}
-/** La fila entera es la etiqueta del interruptor: el lector de pantalla lo nombra y se puede pulsar el texto. */
-function ToggleRow({ title, hint, on, onChange, last, disabled }: { title: string; hint: string; on: boolean; onChange?: (v: boolean) => void; last?: boolean; disabled?: boolean }) {
-  return (
-    <label className={cn('min-h-[62px] px-[14px] py-3 flex items-center gap-4', !disabled && 'cursor-pointer', !last && 'border-b border-line-soft')}>
-      <div className="flex-1 flex flex-col"><span className="text-base font-medium text-ink">{title}</span><span className="text-sm text-muted mt-[2px]">{hint}</span></div>
-      <Toggle on={on} onChange={onChange} disabled={disabled} />
-    </label>
   )
 }
 /** Un dato de solo lectura: todavía no hay dónde guardarlo, así que no se edita aquí. */
@@ -99,7 +85,6 @@ export function Ajustes() {
       {/* En el móvil solo queda la tira de secciones: el título de la sección ya va en la barra de debajo. */}
       <aside className="w-full lg:w-[236px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line bg-canvas flex flex-col px-3 pt-2.5 lg:pt-5">
         <span className="hidden lg:block text-lg font-semibold text-ink px-1.5">Ajustes</span>
-        <div className="hidden lg:flex mt-4 h-8 rounded-[7px] bg-surface border border-line px-2.5 items-center gap-2 text-md text-faint"><Search size={13} /> Buscar en ajustes</div>
         <nav ref={navRef} className="lg:mt-4 flex gap-0.5 overflow-x-auto no-scrollbar scroll-hint pb-2.5 pr-7 lg:pr-0 lg:flex-col lg:overflow-visible lg:pb-0">
           {sections.map((s) => (
             <NavLink key={s.key} to={`/farmacia/ajustes/${s.key}`} className={({ isActive }) => cn('h-10 lg:h-[35px] shrink-0 whitespace-nowrap rounded-md px-2.5 flex items-center gap-2.5 text-base', isActive ? 'bg-surface border border-line font-semibold text-ink shadow-card' : 'text-ink-soft hover:bg-chrome')}>
@@ -114,9 +99,7 @@ export function Ajustes() {
             {section === 'perfil' && <Perfil onLogout={logout} />}
             {section === 'farmacia' && <DatosFarmacia />}
             {section === 'equipo' && <Equipo />}
-            {section === 'notificaciones' && <Notificaciones />}
             {section === 'privacidad' && <Privacidad />}
-            {section === 'apariencia' && <Apariencia />}
           </div>
         </Screen>
       </div>
@@ -211,88 +194,20 @@ function Equipo() {
           </div>
         ))}
       </Group>
-      <Group title="Qué puede hacer cada rol">
-        {[['Titular', 'Todo, más los datos fiscales, los accesos del equipo y la relación con el comercial.'], ['Adjunto', 'Catálogo, consejo por síntomas, formación y materiales PLV. Puede invitar a auxiliares.'], ['Auxiliar', 'Catálogo, consejo por síntomas y su propia formación. No ve datos de la farmacia.']].map(([r, d], i) => (
-          <div key={r} className={cn('min-h-11 px-[14px] py-3 flex items-start gap-4', i < 2 && 'border-b border-line-soft')}><span className="w-[80px] text-base font-semibold text-ink">{r}</span><span className="flex-1 text-base text-ink-soft leading-[19px]">{d}</span></div>
-        ))}
-      </Group>
     </>
   )
 }
 
-function Notificaciones() {
-  const { user, farmacia } = useMiFarmacia()
-  // Todavía no se pueden elegir desde la app: se enseñan tal como están, sin interruptores que no guardan nada.
-  const s = { cat: true, form: true, visita: true, plv: false, resumen: true, dnd: true }
-  return (
-    <>
-      <div className="flex flex-col"><h2 className="text-title font-semibold tracking-tight text-ink">Qué te avisamos</h2><p className="text-base text-muted mt-1.5">Estas notificaciones son de Suprafeel. Nada de esto toca tu programa de gestión. De momento no se pueden cambiar desde aquí: si quieres cambiar alguna, escribe a <Correo />.</p></div>
-      <Group title="En la app y por correo">
-        <ToggleRow title="Novedades de catálogo" hint="Cuando entra una referencia nueva o cambia la tarifa." on={s.cat} disabled />
-        <ToggleRow title="Formación nueva" hint="Cursos y lecciones nuevas, y recordatorio si dejas uno a medias." on={s.form} disabled />
-        <ToggleRow title="Visita del comercial" hint={`Aviso el día antes y si ${farmacia?.rep || 'tu comercial'} cambia la hora.`} on={s.visita} disabled />
-        <ToggleRow title="Materiales PLV disponibles" hint="Expositores, folletos y carteles de campaña listos para pedir." on={s.plv} disabled />
-        <ToggleRow title="Resumen mensual" hint="Un correo el día 1 con novedades, formación pendiente y campañas." on={s.resumen} disabled last />
-      </Group>
-      <Group title="Cómo y cuándo">
-        <Row label="Correo de avisos"><span className="flex-1 min-w-0 text-base text-ink break-all">{user?.email}</span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Cambiar el correo de avisos de Suprafeel Soft')}>Cambiar</button></Row>
-        <ToggleRow title="No molestar" hint="Fuera del horario de la farmacia." on={s.dnd} disabled last />
-      </Group>
-    </>
-  )
-}
 
 function Privacidad() {
-  const { farmacia } = useMiFarmacia()
-  // Igual que los avisos: se enseña cómo está, y los cambios se piden por correo.
-  const s = { consultas: true, lista: true }
   return (
     <>
-      <div className="flex flex-col"><h2 className="text-title font-semibold tracking-tight text-ink">Aquí no hay datos de pacientes</h2><p className="text-base text-muted mt-1.5 leading-[19px]">Suprafeel Soft no guarda nombres ni historiales. Lo que escribes en el buscador por síntomas se almacena sin identificar a nadie.</p></div>
-      <Group title="Qué compartes con Suprafeel">
-        <ToggleRow title="Progreso de formación del equipo" hint="Necesario para emitir los certificados. No se puede desactivar." on={false} disabled />
-        <ToggleRow title="Consultas del buscador por síntomas" hint="Nos ayudan a mejorar las recomendaciones. Se guardan sin tu nombre ni el de la farmacia." on={s.consultas} disabled />
-        <ToggleRow title="Compartir Mi lista con tu comercial" hint={`${farmacia?.rep || 'Tu comercial'} verá lo que has guardado antes de la visita, para llegar preparado.`} on={s.lista} disabled last />
-      </Group>
+      <div className="flex flex-col"><h2 className="text-title font-semibold tracking-tight text-ink">Aquí no hay datos de pacientes</h2><p className="text-base text-muted mt-1.5 leading-[19px]">Suprafeel Soft no guarda nombres ni historiales de pacientes. De tu farmacia solo tiene los datos de la cuenta y de la farmacia. Mi lista se guarda en este navegador y se borra al cerrar sesión.</p></div>
       <Group title="Tus datos">
         <Row label={<span className="text-ink">Descargar una copia de tus datos</span>}><span className="flex-1" /><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Copia de mis datos de Suprafeel Soft')}>Pedir copia</button></Row>
-        <Row label={<span className="text-ink">Historial del buscador</span>}><span className="flex-1" /><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => escribir('Borrar el historial del buscador de Suprafeel Soft')}>Pedir que se borre</button></Row>
         <Row label={<span className="text-danger font-medium">Dar de baja a la farmacia</span>} last><span className="flex-1" /><span className="text-sm text-faint">Lo gestiona tu comercial</span></Row>
       </Group>
     </>
   )
 }
 
-function Apariencia() {
-  const { notify } = useStore()
-  const [theme, setTheme] = useState('Claro')
-  const [size, setSize] = useState('Normal')
-  const [dense, setDense] = useState(false)
-  return (
-    <>
-      <div className="flex flex-col">{/* En el teléfono y la tableta no es un Mac: allí dice «en esta pantalla». */}<h2 className="max-lg:hidden text-title font-semibold tracking-tight text-ink">Cómo se ve en tu Mac</h2><h2 className="lg:hidden text-title font-semibold tracking-tight text-ink">Cómo se ve en esta pantalla</h2><p className="text-base text-muted mt-1.5">Piensa en la luz de tu mostrador. Muchas farmacias trabajan con fluorescente y agradecen el modo claro.</p></div>
-      <div className="flex flex-col gap-2.5">
-        <span className="label">Tema</span>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[{ n: 'Claro', side: '#E5E4E0', main: '#FBFBFA', bg: '#F1F0ED' }, { n: 'Oscuro', side: '#2B2926', main: '#1A1918', bg: '#232120' }, { n: 'Automático', side: '#E5E4E0', main: '#3A3835', bg: '#F1F0ED' }].map((t) => (
-            <button key={t.n} onClick={() => { setTheme(t.n); if (t.n !== 'Claro') notify('El modo oscuro llega en la siguiente versión') }} className="flex flex-col items-center gap-2.5">
-              <span style={{ background: t.bg }} className={cn('w-full h-[96px] rounded-lg border-2 p-2.5 flex gap-2', theme === t.n ? 'border-accent ring-[3px] ring-accent-wash' : 'border-line')}>
-                <span style={{ background: t.side }} className="w-8 h-full rounded-md" /><span style={{ background: t.main }} className="flex-1 h-full rounded-md" />
-              </span>
-              <span className={cn('text-base', theme === t.n ? 'font-semibold text-ink' : 'text-ink-soft')}>{t.n}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <Group title="Lectura">
-        <Row label="Tamaño del texto">
-          <div className="h-[30px] max-lg:h-9 rounded-[7px] border border-line bg-surface p-[2px] flex">
-            {['Pequeño', 'Normal', 'Grande'].map((o) => <button key={o} onClick={() => setSize(o)} className={cn('px-3 rounded-[5px] text-sm font-medium', size === o ? 'bg-accent text-on-accent' : 'text-ink-soft hover:bg-chrome')}>{o}</button>)}
-          </div>
-        </Row>
-        <Row label="Densidad de las listas"><span className="flex-1 text-base text-ink">{dense ? 'Compacta · más filas por pantalla' : 'Cómoda · más aire entre filas'}</span><button className={`${tactilSm} text-sm font-medium text-accent`} onClick={() => setDense((d) => !d)}>{dense ? 'Cambiar a cómoda' : 'Cambiar a compacta'}</button></Row>
-        <Row label="Abrir al iniciar en" last><div className="w-[110px] shrink-0"><Select value="Catálogo" size="sm" /></div></Row>
-      </Group>
-    </>
-  )
-}

@@ -139,13 +139,8 @@ export function Shell({ config: base }: { config: ShellConfig }) {
 
 /** Pop-up centrado para cerrar la sesión. Dice qué se borra de este navegador si hay algo guardado. */
 function ConfirmarSalida({ onClose, onSalir, cuenta }: { onClose: () => void; onSalir: () => void; cuenta?: string }) {
-  const { miLista, solicitud, savedCases } = useStore()
-  const enSolicitud = Object.values(solicitud).filter((n) => n > 0).length
-  const seBorra = [
-    miLista.length > 0 && `Mi lista (${miLista.length})`,
-    enSolicitud > 0 && `la solicitud de material (${enSolicitud})`,
-    savedCases > 0 && `los casos guardados (${savedCases})`,
-  ].filter(Boolean) as string[]
+  const { miLista } = useStore()
+  const seBorra = miLista.length > 0 ? [`Mi lista (${miLista.length})`] : []
   return (
     <Drawer
       open

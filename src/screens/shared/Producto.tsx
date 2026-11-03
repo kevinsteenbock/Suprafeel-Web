@@ -1,17 +1,16 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router'
-import { Bookmark, ChevronRight, GraduationCap, Presentation } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
 import { productById, euro } from '@/data/products'
-import { courseById } from '@/data/courses'
 import { Toolbar, KeyValue, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { ProductArt } from '@/ui/ProductArt'
 import { VideoProducto } from '@/ui/VideoProducto'
 import { cn } from '@/lib/cn'
 
-const tabs = ['Composición', 'Modo de empleo', 'Advertencias', 'Evidencia']
+const tabs = ['Composición', 'Modo de empleo', 'Advertencias']
 
 export function Producto() {
   const { id } = useParams()
@@ -19,10 +18,8 @@ export function Producto() {
   const { miLista, toggleLista } = useStore()
   const p = productById(id)
   const [tab, setTab] = useState(tabs[0])
-  const [img, setImg] = useState(0)
   if (!p) return <Navigate to={`${base}/catalogo`} replace />
   const saved = miLista.includes(p.id)
-  const course = courseById(p.courseId)
   const isComercial = base === '/comercial'
 
   return (
@@ -38,14 +35,7 @@ export function Producto() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Columna imagen */}
         <div className="w-full lg:w-[336px] lg:shrink-0 flex flex-col gap-4">
-          <ProductArt art={p.art} photo={p.photo} size={img === 0 ? 180 : 140} className="h-[330px] rounded-xl border border-line" />
-          <div className="grid grid-cols-4 gap-2.5">
-            {['', 'DORSAL', 'LINEAL', '+2'].map((t, i) => (
-              <button key={i} onClick={() => setImg(i)} className={cn('h-16 rounded-lg bg-chrome border flex items-center justify-center text-[10px] font-semibold tracking-[0.08em] text-faint', img === i ? 'border-accent ring-[3px] ring-accent-wash' : 'border-line')}>
-                {i === 0 ? <ProductArt art={p.art} photo={p.photo} size={26} bg={false} /> : t}
-              </button>
-            ))}
-          </div>
+          <ProductArt art={p.art} photo={p.photo} size={180} className="h-[330px] rounded-xl border border-line" />
           {p.video && <VideoProducto video={p.video} nombre={p.name} />}
           <KeyValue labelWidth={104} rows={[{ k: 'Formato', v: p.packaging }, { k: 'Alérgenos', v: p.allergens }, { k: 'Apto para', v: p.suitable }, { k: 'Registro sanitario', v: p.registry }].filter((r) => r.v)} />
         </div>
@@ -59,7 +49,6 @@ export function Producto() {
           <div className="mt-5 rounded-xl bg-surface border border-line flex flex-col sm:flex-row divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-line-soft">
             <div className="flex-1 px-4 py-4 flex flex-col"><span className="label">PVP recomendado</span><span className="mt-2 text-h1 font-semibold tracking-tight leading-8">{euro(p.pvp)}</span></div>
             <div className="flex-1 px-4 py-4 flex flex-col"><span className="label">{isComercial ? 'Margen para la farmacia' : 'Margen orientativo'}</span><span className="mt-2 text-h1 font-semibold tracking-tight leading-8">{p.margin} %</span></div>
-            <div className="flex-[1.3] px-4 py-4 flex flex-col"><span className="label">Disponibilidad</span><span className="mt-2 text-base font-semibold text-ink">En almacén central</span><span className="text-xs text-muted mt-[3px]">{isComercial ? 'La farmacia lo pide por su canal habitual' : 'Pídelo por tu canal habitual'}</span></div>
           </div>
 
           <nav className="mt-5 flex gap-5 border-b border-line overflow-x-auto no-scrollbar scroll-hint">
@@ -82,16 +71,13 @@ export function Producto() {
             </div>
           )}
           {tab === 'Modo de empleo' && (
-            <KeyValue className="mt-4" rows={[{ k: 'Pauta', v: p.dose }, { k: 'Duración', v: '4 semanas y revisar' }, { k: 'Con o sin comida', v: p.dose.includes('ayunas') ? 'En ayunas' : 'Con comida' }]} />
+            <KeyValue className="mt-4" rows={[{ k: 'Pauta', v: p.dose }]} />
           )}
           {tab === 'Advertencias' && (
             <div className="mt-4 flex flex-col gap-2.5">
-              <Notice tone="warn" icon={<span className="text-warn font-bold">!</span>}>{p.warning ?? 'Sin interacciones relevantes descritas. Embarazo y lactancia: consultar.'}</Notice>
+              {p.warning && <Notice tone="warn" icon={<span className="text-warn font-bold">!</span>}>{p.warning}</Notice>}
               <Notice tone="neutral">No superar la dosis diaria recomendada. Los complementos alimenticios no sustituyen una dieta variada.</Notice>
             </div>
-          )}
-          {tab === 'Evidencia' && (
-            <KeyValue className="mt-4" labelWidth={70} rows={[{ k: '2024', v: 'Revisión sistemática · 12 ensayos · efecto moderado', right: <span className="text-sm font-medium text-accent">PubMed</span> }, { k: '2022', v: 'Ensayo doble ciego · 8 semanas · n = 214', right: <span className="text-sm font-medium text-accent">DOI</span> }]} />
           )}
 
           <span className="label mt-6">Se recomienda cuando el cliente cuenta</span>
@@ -103,24 +89,6 @@ export function Producto() {
 
           {p.warning && <Notice className="mt-4" tone="warn" icon={<span className="text-warn font-bold text-base">!</span>}>{p.warning}</Notice>}
 
-          {(course || p.hasPLV) && (
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {course && (
-                <Link to={`${base}/formacion/cursos/${course.id}`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
-                  <span className="h-8 w-8 rounded-full bg-accent-wash text-accent-deep inline-flex items-center justify-center"><GraduationCap size={15} /></span>
-                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Curso: {course.title}</span><span className="text-xs text-muted">{course.lessons.length} lecciones · {course.minutes} min</span></span>
-                  <ChevronRight size={14} className="text-faint" />
-                </Link>
-              )}
-              {p.hasPLV && (
-                <Link to={`${base}/plv/otono`} className="rounded-xl bg-chrome border border-line px-4 py-4 flex items-center gap-3 hover:bg-chrome-deep/60">
-                  <span className="h-8 w-8 rounded-full bg-chrome-deep text-ink-soft inline-flex items-center justify-center"><Presentation size={15} /></span>
-                  <span className="flex-1 min-w-0 flex flex-col"><span className="text-base font-medium text-ink">Material PLV disponible</span><span className="text-xs text-muted">{p.plv ?? 'Cartel de campaña y folleto'}</span></span>
-                  <ChevronRight size={14} className="text-faint" />
-                </Link>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </Screen>
