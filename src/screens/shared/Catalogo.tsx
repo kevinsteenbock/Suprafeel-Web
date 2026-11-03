@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { Bookmark, ChevronRight, Search, Filter, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useBase, useStore } from '@/app/store'
@@ -11,7 +11,6 @@ import { Tag } from '@/ui/Badge'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { ProductArt, Thumb } from '@/ui/ProductArt'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
-import { ProductPeek } from './ProductPeek'
 import { cn } from '@/lib/cn'
 
 export function MiListaButton() {
@@ -37,7 +36,9 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
   const [filter, setFilter] = useState(initialFilter)
   const [sort, setSort] = useState('new')
   const [q, setQ] = useState('')
-  const [peek, setPeek] = useState<Product | null>(null)
+  const navigate = useNavigate()
+  /** Pulsar un producto (tarjeta o fila) lleva a su ficha completa. */
+  const abrir = (p: Product) => navigate(`${base}/catalogo/${p.id}`)
   const { vista, setVista, resetVista } = useVista({ mode: 'cards', perRow: 4, columns: columnOptions })
   const gridStyle = useGridCols(vista)
   const list = filterProducts(filter).filter((p) => !q || (p.name + p.cn).toLowerCase().includes(q.toLowerCase()))
@@ -116,18 +117,18 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
           {list.map((p) => {
             const saved = miLista.includes(p.id)
             return (
-              <div key={p.id} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden flex flex-col hover:border-faint transition-colors">
-                <button onClick={() => setPeek(p)} aria-label={`Ver ${p.name}`} className="relative block text-left">
+              <div key={p.id} onClick={() => abrir(p)} className="rounded-xl bg-surface border border-line shadow-card overflow-hidden flex flex-col hover:border-faint transition-colors cursor-pointer">
+                <button onClick={(e) => { e.stopPropagation(); abrir(p) }} aria-label={`Ver ${p.name}`} className="relative block text-left">
                   <ProductArt art={p.art} photo={p.photo} size={big ? 120 : 96} className={cn('w-full border-b border-line-soft', big ? 'h-[200px]' : 'h-[166px]')} />
                   {label(p) && vista.extras.tags !== false && <Tag tone={tagTone(label(p))} className="absolute top-3 left-3">{label(p)}</Tag>}
                 </button>
                 {/* Por debajo de 1024 px la tarjeta es estrecha: el nombre cabe en dos líneas y el precio se alinea abajo. */}
                 <div className="flex-1 p-[14px] pt-3 flex flex-col">
-                  <button onClick={() => setPeek(p)} className="text-base font-semibold text-ink hover:text-accent-deep max-lg:line-clamp-2 lg:truncate text-left">{p.name}</button>
+                  <button onClick={(e) => { e.stopPropagation(); abrir(p) }} className="text-base font-semibold text-ink hover:text-accent-deep max-lg:line-clamp-2 lg:truncate text-left">{p.name}</button>
                   <span className="text-xs text-faint mt-[3px]">{[p.format, p.cn && `CN ${p.cn}`].filter(Boolean).join(' · ')}</span>
                   <div className="mt-auto pt-3 flex items-center justify-between">
                     <span className="text-base font-semibold text-ink">PVP {euro(p.pvp)}</span>
-                    <button onClick={() => toggleLista(p.id)} aria-label="Guardar en Mi lista" aria-pressed={saved} className={cn('h-10 w-10 -my-2 -mr-2.5 lg:h-6 lg:w-6 lg:my-0 lg:-mr-1 rounded-md inline-flex items-center justify-center hover:bg-chrome', saved ? 'text-accent' : 'text-faint')}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleLista(p.id) }} aria-label="Guardar en Mi lista" aria-pressed={saved} className={cn('h-10 w-10 -my-2 -mr-2.5 lg:h-6 lg:w-6 lg:my-0 lg:-mr-1 rounded-md inline-flex items-center justify-center hover:bg-chrome', saved ? 'text-accent' : 'text-faint')}>
                       <Bookmark size={15} fill={saved ? 'currentColor' : 'none'} />
                     </button>
                   </div>
@@ -144,7 +145,7 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
             <Th className="w-[60px]" align="right"> </Th>
           </THead>
           {list.map((p, i) => (
-            <Tr key={p.id} onClick={() => setPeek(p)} last={i === list.length - 1}>
+            <Tr key={p.id} onClick={() => abrir(p)} last={i === list.length - 1}>
               <TdMain title={p.name} meta={p.format} avatar={<Thumb code={p.code} tone={i % 3 === 0 ? 'accent' : 'neutral'} />} />
               {cols.map((k) => cells[k].td(p))}
               <div className="w-[60px] flex justify-end items-center gap-2">
@@ -158,7 +159,6 @@ export function Catalogo({ initialFilter = 'all' }: { initialFilter?: string }) 
         </TableCard>
       )}
 
-      <ProductPeek product={peek} onClose={() => setPeek(null)} />
     </Screen>
   )
 }
