@@ -14,7 +14,7 @@ const courses = await import('../src/data/courses.ts')
 const plv = await import('../src/data/plv.ts')
 const chat = await import('../src/data/chat.ts')
 
-const SITE = 'https://kevinsteenbock.github.io'
+const SITE = 'https://suprafeel-profesional.com'
 const absolutize = (data) => {
   for (const item of Array.isArray(data) ? data : [data]) {
     if (item && typeof item === 'object' && typeof item.cover === 'string' && item.cover.startsWith('/')) {

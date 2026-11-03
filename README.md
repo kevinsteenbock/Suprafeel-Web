@@ -4,13 +4,13 @@ Front de la aplicación de escritorio de Suprafeel para **farmacias**, **comerci
 portado desde el archivo Paper «Suprafeel Soft». El login, las farmacias y las cuentas vienen de
 **Xano** (ver `xano/HANDOFF.md`); el catálogo, los cursos, el PLV y el chat todavía viven en `src/data`.
 
-**En línea:** https://kevinsteenbock.github.io/Suprafeel-Web/
+**En línea:** https://suprafeel-profesional.com/
 
 ## Arrancar
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/Suprafeel-Web/
+npm run dev      # http://localhost:5173/
 npm run build    # genera dist/ (+ 404.html para el enrutado del SPA)
 npm run smoke    # renderiza las 54 rutas, comprueba las 8 guardas y que no vuelvan textos sin origen, sin red y con datos inventados
 npm run deploy   # build + publica dist/ en la rama gh-pages

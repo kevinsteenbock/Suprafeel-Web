@@ -3,9 +3,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// Sitio de proyecto en GitHub Pages: https://kevinsteenbock.github.io/Suprafeel-Web/
+// GitHub Pages con dominio propio (public/CNAME): https://suprafeel-profesional.com/, en la raíz.
 export default defineConfig({
-  base: '/Suprafeel-Web/',
+  base: '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
