@@ -3,6 +3,14 @@ import type { Art } from '@/ui/ProductArt'
 /** Foto real del producto, extraída de la ficha de Shopify (azwvb1-gd.myshopify.com). */
 const photo = (n: string) => `${import.meta.env.BASE_URL}img/productos/${n}.png`
 
+/** Vídeo explicativo del producto (reel de Suprafeel editado, versión web de 720p) y su portada. */
+const video = (n: string, titulo: string, duracion: string) => ({
+  src: `${import.meta.env.BASE_URL}video/productos/${n}.mp4`,
+  poster: `${import.meta.env.BASE_URL}video/productos/${n}.jpg`,
+  titulo,
+  duracion,
+})
+
 export interface Product {
   id: string
   name: string
@@ -17,6 +25,7 @@ export interface Product {
   tag?: 'NOVEDAD' | 'MÁS VENDIDO' | 'CON FORMACIÓN' | 'CON PLV' | 'MÁS CONSULTADO'
   art: Art
   photo?: string
+  video?: { src: string; poster: string; titulo: string; duracion: string }
   code: string
   status: 'Publicado' | 'Borrador'
   updated: string
@@ -90,7 +99,7 @@ function tarifa(ean: string, pvf: number, pvp: number) {
  */
 export const products: Product[] = [
   {
-    id: 'magnesio', photo: photo('magnesio'), name: 'Magnesio', format: '120 cápsulas', cn: '',
+    id: 'magnesio', photo: photo('magnesio'), video: video('magnesio', 'El magnesio, lo que nadie conoce', '0:51'), name: 'Magnesio', format: '120 cápsulas', cn: '',
     ...tarifa('8425402898109', 11.76, 19.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'MA', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -155,7 +164,7 @@ export const products: Product[] = [
     consultations30d: 0,
   },
   {
-    id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '',
+    id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), video: video('vitamina-d3-k2', 'La D abre la puerta, la K2 dice dónde', '0:53'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '',
     ...tarifa('8425402898000', 12.35, 20.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'VI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',

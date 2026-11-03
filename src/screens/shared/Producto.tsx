@@ -8,6 +8,7 @@ import { courseById } from '@/data/courses'
 import { Toolbar, KeyValue, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { ProductArt } from '@/ui/ProductArt'
+import { VideoProducto } from '@/ui/VideoProducto'
 import { cn } from '@/lib/cn'
 
 const tabs = ['Composición', 'Modo de empleo', 'Advertencias', 'Evidencia']
@@ -45,6 +46,7 @@ export function Producto() {
               </button>
             ))}
           </div>
+          {p.video && <VideoProducto video={p.video} nombre={p.name} />}
           <KeyValue labelWidth={104} rows={[{ k: 'Formato', v: p.packaging }, { k: 'Alérgenos', v: p.allergens }, { k: 'Apto para', v: p.suitable }, { k: 'Registro sanitario', v: p.registry }].filter((r) => r.v)} />
         </div>
 

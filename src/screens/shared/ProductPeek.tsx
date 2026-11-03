@@ -8,6 +8,7 @@ import { Drawer } from '@/ui/Drawer'
 import { Button } from '@/ui/Button'
 import { Tag } from '@/ui/Badge'
 import { ProductArt } from '@/ui/ProductArt'
+import { VideoProducto } from '@/ui/VideoProducto'
 import { cn } from '@/lib/cn'
 
 const tabs = [
@@ -138,8 +139,9 @@ export function ProductPeek({ product, onClose }: { product: Product | null; onC
           ))}
         </div>
 
-        {(course || p.hasPLV) && (
+        {(p.video || course || p.hasPLV) && (
           <div className="mt-5 flex flex-col gap-2">
+            {p.video && <VideoProducto video={p.video} nombre={p.name} compacta />}
             {course && (
               <button onClick={() => { onClose(); navigate(`${base}/formacion/cursos/${course.id}`) }} className="h-[52px] rounded-lg bg-chrome border border-line px-3 flex items-center gap-2.5 text-left hover:bg-chrome-deep/60">
                 <span className="h-7 w-7 rounded-full bg-accent-wash text-accent-deep inline-flex items-center justify-center shrink-0"><GraduationCap size={14} /></span>
