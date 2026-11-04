@@ -226,8 +226,8 @@ Después del trabajo inicial, se sustituyeron los 9 productos de ejemplo de la t
   `consultations_30d`, `has_course`, `has_plv`, `is_new`, `best_seller` quedaron con
   valores neutros (vacío/0/false) — son conceptos propios de Suprafeel Soft sin
   equivalente en Shopify.
-- **Aviso**: el producto real en Shopify se llama literalmente **"Ashwagandhaa"**
-  (con doble "a" al final) — no es un error de esta migración, está así en la tienda.
+- El nombre "Ashwagandhaa" (con doble "a"), heredado de la tienda, se corrigió a
+  "Ashwagandha" en la tabla `products` (4 nov 2026); Shopify ya lo tenía bien.
 
 ## Instancia y workspace
 

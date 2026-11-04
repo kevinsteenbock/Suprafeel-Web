@@ -487,7 +487,7 @@ export const products: Product[] = [
     dose: '2 cápsulas al día.',
     symptoms: ['Personas que buscan mantener la firmeza', 'Elasticidad e hidratación de la piel'],
     warning: 'Contiene PESCADO. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
-    allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
+    allergens: 'Pescado', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
 ]
 
