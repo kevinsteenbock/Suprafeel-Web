@@ -150,7 +150,7 @@ export const products: Product[] = [
     dose: '2 perlas al día. Preferiblemente con una comida principal, con algo de grasa.',
     symptoms: ['Adultos que quieran cubrir su aporte de omega-3 de forma', 'Personas cuyo consumo habitual de pescado azul es bajo', 'Cualquiera que busque un apoyo diario a la salud'],
     warning: 'Confirma el origen de la gelatina de la cápsula si sigues una dieta sin productos de origen animal. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
-    allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
+    allergens: 'Pescado', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
     id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '',
@@ -321,7 +321,7 @@ export const products: Product[] = [
     dose: '1 cápsula al día. Preferiblemente por la noche, con la cena.',
     symptoms: ['Adultos (18–70 años) que desean un apoyo específico para su salud cardiovascular', 'Siempre bajo criterio médico si toman otra medicación'],
     warning: 'Contiene SOJA. No consumir junto a medicamentos hipolipemiantes (estatinas). No recomendado en menores de 18 ni mayores de 70 años. No recomendado durante el embarazo ni la lactancia. No superar 1 cápsula al día. Consulta a tu médico si tienes problemas musculares, hepáticos o renales. No combinar con otros productos que contengan arroz de levadura roja. No superar 3 g/día de esteroles vegetales añadidos si se combina con otras fuentes. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
-    allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
+    allergens: 'Soja', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
     id: 'vitamina-b12', photo: photo('vitamina-b12'), video: video('vitamina-b12', '2:11'), name: 'Vitamina B12', format: '120 cápsulas', cn: '',
@@ -357,7 +357,7 @@ export const products: Product[] = [
     dose: '4 cápsulas al día. Repartidas a lo largo del día, con comida.',
     symptoms: ['Personas con desgaste articular por la edad o la actividad', 'Deportistas que someten sus articulaciones a impacto', 'Adultos que quieren cuidar su movilidad'],
     warning: 'Contiene CRUSTÁCEOS. No recomendado en tratamiento anticoagulante o antidiabético sin control médico. Se recomienda no consumir durante el embarazo, la lactancia ni en niños. Los complementos alimenticios no deben utilizarse como sustituto de una dieta variada y equilibrada y un modo de vida saludable. No superar la dosis diaria expresamente recomendada. Mantener fuera del alcance de los niños. Recomendado solo para adultos.',
-    allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
+    allergens: 'Crustáceos', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
     id: 'creatina', photo: photo('creatina'), video: video('creatina', '2:23'), name: 'Creatina', format: '90 cápsulas', cn: '',
