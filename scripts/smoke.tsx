@@ -47,7 +47,7 @@ const routes: [string, string][] = [
   ['/', 'Inicia sesión'],
   ['/farmacia/catalogo', 'Catálogo Suprafeel'],
   ['/farmacia/catalogo/magnesio', 'Magnesio'],
-  ['/farmacia/novedades', 'Novedades del catálogo'],
+  ['/farmacia/novedades', 'Pronto tendremos novedades'],
   ['/farmacia/consejo', '¿Qué le pasa a tu cliente?'],
   ['/farmacia/formacion', 'Vídeos de formación de Suprafeel'],
   ['/farmacia/plv', 'Todavía no hay materiales PLV'],
@@ -94,6 +94,7 @@ const ausentes: [string, string][] = [
   ['/farmacia/formacion', '% completado'],
   ['/farmacia/formacion', 'Dra. Elena Sanz'],
   ['/farmacia/plv', 'en tu solicitud'],
+  ['/farmacia/novedades', 'Magnesio'],
   // Los datos de ejemplo que se quitaron el 3 nov 2026: no pueden volver.
   ['/farmacia/catalogo/magnesio', 'En almacén central'],
   ['/farmacia/catalogo/magnesio', 'Evidencia'],

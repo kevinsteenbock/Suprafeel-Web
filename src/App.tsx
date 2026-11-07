@@ -9,6 +9,7 @@ import { useBase } from './app/store'
 import { Catalogo } from './screens/shared/Catalogo'
 import { Producto } from './screens/shared/Producto'
 import { Consejo } from './screens/shared/Consejo'
+import { Novedades } from './screens/shared/Novedades'
 import { Cursos } from './screens/shared/Cursos'
 import { PLV } from './screens/shared/PLV'
 import { MiLista } from './screens/shared/MiLista'
@@ -49,7 +50,7 @@ function SharedRoutes() {
     <>
       <Route path="catalogo" element={<Catalogo />} />
       <Route path="catalogo/:id" element={<Producto />} />
-      <Route path="novedades" element={<Catalogo initialFilter="new" />} />
+      <Route path="novedades" element={<Novedades />} />
       <Route path="consejo" element={<Consejo />} />
       <Route path="consejo/:id" element={<ABase to="catalogo" ficha />} />
       <Route path="formacion" element={<Cursos />} />

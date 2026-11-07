@@ -5,11 +5,11 @@ import {
 } from 'lucide-react'
 import type { ShellConfig } from './Shell'
 import type { User } from './auth'
-import { filterProducts } from '@/data/products'
+import { novedades as listaNovedades } from '@/data/novedades'
 import { comercialesDe, iniciales, nombreDe, type Pharmacy } from '@/data/pharmacies'
 
 /** Si no hay novedades, la chapa no se enseña (en vez de anunciar un 6 que no existe). */
-const novedades = filterProducts('new').length || undefined
+const novedades = listaNovedades.length || undefined
 
 export const farmaciaShell: ShellConfig = {
   // La tarjeta de arriba la rellena shellDe() con la farmacia de la sesión.
