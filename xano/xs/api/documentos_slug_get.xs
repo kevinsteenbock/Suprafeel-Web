@@ -19,7 +19,7 @@ query "documentos/{slug}" verb=GET {
     } as $fila
 
     var $doc {
-      value = ($fila.valor ?? {})|get:$input.slug:null
+      value = (($fila ?? {})|get:"valor":{})|get:$input.slug:null
     }
 
     precondition ($doc != null) {

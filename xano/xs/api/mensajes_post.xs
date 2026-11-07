@@ -75,7 +75,7 @@ query mensajes verb=POST {
     } as $fila_ajustes
 
     var $ajustes {
-      value = $fila_ajustes.valor ?? {}
+      value = ($fila_ajustes ?? {})|get:"valor":{}
     }
 
     conditional {

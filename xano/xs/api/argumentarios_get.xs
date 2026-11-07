@@ -24,5 +24,5 @@ query argumentarios verb=GET {
     } as $fila
   }
 
-  response = $fila.valor ?? {}
+  response = ($fila ?? {})|get:"valor":{}
 }

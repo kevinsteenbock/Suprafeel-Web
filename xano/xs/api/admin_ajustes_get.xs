@@ -22,5 +22,5 @@ query "admin/ajustes" verb=GET {
     } as $fila
   }
 
-  response = $fila.valor ?? {}
+  response = ($fila ?? {})|get:"valor":{}
 }

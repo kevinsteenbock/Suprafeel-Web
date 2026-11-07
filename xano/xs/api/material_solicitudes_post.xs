@@ -15,7 +15,7 @@ query "material/solicitudes" verb=POST {
     decimal? ancho_cm?
     decimal? alto_cm?
     text? ubicacion? filters=trim
-    file? foto
+    file? foto?
   }
 
   stack {

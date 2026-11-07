@@ -19,7 +19,7 @@ query contacto verb=GET {
     } as $fila
 
     var $ajustes {
-      value = $fila.valor ?? {}
+      value = ($fila ?? {})|get:"valor":{}
     }
 
     var $puede {
@@ -35,7 +35,7 @@ query contacto verb=GET {
         } as $farmacia
 
         function.run sf_zona_abierta {
-          input = {postal: $farmacia.postal, zona: $farmacia.zona, ajustes: $ajustes}
+          input = {postal: ($farmacia ?? {})|get:"postal":"", zona: ($farmacia ?? {})|get:"zona":"", ajustes: $ajustes}
         } as $abierta
 
         var.update $puede {
