@@ -1,57 +1,107 @@
-import type { ReactNode } from 'react'
-import { Mail, CalendarDays } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
+import { CalendarDays, Mail, Phone } from 'lucide-react'
 import { Screen } from '@/app/Shell'
-import { useAuth } from '@/app/auth'
+import { call, useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { formacionLabel, hoyISO, iniciales, nombreDe, pharmacyById, type Pharmacy } from '@/data/pharmacies'
-import { Toolbar, PageHeader, KeyValue } from '@/ui/Page'
+import { esProgramada, formacionLabel, hoyISO, iniciales, nombreDe, pharmacyById } from '@/data/pharmacies'
+import { enviarMensaje, fechaHoraCorta, leerLista, type Contacto, type Mensaje } from '@/data/mensajes'
+import { Toolbar, PageHeader, KeyValue, Notice, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Avatar } from '@/ui/Avatar'
 import { Badge } from '@/ui/Badge'
+import { Textarea } from '@/ui/Field'
+import { Escribir } from './Escribir'
 
-/** Mientras los comerciales no tengan contacto propio en Xano, todo pasa por la central. */
-const CONTACTO = 'info@suprafeel.es'
-const correo = (asunto: string) => `mailto:${CONTACTO}?subject=${encodeURIComponent(asunto)}`
-const escribir = (asunto: string) => { window.location.href = correo(asunto) }
-
-/** '2026-11-07' → «Viernes, 7 de noviembre» (sin pasar por UTC). */
+/** '2026-11-07' → «sábado, 7 de noviembre» (sin pasar por UTC). */
 function fechaLarga(iso?: string) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '')
   if (!m) return ''
-  const s = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
-  return s.charAt(0).toUpperCase() + s.slice(1)
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+const conMayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+export function useContacto() {
+  const { token } = useAuth()
+  const [contacto, setContacto] = useState<Contacto | null>(null)
+  const [cargado, setCargado] = useState(false)
+  useEffect(() => {
+    let vigente = true
+    call('/contacto', {}, token)
+      .then(({ res, body }) => { if (vigente && res.ok) setContacto(body as Contacto) })
+      .catch(() => {})
+      .finally(() => { if (vigente) setCargado(true) })
+    return () => { vigente = false }
+  }, [token])
+  return { contacto, cargado }
 }
 
-/** Lo que se sabe de la formación de la farmacia, en una frase para ella. */
-function estadoFormacion(p: Pharmacy): { titulo: string; texto: string } | null {
-  const fecha = fechaLarga(p.formacionFecha)
-  switch (p.formacion) {
-    case 'prevista':
-      return fecha && p.formacionFecha! < hoyISO()
-        ? { titulo: `Estaba prevista el ${fecha.charAt(0).toLowerCase() + fecha.slice(1)}`, texto: 'Si no se llegó a hacer, escríbenos y buscamos otra fecha.' }
-        : { titulo: fecha ? `Prevista: ${fecha.charAt(0).toLowerCase() + fecha.slice(1)}` : 'Prevista, sin fecha cerrada', texto: 'Si os viene mal, escríbenos y la cambiamos.' }
-    case 'hecha':
-      return { titulo: fecha ? `Hecha el ${fecha.charAt(0).toLowerCase() + fecha.slice(1)}` : 'Hecha', texto: 'Si se incorpora alguien nuevo al equipo y queréis repetirla, escríbenos.' }
-    case 'pendiente':
-      return { titulo: 'Pendiente de fecha', texto: 'Todavía no hay fecha. Si quieres proponer una, escríbenos.' }
-    case 'rechazada':
-      return { titulo: 'Sin formación por ahora', texto: 'Si cambiáis de idea, escríbenos y la organizamos.' }
-    default:
-      return null
+/** Preguntas y dudas: la farmacia pregunta y la respuesta sale aquí mismo. */
+function Dudas() {
+  const { token } = useAuth()
+  const [lista, setLista] = useState<Mensaje[]>([])
+  const [texto, setTexto] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState('')
+
+  const cargar = useCallback(() => {
+    leerLista<Mensaje>('/mensajes', token).then((l) => setLista(l.filter((m) => m.tipo === 'duda'))).catch(() => {})
+  }, [token])
+  useEffect(cargar, [cargar])
+
+  const enviar = async () => {
+    if (texto.trim().length < 2) return setError('Escribe tu pregunta.')
+    setError('')
+    setEnviando(true)
+    try {
+      await enviarMensaje(token, { tipo: 'duda', texto: texto.trim() })
+      setTexto('')
+      cargar()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No hemos podido enviarla.')
+    } finally {
+      setEnviando(false)
+    }
   }
+
+  return (
+    <Section title="Preguntas y dudas">
+      <div className="rounded-xl bg-surface border border-line shadow-card p-4 flex flex-col gap-3">
+        <Textarea rows={3} value={texto} onChange={setTexto} placeholder="Escribe tu duda. Se contesta una vez al día, aquí mismo." />
+        {error && <Notice tone="danger">{error}</Notice>}
+        <div className="flex justify-end"><Button variant="primary" size="lg" disabled={enviando} onClick={() => void enviar()}>{enviando ? 'Enviando…' : 'Enviar pregunta'}</Button></div>
+      </div>
+      {lista.map((m) => (
+        <article key={m.id} className="rounded-xl bg-surface border border-line p-4 flex flex-col gap-2">
+          <div className="flex items-start justify-between gap-3">
+            <p className="flex-1 min-w-0 text-base font-medium text-ink whitespace-pre-line">{m.texto}</p>
+            <Badge tone={m.respuesta ? 'ok' : 'neutral'} className="shrink-0">{m.respuesta ? 'Contestada' : 'Sin contestar'}</Badge>
+          </div>
+          <span className="text-xs text-faint">{fechaHoraCorta(m.created_at)}</span>
+          {m.respuesta && <div className="rounded-lg bg-chrome px-3 py-2.5 flex flex-col gap-1"><p className="text-base text-ink-soft whitespace-pre-line">{m.respuesta}</p><span className="text-xs text-faint">Aura · {fechaHoraCorta(m.respondido_at)}</span></div>}
+        </article>
+      ))}
+    </Section>
+  )
 }
 
+/** Mi comercial: quién lleva la farmacia, cómo contactar, sus formaciones hechas o programadas y sus dudas. */
 export function MiComercial() {
   const { user } = useAuth()
   const { farmacias } = useDatos()
+  const { contacto } = useContacto()
   const p = pharmacyById(user?.pharmacy_slug ?? undefined, farmacias) ?? farmacias[0]
   const rep = p?.rep ?? ''
-  const proxima = p?.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha >= hoyISO() ? p : null
-  const estado = p && !proxima ? estadoFormacion(p) : null
+  const [escribiendo, setEscribiendo] = useState<string | null>(null)
+  // La farmacia solo ve las hechas o programadas: lo demás ni llega de Xano.
+  const programada = !!p && esProgramada(p.formacion)
+  const proxima = programada && !!p.formacionFecha && p.formacionFecha >= hoyISO()
+  const hecha = p?.formacion === 'hecha'
+  const tel = contacto?.telefono?.replace(/[^\d+]/g, '')
 
   return (
-    <Screen toolbar={<Toolbar title="Mi comercial" right={<Button variant="primary" icon={<CalendarDays size={13} />} onClick={() => escribir(`Pedir una visita${p ? ` · ${nombreDe(p)}` : ''}`)}>Pedir una visita</Button>} />}>
-      <PageHeader title={rep || 'Tu comercial'} subtitle={rep ? ['Tu comercial de Suprafeel', p?.zona].filter(Boolean).join(' · ') : 'Todavía no tienes un comercial asignado. Mientras tanto, te atendemos desde la central.'} />
+    <Screen toolbar={<Toolbar title="Mi comercial" right={<Link to="/farmacia/pedir-formacion"><Button variant="primary" icon={<CalendarDays size={13} />}>Pedir formación</Button></Link>} />}>
+      <PageHeader title={rep || 'Tu comercial'} subtitle={rep ? ['Tu comercial de Suprafeel', p?.zona].filter(Boolean).join(' · ') : 'Todavía no tienes un comercial asignado.'} />
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0 flex flex-col gap-5">
           <div className="rounded-xl bg-surface border border-line shadow-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -60,51 +110,56 @@ export function MiComercial() {
               <div className="flex-1 min-w-0 flex flex-col">
                 <span className="text-lg font-semibold text-ink">{rep || 'Suprafeel'}</span>
                 {p && rep && <span className="text-sm text-faint mt-0.5">Lleva la cuenta de {nombreDe(p)}</span>}
-                <span className="text-base text-muted mt-1 break-words">Para cualquier cosa, escribe a <a href={correo(p ? `Consulta · ${nombreDe(p)}` : 'Consulta')} className="text-accent hover:underline">{CONTACTO}</a></span>
               </div>
             </div>
-            <Button icon={<Mail size={13} />} className="self-start sm:self-auto" onClick={() => escribir(p ? `Consulta · ${nombreDe(p)}` : 'Consulta')}>Escribir</Button>
+            <Button icon={<Mail size={13} />} className="self-start sm:self-auto" onClick={() => setEscribiendo('')}>Escribir</Button>
           </div>
 
-          {proxima && (
+          {tel && (
+            <div className="rounded-xl bg-surface border border-line p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1 min-w-0 flex flex-col">
+                <span className="text-base font-semibold text-ink">Aura, para cualquier duda</span>
+                <span className="text-sm text-muted mt-0.5">{contacto?.telefono}</span>
+              </div>
+              <a href={`tel:${tel}`} className="self-start sm:self-auto"><Button icon={<Phone size={13} />}>Llamar</Button></a>
+            </div>
+          )}
+
+          {proxima && p && (
             <div className="rounded-xl bg-[#7B3A24] text-on-accent px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
               <div className="flex-1 min-w-0 flex flex-col">
                 <span className="label text-on-accent-soft">Próxima formación en tu farmacia</span>
-                <span className="mt-1.5 text-title font-semibold tracking-tight">{fechaLarga(proxima.formacionFecha)}{proxima.formacionHora ? ` · ${proxima.formacionHora}` : ''}</span>
-                {proxima.formacionNote && <span className="mt-1.5 text-base text-on-accent-soft">{proxima.formacionNote}</span>}
+                <span className="mt-1.5 text-title font-semibold tracking-tight">{conMayuscula(fechaLarga(p.formacionFecha))}{p.formacionHora ? ` · ${p.formacionHora}` : ''}</span>
               </div>
-              <Button className="h-9 px-4 self-start sm:self-auto bg-surface text-ink border-0 hover:bg-chrome" onClick={() => escribir(`Cambiar la fecha de la formación · ${proxima.name}`)}>Cambiar la fecha</Button>
+              <Button className="h-9 px-4 self-start sm:self-auto bg-surface text-ink border-0 hover:bg-chrome" onClick={() => setEscribiendo(`Quiero cambiar la fecha de la formación del ${fechaLarga(p.formacionFecha)}.`)}>Cambiar la fecha</Button>
             </div>
           )}
 
-          {estado && p && (
-            <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold text-ink">Formación en el mostrador</h2>
+          {p && (hecha || (programada && !proxima)) && (
+            <Section title="Formación en el mostrador">
               <div className="rounded-xl bg-surface border border-line shadow-card px-5 py-4 flex items-start gap-4">
                 <div className="flex-1 min-w-0 flex flex-col">
-                  <span className="text-base font-medium text-ink">{estado.titulo}{p.formacionHora && p.formacion === 'prevista' ? ` · ${p.formacionHora}` : ''}</span>
-                  <span className="text-sm text-muted mt-1">{estado.texto}</span>
-                  {p.formacionNote && <span className="text-sm text-faint mt-1">{p.formacionNote}</span>}
+                  <span className="text-base font-medium text-ink">{hecha ? (p.formacionFecha ? `Hecha el ${fechaLarga(p.formacionFecha)}` : 'Hecha') : p.formacionFecha ? `Programada el ${fechaLarga(p.formacionFecha)}` : 'Programada, sin fecha cerrada'}</span>
+                  <span className="text-sm text-muted mt-1">{hecha ? 'Si se incorpora alguien nuevo al equipo y queréis repetirla, pide formación.' : 'Si no se llegó a hacer, escríbenos y buscamos otra fecha.'}</span>
                 </div>
-                <Badge tone={p.formacion === 'hecha' ? 'ok' : p.formacion === 'rechazada' ? 'neutral' : 'warn'}>{formacionLabel(p.formacion)}</Badge>
+                <Badge tone={hecha ? 'ok' : 'warn'}>{formacionLabel(p.formacion)}</Badge>
               </div>
-            </div>
+            </Section>
           )}
+
+          <Dudas />
         </div>
 
         <aside className="w-full lg:w-[316px] lg:shrink-0 flex flex-col gap-4">
-          <KeyValue
-            labelWidth={90}
-            rows={([
-              rep ? { k: 'Comercial', v: rep } : null,
-              p?.zona ? { k: 'Zona', v: p.zona } : null,
-              p ? { k: 'Farmacia', v: nombreDe(p) } : null,
-              p?.formacion ? { k: 'Formación', v: [formacionLabel(p.formacion), p.formacionDate].filter(Boolean).join(' · ') } : null,
-              { k: 'Contacto', v: <a href={correo('Consulta')} className="text-accent hover:underline break-all">{CONTACTO}</a> },
-            ] as ({ k: string; v: ReactNode } | null)[]).filter((r): r is { k: string; v: ReactNode } => !!r)}
-          />
+          <KeyValue labelWidth={90} rows={[
+            ...(rep ? [{ k: 'Comercial', v: rep }] : []),
+            ...(p?.zona ? [{ k: 'Zona', v: p.zona }] : []),
+            ...(p ? [{ k: 'Farmacia', v: nombreDe(p) }] : []),
+            ...(contacto?.telefono ? [{ k: 'Teléfono', v: <a href={`tel:${tel}`} className="text-accent hover:underline">{contacto.telefono}</a> }] : []),
+          ]} />
         </aside>
       </div>
+      {escribiendo !== null && <Escribir inicial={escribiendo} onClose={() => setEscribiendo(null)} />}
     </Screen>
   )
 }

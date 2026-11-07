@@ -18,6 +18,8 @@ import { Promociones } from './screens/shared/Promociones'
 import { MiLista } from './screens/shared/MiLista'
 // farmacia
 import { MiComercial } from './screens/farmacia/MiComercial'
+import { PedirFormacion } from './screens/farmacia/PedirFormacion'
+import { Argumentarios } from './screens/comercial/Argumentarios'
 import { Ajustes } from './screens/farmacia/Ajustes'
 // comercial
 import { Hoy } from './screens/comercial/Hoy'
@@ -29,7 +31,9 @@ import { Cuentas } from './screens/admin/Cuentas'
 import { Solicitudes } from './screens/admin/Solicitudes'
 import { NuevaCuenta } from './screens/admin/NuevaCuenta'
 import { Cuenta } from './screens/admin/Cuenta'
-import { AdminMaterial } from './screens/admin/AdminMaterial'
+import { Bandeja } from './screens/admin/Bandeja'
+import { ZonaSemana } from './screens/admin/ZonaSemana'
+import { EditarFarmacia } from './screens/admin/EditarFarmacia'
 import { AdminCatalogo } from './screens/admin/AdminCatalogo'
 import { AdminProducto } from './screens/admin/AdminProducto'
 import { EditarProducto } from './screens/admin/EditarProducto'
@@ -79,6 +83,7 @@ export default function App() {
             <Route index element={<Navigate to="catalogo" replace />} />
             {SharedRoutes()}
             <Route path="mi-comercial" element={<MiComercial />} />
+            <Route path="pedir-formacion" element={<PedirFormacion />} />
             <Route path="ajustes" element={<Navigate to="perfil" replace />} />
             <Route path="ajustes/:section" element={<Ajustes />} />
           </Route>
@@ -93,6 +98,7 @@ export default function App() {
             <Route path="farmacias" element={<Farmacias />} />
             <Route path="farmacias/:id" element={<Farmacia />} />
             <Route path="ajustes" element={<AjustesComercial />} />
+            <Route path="argumentarios" element={<Argumentarios />} />
             {SharedRoutes()}
           </Route>
         </Route>
@@ -108,9 +114,14 @@ export default function App() {
             <Route path="cuentas" element={<Cuentas />} />
             <Route path="cuentas/solicitudes" element={<Solicitudes />} />
             <Route path="cuentas/nueva" element={<NuevaCuenta />} />
+            <Route path="cuentas/farmacia/nueva" element={<EditarFarmacia />} />
+            <Route path="cuentas/:id/editar" element={<EditarFarmacia />} />
             <Route path="cuentas/:id" element={<Cuenta />} />
-            <Route path="material" element={<AdminMaterial />} />
-            <Route path="plv/*" element={<Navigate to="/admin/material" replace />} />
+            <Route path="bandeja" element={<Bandeja />} />
+            <Route path="zona" element={<ZonaSemana />} />
+            <Route path="argumentarios" element={<Argumentarios />} />
+            <Route path="material" element={<Navigate to="/admin/bandeja?tab=material" replace />} />
+            <Route path="plv/*" element={<Navigate to="/admin/bandeja?tab=material" replace />} />
             <Route path="promociones" element={<Promociones />} />
             <Route path="catalogo" element={<AdminCatalogo />} />
             <Route path="catalogo/nuevo" element={<NuevoProducto />} />

@@ -53,6 +53,8 @@ export function Cuenta() {
       ['Código de cliente', p.codigoCliente],
       ['Comercial', p.rep ? <Link to={`/admin/cuentas?comercial=${encodeURIComponent(p.rep)}`} className="text-accent hover:text-accent-deep">{p.rep}</Link> : undefined],
       ['Zona', p.zona],
+      ['Distribuidor', p.distribuidor],
+      ['Nº de referencias', String(p.refs)],
     ] as [string, ReactNode][]
   ).filter(([, v]) => v !== undefined && v !== '')
 
@@ -62,7 +64,7 @@ export function Cuenta() {
         <Toolbar
           back="/admin/cuentas"
           crumbs={[crumbsBase, { label: p.name }]}
-          right={<Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />} onClick={darAcceso}>{cuentas.length ? 'Dar acceso a otra persona' : 'Dar acceso'}</Button>}
+          right={<><Link to={`/admin/cuentas/${p.id}/editar`}><Button>Editar y programar formación</Button></Link><Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />} onClick={darAcceso}>{cuentas.length ? 'Dar acceso a otra persona' : 'Dar acceso'}</Button></>}
         />
       }
     >

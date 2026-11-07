@@ -4,7 +4,7 @@ import { ChevronRight, KeyRound, Briefcase, CalendarClock, CalendarX2, MapPinOff
 import { Screen } from '@/app/Shell'
 import { useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { comercialesDe, hoyISO, iniciales, proximasFormaciones, type Formacion } from '@/data/pharmacies'
+import { comercialesDe, esProgramada, hoyISO, iniciales, proximasFormaciones, type Formacion } from '@/data/pharmacies'
 import { Toolbar, PageHeader, Stat, StatRow, Section } from '@/ui/Page'
 import { Avatar } from '@/ui/Avatar'
 import { Bar } from '@/ui/Table'
@@ -46,7 +46,7 @@ export function Resumen() {
   const rechazadas = cuenta('rechazada')
   const sinAgendar = farmacias.filter((p) => !p.formacion).length
   const proximas = proximasFormaciones(farmacias)
-  const atrasadas = farmacias.filter((p) => p.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha < hoy).length
+  const atrasadas = farmacias.filter((p) => esProgramada(p.formacion) && !!p.formacionFecha && p.formacionFecha < hoy).length
   const pct = (x: number) => (n ? Math.round((x / n) * 100) : 0)
 
   const porRol = (r: string) => usuarios.filter((u) => u.role === r).length
@@ -62,9 +62,11 @@ export function Resumen() {
 
   const formacion = [
     { label: 'Hecha', n: hechas, tone: 'ok' as const, to: 'hecha' },
-    { label: 'Prevista', n: previstas, tone: 'warn' as const, to: 'prevista' },
-    { label: 'Pendiente de agendar', n: pendientes, tone: 'accent' as const, to: 'pendiente' },
-    { label: 'No la quieren', n: rechazadas, tone: 'danger' as const, to: 'rechazada' },
+    { label: 'Programada', n: previstas, tone: 'warn' as const, to: 'prevista' },
+    { label: 'Reprogramada', n: cuenta('reprogramada'), tone: 'warn' as const, to: 'reprogramada' },
+    { label: 'No hecha (pendiente)', n: pendientes, tone: 'accent' as const, to: 'pendiente' },
+    { label: 'Cancelada', n: cuenta('cancelada'), tone: 'danger' as const, to: 'cancelada' },
+    { label: 'No quieren formación', n: rechazadas, tone: 'danger' as const, to: 'rechazada' },
     { label: 'Sin agendar', n: sinAgendar, tone: 'ink' as const, to: 'sin' },
   ]
 

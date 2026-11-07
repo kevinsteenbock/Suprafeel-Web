@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Plus, Search, X, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useDatos, type Usuario } from '@/app/datos'
-import { comercialesDe, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
+import { comercialesDe, esProgramada, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar, type MenuOption } from '@/ui/FilterMenu'
@@ -37,10 +37,12 @@ const columnOptions = [
 /** Valores del filtro de formación: los estados de Xano + «sin» (sin estado) y «pasada» (prevista con la fecha ya pasada). */
 const FORMACION_OPCIONES: { key: string; label: string; test: (p: Pharmacy, hoy: string) => boolean }[] = [
   { key: 'hecha', label: 'Hecha', test: (p) => p.formacion === 'hecha' },
-  { key: 'prevista', label: 'Prevista', test: (p) => p.formacion === 'prevista' },
-  { key: 'pasada', label: 'Prevista, fecha pasada', test: (p, hoy) => p.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha < hoy },
-  { key: 'pendiente', label: 'Pendiente de agendar', test: (p) => p.formacion === 'pendiente' },
-  { key: 'rechazada', label: 'No la quieren', test: (p) => p.formacion === 'rechazada' },
+  { key: 'prevista', label: 'Programada', test: (p) => p.formacion === 'prevista' },
+  { key: 'reprogramada', label: 'Reprogramada', test: (p) => p.formacion === 'reprogramada' },
+  { key: 'pasada', label: 'Programada, fecha pasada', test: (p, hoy) => esProgramada(p.formacion) && !!p.formacionFecha && p.formacionFecha < hoy },
+  { key: 'pendiente', label: 'No hecha (pendiente)', test: (p) => p.formacion === 'pendiente' },
+  { key: 'cancelada', label: 'Cancelada', test: (p) => p.formacion === 'cancelada' },
+  { key: 'rechazada', label: 'No quieren formación', test: (p) => p.formacion === 'rechazada' },
   { key: 'sin', label: 'Sin agendar', test: (p) => !p.formacion },
 ]
 
@@ -152,6 +154,7 @@ export function Cuentas() {
           right={
             <>
               <Buscar value={q} onChange={(v) => setParam('q', v, '')} placeholder={ver === 'cuentas' ? 'Buscar cuenta o correo' : 'Buscar farmacia, población o correo'} />
+              <Button onClick={() => navigate('/admin/cuentas/farmacia/nueva')}>Nueva farmacia</Button>
               <Button variant="primary" icon={<Plus size={13} strokeWidth={2.4} />} onClick={() => navigate('/admin/cuentas/nueva')}>Nueva cuenta</Button>
             </>
           }

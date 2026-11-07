@@ -10,7 +10,7 @@
  * helpers de este archivo, que son puros.
  */
 
-export type Formacion = 'hecha' | 'prevista' | 'pendiente' | 'rechazada'
+export type Formacion = 'hecha' | 'prevista' | 'reprogramada' | 'pendiente' | 'cancelada' | 'rechazada'
 
 export interface Pharmacy {
   /** Slug de Xano (único) */
@@ -43,6 +43,8 @@ export interface Pharmacy {
   formacionNote?: string
   telefono?: string
   codigoCliente?: string
+  /** Quién le sirve. No llega a las cuentas de farmacia. */
+  distribuidor?: string
   // --- Todavía sin origen real: llegarán de Xano. Si faltan, la pantalla no los enseña. ---
   lastVisit?: string
   nextVisit?: string
@@ -76,6 +78,7 @@ export interface FilaFarmacia {
   formacion_nota?: string | null
   telefono?: string | null
   codigo_cliente?: string | null
+  distribuidor?: string | null
 }
 
 /**
@@ -84,7 +87,20 @@ export interface FilaFarmacia {
  */
 export const pharmacies: Pharmacy[] = []
 
-const FORMACIONES: Formacion[] = ['hecha', 'prevista', 'pendiente', 'rechazada']
+const FORMACIONES: Formacion[] = ['hecha', 'prevista', 'reprogramada', 'pendiente', 'cancelada', 'rechazada']
+
+/** Los estados que puede fijar administración, con su nombre en el seguimiento. */
+export const ESTADOS_FORMACION: { key: Formacion; label: string }[] = [
+  { key: 'prevista', label: 'Programada' },
+  { key: 'reprogramada', label: 'Reprogramada' },
+  { key: 'hecha', label: 'Hecha' },
+  { key: 'pendiente', label: 'No hecha (pendiente)' },
+  { key: 'cancelada', label: 'Cancelada' },
+  { key: 'rechazada', label: 'No quieren formación' },
+]
+
+/** Tiene fecha por delante o la tuvo: programada o reprogramada. */
+export const esProgramada = (f?: Formacion) => f === 'prevista' || f === 'reprogramada'
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
 const texto = (v: unknown) => (typeof v === 'string' ? v.trim() : '')
@@ -102,6 +118,14 @@ export function fechaCorta(iso?: string): string {
   const mes = MESES[Number(m[2]) - 1]
   return mes ? `${Number(m[3])} ${mes}` : ''
 }
+
+/** Provincia de una farmacia para la zona de la semana: dos primeras cifras del código postal o, sin él, su zona. */
+export function provinciaDe(p: Pick<Pharmacy, 'postal' | 'zona'>): string {
+  return p.postal.trim() ? p.postal.trim().slice(0, 2) : (p.zona ?? '').trim()
+}
+
+const NOMBRES_PROVINCIA: Record<string, string> = { '07': 'Baleares', '08': 'Barcelona', '17': 'Girona', '25': 'Lleida', '43': 'Tarragona', AD: 'Andorra' }
+export const nombreProvincia = (k: string) => NOMBRES_PROVINCIA[k] ?? (k || 'Sin zona')
 
 /** Iniciales para un avatar: «Jordi P.» → «JP», «Alex» → «A». */
 export function iniciales(nombre: string): string {
@@ -140,6 +164,7 @@ export function farmaciaDeFila(f: FilaFarmacia): Pharmacy {
     formacionNote: opcional(f.formacion_nota),
     telefono: opcional(f.telefono),
     codigoCliente: opcional(f.codigo_cliente),
+    distribuidor: opcional(f.distribuidor),
   }
 }
 
@@ -150,9 +175,11 @@ export const pharmacyById = (id?: string, list: Pharmacy[] = pharmacies) => list
 export function formacionLabel(f?: Formacion): string {
   switch (f) {
     case 'hecha': return 'Hecha'
-    case 'prevista': return 'Prevista'
+    case 'prevista': return 'Programada'
+    case 'reprogramada': return 'Reprogramada'
     case 'pendiente': return 'Pendiente'
-    case 'rechazada': return 'No la quiere'
+    case 'cancelada': return 'Cancelada'
+    case 'rechazada': return 'No quieren'
     default: return 'Sin agendar'
   }
 }
@@ -162,7 +189,7 @@ export function formacionLabel(f?: Formacion): string {
  * `hoy` en 'YYYY-MM-DD' (por defecto, hoy en hora local).
  */
 export function formacionVencida(p: Pick<Pharmacy, 'formacion' | 'formacionFecha'>, hoy: string = hoyISO()): boolean {
-  return p.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha < hoy
+  return esProgramada(p.formacion) && !!p.formacionFecha && p.formacionFecha < hoy
 }
 
 /** Las que tienen la formación prevista con la fecha ya pasada, de la más antigua a la más reciente. */
@@ -187,7 +214,8 @@ export function nombreDe(p: Pick<Pharmacy, 'name' | 'nombreComercial'>): string 
 export function formacionTone(f?: Formacion): 'ok' | 'warn' | 'neutral' | 'danger' {
   switch (f) {
     case 'hecha': return 'ok'
-    case 'prevista': return 'warn'
+    case 'prevista':
+    case 'reprogramada': return 'warn'
     case 'rechazada': return 'danger'
     default: return 'neutral'
   }
@@ -230,7 +258,7 @@ export function proximasFormaciones(farmacias: Pharmacy[], hoy: Date | string = 
   const desde = typeof hoy === 'string' ? hoy : hoyISO(hoy)
   const clave = (p: Pharmacy) => `${p.formacionFecha} ${p.formacionHora ?? '99:99'}`
   return farmacias
-    .filter((p) => p.formacion === 'prevista' && !!p.formacionFecha && p.formacionFecha >= desde)
+    .filter((p) => esProgramada(p.formacion) && !!p.formacionFecha && p.formacionFecha >= desde)
     .sort((a, b) => clave(a).localeCompare(clave(b)) || a.name.localeCompare(b.name, 'es'))
 }
 

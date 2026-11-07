@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Package } from 'lucide-react'
-import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { call, useAuth } from '@/app/auth'
-import { Notice, PageHeader, Toolbar, Vacio } from '@/ui/Page'
+import { Notice, Vacio } from '@/ui/Page'
 import { Tag } from '@/ui/Badge'
 import { Button } from '@/ui/Button'
 import { fechaSolicitud, tituloMaterial, type FilaSolicitud } from '@/screens/shared/Material'
 
-/** Solicitudes de material publicitario que llegan de farmacias y comerciales. */
-export function AdminMaterial() {
+/** Solicitudes de material publicitario que llegan de farmacias y comerciales. Va dentro de la Bandeja. */
+export function ListaSolicitudes() {
   const { token } = useAuth()
   const { notify } = useStore()
   const [filas, setFilas] = useState<FilaSolicitud[] | null>(null)
@@ -41,8 +40,8 @@ export function AdminMaterial() {
 
   const pendientes = filas?.filter((s) => s.estado !== 'gestionada').length ?? 0
   return (
-    <Screen toolbar={<Toolbar title="Material publicitario" />}>
-      <PageHeader title="Solicitudes de material" subtitle={filas ? `${pendientes} ${pendientes === 1 ? 'pendiente' : 'pendientes'} de ${filas.length}` : undefined} />
+    <>
+      {!!filas?.length && <p className="text-sm text-muted">{pendientes} {pendientes === 1 ? 'pendiente' : 'pendientes'} de {filas.length}</p>}
       {falla && <Notice tone="danger">No hemos podido cargar las solicitudes. Revisa tu conexión y vuelve a entrar.</Notice>}
       {filas?.length === 0 && <Vacio icon={<Package size={18} />} title="Todavía no hay solicitudes">Cuando una farmacia o un comercial pida material, saldrá aquí.</Vacio>}
       {!!filas?.length && (
@@ -65,6 +64,6 @@ export function AdminMaterial() {
           ))}
         </div>
       )}
-    </Screen>
+    </>
   )
 }

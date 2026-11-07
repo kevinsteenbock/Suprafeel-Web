@@ -4,7 +4,7 @@ import { Phone, MapPin, Plus, Check, Package } from 'lucide-react'
 import { products, euro } from '@/data/products'
 import { Screen } from '@/app/Shell'
 import { useDatos } from '@/app/datos'
-import { formacionChapa, formacionLabel, formacionVencida, iniciales, pharmacyById, type Pharmacy } from '@/data/pharmacies'
+import { esProgramada, formacionChapa, formacionLabel, formacionVencida, iniciales, pharmacyById, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, SearchField, PageHeader, Stat, StatRow, Section, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
@@ -25,13 +25,14 @@ function fechaLarga(iso?: string) {
 /** El estado de la formación en una línea: «viernes, 7 de noviembre · 10:30». */
 function cuandoFormacion(p: Pharmacy) {
   const fecha = fechaLarga(p.formacionFecha)
-  if (p.formacion === 'prevista' && fecha) {
+  if (esProgramada(p.formacion) && fecha) {
     const pasada = formacionVencida(p)
     return `${pasada ? 'Era el ' : ''}${fecha}${p.formacionHora ? ` · ${p.formacionHora}` : ''}${pasada ? ' · sin cerrar' : ''}`
   }
   if (p.formacion === 'hecha') return fecha ? `Hecha el ${fecha}` : 'Hecha'
   if (p.formacion === 'pendiente') return 'Pendiente de pactar fecha'
   if (p.formacion === 'rechazada') return 'No quieren formación por ahora'
+  if (p.formacion === 'cancelada') return 'Cancelada'
   return 'No consta en el seguimiento'
 }
 
@@ -63,6 +64,7 @@ export function Farmacia() {
     p.codigoCliente ? { k: 'Cód. de cliente', v: p.codigoCliente } : null,
     p.zona ? { k: 'Zona', v: p.zona } : null,
     p.rep ? { k: 'Comercial', v: p.rep } : null,
+    p.distribuidor ? { k: 'Distribuidor', v: p.distribuidor } : null,
   ] as ({ k: string; v: ReactNode } | null)[]).filter((r): r is { k: string; v: ReactNode } => !!r)
 
   return (

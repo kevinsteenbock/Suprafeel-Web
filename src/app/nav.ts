@@ -1,5 +1,5 @@
 import {
-  LayoutGrid, Sparkles, Compass, GraduationCap, Presentation, UserRound, BadgePercent,
+  LayoutGrid, Sparkles, Compass, GraduationCap, Presentation, UserRound, BadgePercent, Inbox, MapPinned, ScrollText,
   CalendarDays, MapPin,
   ClipboardList, KeyRound, Briefcase, Package,
 } from 'lucide-react'
@@ -55,6 +55,7 @@ export const comercialShell: ShellConfig = {
       title: 'Equipo',
       items: [
         { label: 'Formación', to: '/comercial/formacion', icon: GraduationCap },
+        { label: 'Argumentarios de venta', to: '/comercial/argumentarios', icon: ScrollText },
         { label: 'Material publicitario', to: '/comercial/material', icon: Presentation },
         { label: 'Promociones y ofertas', to: '/comercial/promociones', icon: BadgePercent },
       ],
@@ -70,6 +71,8 @@ export const adminShell: ShellConfig = {
       title: 'Consola',
       items: [
         { label: 'Resumen', to: '/admin/resumen', icon: ClipboardList },
+        { label: 'Bandeja', to: '/admin/bandeja', icon: Inbox },
+        { label: 'Zona de la semana', to: '/admin/zona', icon: MapPinned },
         { label: 'Cuentas y accesos', to: '/admin/cuentas', icon: KeyRound },
         // La chapa la calcula shellDe() con los comerciales que salen de las farmacias.
         { label: 'Comerciales', to: '/admin/comerciales', icon: Briefcase },
@@ -80,7 +83,7 @@ export const adminShell: ShellConfig = {
       items: [
         { label: 'Catálogo', to: '/admin/catalogo', icon: Package },
         { label: 'Formación', to: '/admin/formacion', icon: GraduationCap },
-        { label: 'Material publicitario', to: '/admin/material', icon: Presentation },
+        { label: 'Argumentarios de venta', to: '/admin/argumentarios', icon: ScrollText },
         { label: 'Promociones y ofertas', to: '/admin/promociones', icon: BadgePercent },
       ],
     },

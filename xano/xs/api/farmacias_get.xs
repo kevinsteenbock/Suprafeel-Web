@@ -1,4 +1,5 @@
-// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name y una farmacia solo la suya (pharmacy_slug).
+// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name y una farmacia solo la suya (pharmacy_slug),
+// sin notas internas ni distribuidor, y con la formación solo si está hecha o programada.
 // Sin token, o con uno caducado o anterior al cambio de sesiones, 401 (sf_sesion). Una cuenta sin rol válido, 403.
 query farmacias verb=GET {
   api_group = "suprafeel"
@@ -33,7 +34,7 @@ query farmacias verb=GET {
       if ($sesion.role == "admin") {
         db.query sf_farmacia {
           sort = {id: "asc"}
-          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente"]
+          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente", "distribuidor"]
           return = {type: "list"}
         } as $todas
 
@@ -46,7 +47,7 @@ query farmacias verb=GET {
         db.query sf_farmacia {
           where = $db.sf_farmacia.rep == $rep
           sort = {id: "asc"}
-          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente"]
+          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente", "distribuidor"]
           return = {type: "list"}
         } as $suyas
 
@@ -58,12 +59,25 @@ query farmacias verb=GET {
       elseif ($sesion.role == "farmacia" && $slug != "") {
         db.query sf_farmacia {
           where = $db.sf_farmacia.slug == $slug
-          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente"]
+          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "telefono", "codigo_cliente"]
           return = {type: "list"}
         } as $la_suya
 
-        var.update $filas {
-          value = $la_suya
+        // La farmacia solo ve sus formaciones hechas o programadas, nunca las notas internas ni el distribuidor.
+        foreach ($la_suya) {
+          each as $fila {
+            var $visible {
+              value = ["hecha", "prevista", "reprogramada"]|in:($fila.formacion ?? "")
+            }
+
+            var $limpia {
+              value = $visible ? $fila : ($fila|set:"formacion":""|set:"formacion_fecha":""|set:"formacion_hora":"")
+            }
+
+            var.update $filas {
+              value = $filas|push:$limpia
+            }
+          }
         }
       }
     }

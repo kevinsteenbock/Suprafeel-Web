@@ -164,10 +164,6 @@ function DatosFarmacia() {
       </div>
       <Group title="Tu comercial">
         <Row label={<span className="text-ink">{p?.rep ? [p.rep, p.zona].filter(Boolean).join(' · ') : 'Sin comercial asignado todavía'}</span>}><span className="flex-1" /><NavLink to="/farmacia/mi-comercial" className={`${tactilSm} text-sm font-medium text-accent`}>Ver ficha</NavLink></Row>
-        {/* Fila de una sola acción: sin la columna de etiqueta de 160 px, que no da para el texto entero. */}
-        <div className="min-h-[46px] px-[14px] flex items-center">
-          <button className={`${tactilBase} text-base text-accent font-medium text-left`} onClick={() => escribir(`Cambio de comercial${p ? ` · ${nombreDe(p)}` : ''}`)}>Solicitar cambio de comercial</button>
-        </div>
       </Group>
     </>
   )

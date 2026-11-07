@@ -32,6 +32,13 @@ Lo que se añadió en Xano el 31 de octubre de 2026 (workspace 6 «Suprafeel», 
 | `api/material_solicitudes_post.xs` | `POST /material/solicitudes`: farmacia o comercial pide material; correo solo con `RESEND_API_KEY` en Xano |
 | `api/material_solicitudes_get.xs` | `GET /material/solicitudes`: admin, todas; el resto, las suyas |
 | `api/material_solicitudes_id_patch.xs` | `PATCH /material/solicitudes/{solicitud_id}`: admin cambia el estado |
+| `table/sf_mensaje.xs` | tabla `sf_mensaje`: «Escribir», peticiones de formación y dudas de las farmacias |
+| `function/sf_zona_abierta.xs` | función `sf_zona_abierta`: ¿entra esta farmacia en la zona de la semana? |
+| `api/contacto_get.xs` | `GET /contacto`: teléfono y si la farmacia puede agendar esta semana |
+| `api/mensajes_post.xs` · `mensajes_get.xs` · `mensajes_id_patch.xs` | Mensajes: la farmacia manda y lee los suyos; admin los lee todos y contesta |
+| `api/admin_ajustes_get.xs` · `admin_ajustes_patch.xs` | Zona de la semana y contacto, solo admin |
+| `api/admin_farmacias_post.xs` · `admin_farmacias_slug_patch.xs` | Alta y edición de farmacias y su formación, solo admin |
+| `api/argumentarios_get.xs` | `GET /argumentarios`: solo comercial y admin |
 
 Además, ese día:
 
