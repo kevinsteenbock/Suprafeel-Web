@@ -3,6 +3,7 @@ import { Outlet } from 'react-router'
 import { Plus } from 'lucide-react'
 import { call, Cargando, EMAIL_RE, useAuth, type Role, type User } from './auth'
 import { comercialesDe, farmaciaDeFila, pharmacies as compartidas, type FilaFarmacia, type Pharmacy } from '@/data/pharmacies'
+import { CONTENIDO_VACIO, normalizaContenido, type Contenido } from '@/data/contenido'
 import { Button } from '@/ui/Button'
 
 /**
@@ -10,6 +11,7 @@ import { Button } from '@/ui/Button'
  *   · GET /farmacias        → admin, todas; comercial, las de su rep_name; farmacia, la de su pharmacy_slug.
  *   · GET /admin/usuarios   → solo admin: las cuentas, sin contraseña.
  *   · POST /admin/usuarios  → solo admin: crea una cuenta.
+ *   · GET /contenido        → fichas, recomendador, campañas y documentos. Si falla, el resto de la app sigue.
  *
  * Se piden al entrar y se tiran al cerrar sesión. Mientras cargan, el área no se pinta; si Xano
  * dice 401, la sesión se cierra. Nada de esto vive en el código: el repositorio es público.
@@ -46,6 +48,10 @@ export interface Datos {
   farmacias: Pharmacy[]
   /** Las cuentas de Xano; solo para admin (para el resto, []) */
   usuarios: Usuario[]
+  /** Fichas, recomendador, campañas y documentos */
+  contenido: Contenido
+  /** Xano no ha podido darnos el contenido */
+  contenidoFalla: boolean
   /**
    * Vuelve a pedirlo todo. Con los datos ya en pantalla, recarga sin quitarlos y, si falla, lanza
    * un Error con el motivo (los datos que había se quedan). Tras un error de carga, reintenta.
@@ -59,6 +65,7 @@ export interface Datos {
 export interface DatosFijos {
   farmacias: Pharmacy[]
   usuarios?: Usuario[]
+  contenido?: Contenido
 }
 
 const SIN_CONEXION = 'No hay conexión con Suprafeel. Revisa tu conexión e inténtalo de nuevo.'
@@ -135,6 +142,8 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
   const [estado, setEstado] = useState<EstadoDatos>(datos ? 'listo' : 'cargando')
   const [cargadas, setCargadas] = useState<Pharmacy[]>([])
   const [usuariosXano, setUsuariosXano] = useState<Usuario[]>(datos?.usuarios ?? [])
+  const [contenido, setContenido] = useState<Contenido>(datos?.contenido ?? CONTENIDO_VACIO)
+  const [contenidoFalla, setContenidoFalla] = useState(false)
   const [detalle, setDetalle] = useState('')
   // Cada carga lleva su número: la respuesta de una carga vieja (otra sesión) no pisa a la nueva.
   const turno = useRef(0)
@@ -161,7 +170,11 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
         // En serie: Xano lleva mal las ráfagas.
         const f = farmaciasDe(await leerLista('/farmacias', token))
         const u = isAdmin ? usuariosDe(await leerLista('/admin/usuarios', token)) : []
+        const c = await call('/contenido', {}, token).catch(() => null)
         if (mio !== turno.current) return
+        if (c?.res.status === 401) throw new SesionCaducada()
+        setContenido(c?.res.ok ? normalizaContenido(c.body) : CONTENIDO_VACIO)
+        setContenidoFalla(!c?.res.ok)
         setCargadas(f)
         setUsuariosXano(u)
         setDetalle('')
@@ -191,6 +204,8 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
     turno.current++
     setCargadas([])
     setUsuariosXano([])
+    setContenido(CONTENIDO_VACIO)
+    setContenidoFalla(false)
     setDetalle('')
     setEstado('cargando')
   }, [datos, status, token, cargar])
@@ -261,8 +276,8 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
   )
 
   const value = useMemo<Datos & { detalle: string }>(
-    () => ({ estado: datos ? 'listo' : estado, farmacias, usuarios, recargar, crearUsuario, detalle }),
-    [datos, estado, farmacias, usuarios, recargar, crearUsuario, detalle],
+    () => ({ estado: datos ? 'listo' : estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, detalle }),
+    [datos, estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, detalle],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
@@ -271,6 +286,12 @@ export function useDatos(): Datos {
   const d = useContext(Ctx)
   if (!d) throw new Error('DatosProvider missing')
   return d
+}
+
+/** El contenido de la sesión y si no se ha podido cargar. */
+export function useContenido(): { contenido: Contenido; falla: boolean } {
+  const { contenido, contenidoFalla } = useDatos()
+  return { contenido, falla: contenidoFalla }
 }
 
 /**

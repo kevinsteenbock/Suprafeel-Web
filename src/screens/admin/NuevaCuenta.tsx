@@ -28,7 +28,7 @@ export function Steps({ title, steps }: { title: string; steps: { t: string; d: 
 }
 
 const ROLES: { key: Role; label: string; d: string }[] = [
-  { key: 'farmacia', label: 'Farmacia', d: 'Ve su farmacia, el catálogo, el consejo por síntomas y la formación.' },
+  { key: 'farmacia', label: 'Farmacia', d: 'Ve su farmacia, el catálogo, el recomendador y la formación.' },
   { key: 'comercial', label: 'Comercial', d: 'Ve las farmacias que lleva, su ruta y todo lo de la farmacia.' },
   { key: 'admin', label: 'Administrador', d: 'Entra en toda la consola, cuentas y accesos incluidos.' },
 ]
@@ -388,7 +388,7 @@ export function NuevaCuenta() {
             steps={[
               { t: 'Queda activa al momento', d: 'Con el correo y la contraseña de aquí ya puede iniciar sesión.' },
               rol === 'farmacia'
-                ? { t: 'Ve solo su farmacia', d: `${farmacia ? farmacia.name : 'La que elijas'}, con el catálogo, el consejo por síntomas y la formación.` }
+                ? { t: 'Ve solo su farmacia', d: `${farmacia ? farmacia.name : 'La que elijas'}, con el catálogo, el recomendador y la formación.` }
                 : rol === 'comercial'
                   ? { t: 'Ve solo sus farmacias', d: rep ? `Las ${plural(reps.find((r) => r.rep === rep)?.farmacias ?? 0, 'farmacia', 'farmacias')} que lleva ${rep}, con su ruta y el catálogo.` : 'Las que lleva el comercial que elijas, con su ruta y el catálogo.' }
                   : { t: 'Ve toda la consola', d: 'Cuentas y accesos, comerciales, catálogo, cursos, materiales y chat.' },

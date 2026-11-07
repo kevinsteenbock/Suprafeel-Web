@@ -1,7 +1,7 @@
 import {
-  LayoutGrid, Sparkles, Search, GraduationCap, Presentation, UserRound,
+  LayoutGrid, Sparkles, Compass, GraduationCap, Presentation, UserRound, BadgePercent,
   CalendarDays, MapPin,
-  ClipboardList, KeyRound, Briefcase, Package, ScrollText,
+  ClipboardList, KeyRound, Briefcase, Package,
 } from 'lucide-react'
 import type { ShellConfig } from './Shell'
 import type { User } from './auth'
@@ -20,14 +20,15 @@ export const farmaciaShell: ShellConfig = {
       items: [
         { label: 'Todos los productos', to: '/farmacia/catalogo', icon: LayoutGrid },
         { label: 'Novedades', to: '/farmacia/novedades', icon: Sparkles, badge: novedades },
-        { label: 'Consejo por síntomas', to: '/farmacia/consejo', icon: Search },
+        { label: 'Recomendador', to: '/farmacia/recomendador', icon: Compass },
       ],
     },
     {
       title: 'Apoyo',
       items: [
         { label: 'Formación', to: '/farmacia/formacion', icon: GraduationCap },
-        { label: 'Materiales PLV', to: '/farmacia/plv', icon: Presentation },
+        { label: 'Material publicitario', to: '/farmacia/material', icon: Presentation },
+        { label: 'Promociones y ofertas', to: '/farmacia/promociones', icon: BadgePercent },
         { label: 'Mi comercial', to: '/farmacia/mi-comercial', icon: UserRound },
       ],
     },
@@ -46,14 +47,16 @@ export const comercialShell: ShellConfig = {
         { label: 'Hoy', to: '/comercial/hoy', icon: CalendarDays },
         { label: 'Mis farmacias', to: '/comercial/farmacias', icon: MapPin },
         { label: 'Catálogo', to: '/comercial/catalogo', icon: LayoutGrid },
-        { label: 'Consejo por síntomas', to: '/comercial/consejo', icon: Search },
+        { label: 'Novedades', to: '/comercial/novedades', icon: Sparkles, badge: novedades },
+        { label: 'Recomendador', to: '/comercial/recomendador', icon: Compass },
       ],
     },
     {
       title: 'Equipo',
       items: [
         { label: 'Formación', to: '/comercial/formacion', icon: GraduationCap },
-        { label: 'Materiales PLV', to: '/comercial/plv', icon: Presentation },
+        { label: 'Material publicitario', to: '/comercial/material', icon: Presentation },
+        { label: 'Promociones y ofertas', to: '/comercial/promociones', icon: BadgePercent },
       ],
     },
   ],
@@ -77,8 +80,8 @@ export const adminShell: ShellConfig = {
       items: [
         { label: 'Catálogo', to: '/admin/catalogo', icon: Package },
         { label: 'Formación', to: '/admin/formacion', icon: GraduationCap },
-        { label: 'Materiales PLV', to: '/admin/plv', icon: Presentation },
-        { label: 'Registro de consultas', to: '/admin/registro', icon: ScrollText },
+        { label: 'Material publicitario', to: '/admin/material', icon: Presentation },
+        { label: 'Promociones y ofertas', to: '/admin/promociones', icon: BadgePercent },
       ],
     },
   ],

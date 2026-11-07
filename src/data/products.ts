@@ -42,7 +42,7 @@ export interface Product {
   bestSeller?: boolean
 }
 
-/** La tarifa de la que salen PVPR, PVF y EAN. El año es el del documento, no el de hoy. */
+/** La tarifa de la que salen PVPR, PVF, EAN y C.N. (TARIFA_SUPRAFEEL_2027_CN.pdf, que se titula «Tarifa 2026»). El año es el del documento, no el de hoy. */
 export const TARIFA = 'Tarifa 2026'
 /**
  * Día en que se cargaron esa tarifa y los EAN en la app y en Xano. Es un dato (cuándo cambió la
@@ -87,13 +87,12 @@ function tarifa(ean: string, pvf: number, pvp: number) {
  * Los 20 productos reales de la tienda Shopify de Suprafeel (azwvb1-gd.myshopify.com),
  * extraídos vía Admin API: nombre, presentación, composición nutricional, modo de empleo,
  * advertencias, aptitud dietética y gama vienen todos de la ficha real de cada producto.
- * EAN, PVF y PVPR vienen de la tarifa 2026 (TARIFA SUPRAFEEL 2026.pdf). El CN y el registro
- * sanitario no están en la tarifa y se dejan vacíos: son identificadores regulatorios reales
- * que no se inventan.
+ * EAN, C.N., PVF y PVPR vienen de la tarifa (TARIFA_SUPRAFEEL_2027_CN.pdf). Levadura de arroz rojo no
+ * tiene C.N. en ella, y el registro sanitario no consta: son identificadores reales que no se inventan.
  */
 export const products: Product[] = [
   {
-    id: 'magnesio', photo: photo('magnesio'), video: video('magnesio', '3:00'), name: 'Magnesio', format: '120 cápsulas', cn: '',
+    id: 'magnesio', photo: photo('magnesio'), video: video('magnesio', '3:00'), name: 'Magnesio', format: '120 cápsulas', cn: '227731.1',
     ...tarifa('8425402898109', 11.76, 19.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'MA', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -114,7 +113,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'colageno-1', photo: photo('colageno-1'), video: video('colageno-1', '2:31'), name: 'Colágeno', format: '60 cápsulas', cn: '',
+    id: 'colageno-1', photo: photo('colageno-1'), video: video('colageno-1', '2:31'), name: 'Colágeno', format: '60 cápsulas', cn: '227735.9',
     ...tarifa('8425402898154', 11.76, 19.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'CO', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -136,7 +135,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'omega', photo: photo('omega'), video: video('omega', '2:30'), name: 'Omega 3', format: '60 perlas', cn: '',
+    id: 'omega', photo: photo('omega'), video: video('omega', '2:30'), name: 'Omega 3', format: '60 perlas', cn: '227732.8',
     ...tarifa('8425402898116', 14.71, 24.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'OM', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -153,7 +152,7 @@ export const products: Product[] = [
     allergens: 'Pescado', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
-    id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '',
+    id: 'vitamina-d3-k2', photo: photo('vitamina-d3-k2'), name: 'Vitamina D3 + K2 (MK-7)', format: '60 cápsulas', cn: '227734.2',
     ...tarifa('8425402898000', 12.35, 20.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'VI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -168,7 +167,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'multivitaminico', photo: photo('multivitaminico'), video: video('multivitaminico', '2:09'), name: 'Multivitamínico', format: '60 cápsulas', cn: '',
+    id: 'multivitaminico', photo: photo('multivitaminico'), video: video('multivitaminico', '2:09'), name: 'Multivitamínico', format: '60 cápsulas', cn: '228137.0',
     ...tarifa('8425402898048', 14.12, 23.9),
     category: 'basicos', categoryLabel: 'Básicos',
     art: 'bottle', code: 'MU', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -195,7 +194,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'immune-defense', photo: photo('immune-defense'), video: video('immune-defense', '2:22'), name: 'Immune Defense', format: '60 cápsulas', cn: '',
+    id: 'immune-defense', photo: photo('immune-defense'), video: video('immune-defense', '2:22'), name: 'Immune Defense', format: '60 cápsulas', cn: '227817.2',
     ...tarifa('8425402898079', 11.76, 19.9),
     category: 'inmunidad', categoryLabel: 'Inmunidad',
     art: 'bottle', code: 'IM', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -213,7 +212,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'vitamin-c', photo: photo('vitamin-c'), video: video('vitamin-c', '2:40'), name: 'Vitamina C', format: '180 cápsulas', cn: '',
+    id: 'vitamin-c', photo: photo('vitamin-c'), video: video('vitamin-c', '2:40'), name: 'Vitamina C', format: '180 cápsulas', cn: '227733.5',
     ...tarifa('8425402898017', 14.71, 24.9),
     category: 'inmunidad', categoryLabel: 'Inmunidad',
     art: 'bottle', code: 'VI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -227,7 +226,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'zinc', photo: photo('zinc'), video: video('zinc', '2:32'), name: 'Zinc', format: '120 cápsulas', cn: '',
+    id: 'zinc', photo: photo('zinc'), video: video('zinc', '2:32'), name: 'Zinc', format: '120 cápsulas', cn: '228138.7',
     ...tarifa('8425402898024', 11.76, 19.9),
     category: 'inmunidad', categoryLabel: 'Inmunidad',
     art: 'bottle', code: 'ZI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -242,7 +241,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'curcuma', photo: photo('curcuma'), video: video('curcuma', '2:39'), name: 'Cúrcuma', format: '120 cápsulas', cn: '',
+    id: 'curcuma', photo: photo('curcuma'), video: video('curcuma', '2:39'), name: 'Cúrcuma', format: '120 cápsulas', cn: '227738.0',
     ...tarifa('8425402898147', 11.76, 19.9),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'CÚ', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -260,7 +259,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'maca-negra', photo: photo('maca-negra'), video: video('maca-negra', '1:46'), name: 'Maca negra', format: '120 cápsulas', cn: '',
+    id: 'maca-negra', photo: photo('maca-negra'), video: video('maca-negra', '1:46'), name: 'Maca negra', format: '120 cápsulas', cn: '227814.1',
     ...tarifa('8425402898215', 12.94, 21.9),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'MA', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -279,7 +278,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'hierro-liposomado', photo: photo('hierro-liposomado'), name: 'Hierro liposomado', format: '60 cápsulas', cn: '',
+    id: 'hierro-liposomado', photo: photo('hierro-liposomado'), name: 'Hierro liposomado', format: '60 cápsulas', cn: '228136.3',
     ...tarifa('8425402898093', 13.89, 23.5),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'HI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -324,7 +323,7 @@ export const products: Product[] = [
     allergens: 'Soja', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
-    id: 'vitamina-b12', photo: photo('vitamina-b12'), video: video('vitamina-b12', '2:11'), name: 'Vitamina B12', format: '120 cápsulas', cn: '',
+    id: 'vitamina-b12', photo: photo('vitamina-b12'), video: video('vitamina-b12', '2:11'), name: 'Vitamina B12', format: '120 cápsulas', cn: '227812.7',
     ...tarifa('8425402898178', 11.76, 19.9),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'VI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -341,7 +340,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'glucosamina', photo: photo('glucosamina'), video: video('glucosamina', '2:12'), name: 'Glucosamina', format: '120 cápsulas', cn: '',
+    id: 'glucosamina', photo: photo('glucosamina'), video: video('glucosamina', '2:12'), name: 'Glucosamina', format: '120 cápsulas', cn: '227813.4',
     ...tarifa('8425402898062', 14.12, 23.9),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'GL', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -360,7 +359,7 @@ export const products: Product[] = [
     allergens: 'Crustáceos', suitable: 'Sin gluten, Sin lactosa, Sin OGM', registry: '', packaging: '',
   },
   {
-    id: 'creatina', photo: photo('creatina'), video: video('creatina', '2:23'), name: 'Creatina', format: '90 cápsulas', cn: '',
+    id: 'creatina', photo: photo('creatina'), video: video('creatina', '2:23'), name: 'Creatina', format: '90 cápsulas', cn: '228178.3',
     ...tarifa('8425402898031', 13.89, 23.5),
     category: 'vitalidad', categoryLabel: 'Vitalidad',
     art: 'bottle', code: 'CR', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -374,7 +373,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'biotina', photo: photo('biotina'), video: video('biotina', '1:22'), name: 'Biotina', format: '120 cápsulas', cn: '',
+    id: 'biotina', photo: photo('biotina'), video: video('biotina', '1:22'), name: 'Biotina', format: '120 cápsulas', cn: '227816.5',
     ...tarifa('8425402898192', 12.35, 20.9),
     category: 'belleza', categoryLabel: 'Belleza',
     art: 'bottle', code: 'BI', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -392,7 +391,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'hair-forte', photo: photo('hair-forte'), video: video('hair-forte', '2:26'), name: 'Hair forte', format: '90 cápsulas', cn: '',
+    id: 'hair-forte', photo: photo('hair-forte'), video: video('hair-forte', '2:26'), name: 'Hair forte', format: '90 cápsulas', cn: '228135.6',
     ...tarifa('8425402898161', 14.71, 24.9),
     category: 'belleza', categoryLabel: 'Belleza',
     art: 'bottle', code: 'HA', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -422,7 +421,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'ashwagandha', photo: photo('ashwagandha'), video: video('ashwagandha', '3:01'), name: 'Ashwagandha', format: '60 cápsulas', cn: '',
+    id: 'ashwagandha', photo: photo('ashwagandha'), video: video('ashwagandha', '3:01'), name: 'Ashwagandha', format: '60 cápsulas', cn: '227811.0',
     ...tarifa('', 14.71, 24.9),  // pendiente: la tarifa repite 8425402898130
     category: 'mente', categoryLabel: 'Mente',
     art: 'bottle', code: 'AS', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -437,7 +436,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'brain-support', photo: photo('brain-support'), video: video('brain-support', '2:20'), name: 'Brain support', format: '60 cápsulas', cn: '',
+    id: 'brain-support', photo: photo('brain-support'), video: video('brain-support', '2:20'), name: 'Brain support', format: '60 cápsulas', cn: '227815.8',
     ...tarifa('', 13.53, 22.9),  // pendiente: la tarifa repite 8425402898130
     category: 'mente', categoryLabel: 'Mente',
     art: 'bottle', code: 'BR', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',
@@ -474,7 +473,7 @@ export const products: Product[] = [
     allergens: '', suitable: 'Apto veganos, Sin gluten, Sin lactosa, Sin OGM, Sin alérgenos', registry: '', packaging: '',
   },
   {
-    id: 'colageno-marino', photo: photo('colageno-marino'), name: 'Colágeno marino', format: '60 cápsulas', cn: '',
+    id: 'colageno-marino', photo: photo('colageno-marino'), name: 'Colágeno marino', format: '60 cápsulas', cn: '227737.3',
     ...tarifa('8425402898086', 13.89, 23.5),
     category: 'belleza', categoryLabel: 'Belleza',
     art: 'bottle', code: 'CO', status: 'Publicado', updated: ACTUALIZADO, updatedBy: 'Kevin S.',

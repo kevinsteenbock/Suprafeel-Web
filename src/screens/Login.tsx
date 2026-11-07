@@ -48,7 +48,7 @@ export function Login() {
         </div>
         <div className="mt-auto">
           <h2 className="text-[34px] leading-[44px] font-medium tracking-tight">El mostrador y la calle, en la misma pantalla.</h2>
-          <p className="mt-8 text-base leading-[21px] text-on-accent-soft max-w-[400px]">Catálogo, consejo por síntomas, formación y material PLV para farmacias y equipo comercial de Suprafeel.</p>
+          <p className="mt-8 text-base leading-[21px] text-on-accent-soft max-w-[400px]">Catálogo, recomendador, formación y material publicitario para farmacias y equipo comercial de Suprafeel.</p>
         </div>
       </aside>
 

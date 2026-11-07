@@ -45,6 +45,7 @@ export function Producto() {
           <span className="label text-accent">{p.categoryLabel}{p.tag ? ` · ${p.tag}` : ''}</span>
           <h1 className="mt-2 text-display font-semibold tracking-tight text-ink">{p.name}</h1>
           <p className="mt-2 text-base text-muted">{[p.format, p.cn && `CN ${p.cn}`, p.ean && `EAN ${p.ean}`].filter(Boolean).join(' · ')}</p>
+          <Link to={`${base}/formacion/${p.id}`} className="mt-2 self-start text-sm font-medium text-accent hover:text-accent-deep">Ver su ficha de formación</Link>
 
           <div className="mt-5 rounded-xl bg-surface border border-line flex flex-col sm:flex-row divide-y sm:divide-y-0 divide-x-0 sm:divide-x divide-line-soft">
             <div className="flex-1 px-4 py-4 flex flex-col"><span className="label">PVP recomendado</span><span className="mt-2 text-h1 font-semibold tracking-tight leading-8">{euro(p.pvp)}</span></div>
@@ -80,12 +81,6 @@ export function Producto() {
             </div>
           )}
 
-          <span className="label mt-6">Se recomienda cuando el cliente cuenta</span>
-          <div className="mt-2.5 flex flex-wrap gap-2">
-            {p.symptoms.map((s, i) => (
-              <Link key={`${i}-${s}`} to={`${base}/consejo`} className="h-[27px] max-lg:h-8 rounded-full bg-accent-wash text-accent-deep text-md font-medium px-[13px] inline-flex items-center hover:bg-accent-line">{s}</Link>
-            ))}
-          </div>
 
           {p.warning && <Notice className="mt-4" tone="warn" icon={<span className="text-warn font-bold text-base">!</span>}>{p.warning}</Notice>}
 

@@ -25,6 +25,13 @@ Lo que se añadió en Xano el 31 de octubre de 2026 (workspace 6 «Suprafeel», 
 | `api/consejo_id_get.xs` | `GET /consejo/{consulta_id}` (id 801): una consulta, legible |
 | `api/consejo_valoracion_patch.xs` | `PATCH /consejo/{consulta_id}/valoracion` (id 802) |
 | `api/admin_consultas_get.xs` | `GET /admin/consultas` (id 803): «Registro de consultas», solo admin |
+| `table/sf_contenido.xs` | tabla `sf_contenido`: fichas, recomendador, campañas y documentos (nov 2026). Sus datos no viven en el repo |
+| `table/sf_solicitud_material.xs` | tabla `sf_solicitud_material`: solicitudes de material publicitario |
+| `api/contenido_get.xs` | `GET /contenido`: contenido con sesión, sin rutas de archivo |
+| `api/documentos_slug_get.xs` | `GET /documentos/{slug}`: páginas y PDF con enlaces firmados de 1 hora |
+| `api/material_solicitudes_post.xs` | `POST /material/solicitudes`: farmacia o comercial pide material; correo solo con `RESEND_API_KEY` en Xano |
+| `api/material_solicitudes_get.xs` | `GET /material/solicitudes`: admin, todas; el resto, las suyas |
+| `api/material_solicitudes_id_patch.xs` | `PATCH /material/solicitudes/{solicitud_id}`: admin cambia el estado |
 
 Además, ese día:
 
