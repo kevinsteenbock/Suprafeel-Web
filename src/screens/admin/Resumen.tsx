@@ -55,7 +55,7 @@ export function Resumen() {
   const tareas = ([
     sinAcceso > 0 && { key: 'acceso', icon: <KeyRound size={14} />, title: plural(sinAcceso, 'farmacia sin acceso a la app', 'farmacias sin acceso a la app'), meta: 'Dales acceso desde Cuentas y accesos', to: '/admin/cuentas?acceso=sin' },
     repsSinCuenta.length > 0 && { key: 'reps', icon: <Briefcase size={14} />, title: plural(repsSinCuenta.length, 'comercial sin cuenta', 'comerciales sin cuenta'), meta: repsSinCuenta.slice(0, 4).map((r) => r.rep).join(', ') + (repsSinCuenta.length > 4 ? '…' : ''), to: '/admin/comerciales?acceso=sin' },
-    atrasadas > 0 && { key: 'atrasadas', icon: <CalendarX2 size={14} />, title: plural(atrasadas, 'formación prevista con la fecha ya pasada', 'formaciones previstas con la fecha ya pasada'), meta: 'Confirma con el comercial si se hicieron', to: '/admin/cuentas?formacion=pasada' },
+    atrasadas > 0 && { key: 'atrasadas', icon: <CalendarX2 size={14} />, title: plural(atrasadas, 'formación programada con la fecha ya pasada', 'formaciones programadas con la fecha ya pasada'), meta: 'Confirma con el comercial si se hicieron', to: '/admin/cuentas?formacion=pasada' },
     pendientes > 0 && { key: 'pendientes', icon: <CalendarClock size={14} />, title: plural(pendientes, 'formación pendiente de agendar', 'formaciones pendientes de agendar'), meta: 'La farmacia la quiere y todavía no tiene fecha', to: '/admin/cuentas?formacion=pendiente' },
     sinComercial > 0 && { key: 'sin-rep', icon: <MapPinOff size={14} />, title: plural(sinComercial, 'farmacia sin comercial', 'farmacias sin comercial'), meta: 'Nadie la tiene asignada todavía', to: '/admin/cuentas?comercial=__sin' },
   ] as (Tarea | false)[]).filter((x): x is Tarea => !!x)

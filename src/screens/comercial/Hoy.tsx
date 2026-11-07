@@ -76,7 +76,7 @@ export function Hoy() {
   const subProgramadas = agenda[0]
     ? `La próxima, el ${agenda[0].formacionDate}${vencidas ? ` · ${vencidas} con fecha pasada` : ''}`
     : vencidas
-      ? `${plural(vencidas, 'prevista', 'previstas')} con fecha pasada`
+      ? `${plural(vencidas, 'programada', 'programadas')} con fecha pasada`
       : 'Ninguna en el calendario'
 
   return (
@@ -128,7 +128,7 @@ export function Hoy() {
                   <span className="text-xs text-faint mt-[2px] lg:truncate">{[r.city, r.formacionNote].filter(Boolean).join(' · ')}</span>
                 </span>
                 <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 pl-[78px] sm:pl-0">
-                  {r.formacionFecha === hoy ? <Badge tone="solid">Hoy</Badge> : <Badge tone="warn">Prevista</Badge>}
+                  {r.formacionFecha === hoy ? <Badge tone="solid">Hoy</Badge> : <Badge tone="warn">Programada</Badge>}
                   <span className="sm:w-[56px] text-right text-base font-medium text-ink">{r.formacionHora ?? 'Sin hora'}</span>
                 </div>
               </Tr>

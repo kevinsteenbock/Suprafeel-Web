@@ -17,7 +17,7 @@ import { AccesoCelda, Principal, porFilaInicial, vistaInicial } from './AccesoCe
 const columnOptions = [
   { key: 'farmacias', label: 'Farmacias' },
   { key: 'hechas', label: 'Formación hecha' },
-  { key: 'previstas', label: 'Previstas' },
+  { key: 'previstas', label: 'Programadas' },
   { key: 'pendientes', label: 'Pendientes' },
   { key: 'acceso', label: 'Acceso' },
 ]
@@ -76,7 +76,7 @@ export function Comerciales() {
         </div>
       ),
     },
-    previstas: { th: <Th key="h3" className="w-[72px] shrink-0" align="right">Previstas</Th>, td: (r) => <Td key="c3" className="w-[72px] shrink-0" align="right">{r.previstas || '—'}</Td> },
+    previstas: { th: <Th key="h3" className="w-[92px] shrink-0" align="right">Programadas</Th>, td: (r) => <Td key="c3" className="w-[92px] shrink-0" align="right">{r.previstas || '—'}</Td> },
     pendientes: { th: <Th key="h4" className="w-[80px] shrink-0" align="right">Pendientes</Th>, td: (r) => <Td key="c4" className={cn('w-[80px] shrink-0', r.pendientes > 0 && 'text-accent font-medium')} align="right">{r.pendientes || '—'}</Td> },
     acceso: { th: <Th key="h5" className="w-[180px] shrink-0" align="right">Acceso</Th>, td: (r) => <AccesoCelda key="c5" className="w-[180px] shrink-0" cuentas={r.cuentas} onDar={() => darAcceso(r)} /> },
   }

@@ -196,7 +196,7 @@ function VisitDrawer({ name, owner, initials, notes, onClose }: { name: string; 
       <Notice tone="warn">Todavía no se pueden guardar visitas desde la app. Lo que apuntes aquí se pierde al cerrar.</Notice>
       <span className="label mt-6">Qué has hecho <span className="text-accent">*</span></span>
       <div className="mt-2.5 flex flex-wrap gap-2">
-        {['Revisión de lineal', 'Novedades', 'Formación', 'Entrega de PLV', 'Incidencia'].map((t) => {
+        {['Revisión de lineal', 'Novedades', 'Formación', 'Entrega de material', 'Incidencia'].map((t) => {
           const on = done.includes(t)
           return <button key={t} onClick={() => toggle(t)} aria-pressed={on} className={cn('h-[27px] max-lg:h-8 rounded-full px-3 text-md font-medium inline-flex items-center gap-1.5', on ? 'bg-accent-wash text-accent-deep border border-accent-line' : 'bg-surface border border-line text-ink-soft hover:bg-chrome')}>{on && <Check size={11} strokeWidth={2.5} />}{t}</button>
         })}

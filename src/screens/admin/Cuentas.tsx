@@ -15,7 +15,7 @@ import { cn } from '@/lib/cn'
 import { accesosPorFarmacia, ataduraDe, fechaAlta, norm, plural, ROL_LABEL } from './accesos'
 import { AccesoCelda, FilaLista, Principal, principal, porFilaInicial, vistaInicial } from './AccesoCelda'
 
-/** Acciones de fila (la usa la lista de campañas PLV). */
+/** Acciones de fila (la usa una lista de filas). */
 export function RowActions({ onEdit, onDup, onDel, className }: { onEdit?: () => void; onDup?: () => void; onDel?: () => void; className?: string }) {
   const stop = (fn?: () => void) => (e: React.MouseEvent) => { e.stopPropagation(); fn?.() }
   return (
