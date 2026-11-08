@@ -72,8 +72,8 @@ export function Farmacias() {
   const { notify } = useStore()
   const { farmacias, recargar } = useDatos()
   const [sp, setSp] = useSearchParams()
-  // El filtro va en la URL (?filtro=to-train) para que «Ver todo» desde Hoy llegue ya filtrado.
-  const opciones = pharmacyFiltersWithCounts(farmacias)
+  // El filtro va en la URL (?filtro=top) para que «Ver todo» desde Hoy llegue ya filtrado. Sin «Formación pendiente» (Aura, 8 nov).
+  const opciones = pharmacyFiltersWithCounts(farmacias).filter((o) => o.key !== 'to-train')
   const filter = opciones.find((o) => o.key === sp.get('filtro'))?.key ?? 'all'
   const setFilter = (k: string) => {
     const next = new URLSearchParams(sp)
@@ -92,9 +92,8 @@ export function Farmacias() {
     sort,
   )
   const hechas = farmacias.filter((p) => p.formacion === 'hecha').length
-  const pendientes = farmacias.filter((p) => p.formacion === 'pendiente').length
   const subtitle = farmacias.length
-    ? [plural(farmacias.length, 'farmacia', 'farmacias'), `${hechas} con la formación hecha`, pendientes ? `${plural(pendientes, 'pendiente', 'pendientes')} de formación` : ''].filter(Boolean).join(' · ')
+    ? [plural(farmacias.length, 'farmacia', 'farmacias'), `${hechas} con la formación hecha`].join(' · ')
     : 'Todavía no tienes farmacias asignadas.'
   const actualizar = async () => {
     setActualizando(true)
