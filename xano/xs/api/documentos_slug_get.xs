@@ -33,10 +33,10 @@ query "documentos/{slug}" verb=GET {
 
     foreach ($doc.paginas) {
       each as $ruta {
-        storage.sign_private_url {
-          pathname = $ruta
-          ttl = 3600
-        } as $firmada
+        // Archivo público con dirección secreta: el plan de Xano no admite privados.
+        var $firmada {
+          value = "https://xsq7-h9en-9cxm.n7d.xano.io" ~ ($ruta)
+        }
 
         var.update $paginas {
           value = $paginas|push:$firmada
@@ -50,10 +50,10 @@ query "documentos/{slug}" verb=GET {
 
     conditional {
       if (($doc|get:"pdf":"") != "") {
-        storage.sign_private_url {
-          pathname = $doc.pdf
-          ttl = 3600
-        } as $pdf_firmado
+        // Archivo público con dirección secreta: el plan de Xano no admite privados.
+        var $pdf_firmado {
+          value = "https://xsq7-h9en-9cxm.n7d.xano.io" ~ ($doc.pdf)
+        }
 
         var.update $pdf {
           value = $pdf_firmado

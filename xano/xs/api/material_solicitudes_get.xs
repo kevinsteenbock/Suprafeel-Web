@@ -52,10 +52,10 @@ query "material/solicitudes" verb=GET {
 
         conditional {
           if ($sesion.role == "admin" && ($f.foto_ruta ?? "") != "") {
-            storage.sign_private_url {
-              pathname = $f.foto_ruta
-              ttl = 3600
-            } as $firmada
+            // Archivo público con dirección secreta: el plan de Xano no admite privados.
+            var $firmada {
+              value = "https://xsq7-h9en-9cxm.n7d.xano.io" ~ ($f.foto_ruta)
+            }
 
             var.update $foto {
               value = $firmada

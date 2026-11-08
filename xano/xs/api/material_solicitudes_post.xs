@@ -137,7 +137,7 @@ query "material/solicitudes" verb=POST {
       if ($es_vinilo && $input.foto != null) {
         storage.create_image {
           value = $input.foto
-          access = "private"
+          access = "public"
           filename = "espacio.jpg"
         } as $foto
 

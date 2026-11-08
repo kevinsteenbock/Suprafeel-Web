@@ -72,10 +72,10 @@ query contenido verb=GET {
 
         conditional {
           if (($doc|get:"con_portada":false) == true) {
-            storage.sign_private_url {
-              pathname = $doc.paginas|first
-              ttl = 86400
-            } as $firmada
+            // Archivo público con dirección secreta: el plan de Xano no admite privados.
+            var $firmada {
+              value = "https://xsq7-h9en-9cxm.n7d.xano.io" ~ ($doc.paginas|first)
+            }
 
             var.update $portada {
               value = $firmada
