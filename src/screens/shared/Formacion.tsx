@@ -5,7 +5,7 @@ import { Screen } from '@/app/Shell'
 import { useBase } from '@/app/store'
 import { useContenido } from '@/app/datos'
 import { categories, products } from '@/data/products'
-import { documentoDe, SLUG_CATALOGO } from '@/data/contenido'
+import { documentoDe, SLUG_FORMACION_COMPLETA } from '@/data/contenido'
 import { Toolbar, SearchField, PageHeader } from '@/ui/Page'
 import { ProductArt } from '@/ui/ProductArt'
 import { VisorDocumento } from '@/ui/VisorDocumento'
@@ -20,14 +20,14 @@ export function Formacion() {
   const { contenido } = useContenido()
   const [q, setQ] = useState('')
   const [abierto, setAbierto] = useState(false)
-  const catalogo = documentoDe(contenido, SLUG_CATALOGO)
+  const completa = documentoDe(contenido, SLUG_FORMACION_COMPLETA)
   const lista = products.filter((p) => p.status === 'Publicado' && (!q || plano(p.name).includes(plano(q))))
 
   return (
     <Screen toolbar={<Toolbar title="Formación" right={<><SearchField placeholder="Buscar suplemento" value={q} onChange={setQ} />{base !== '/admin' && <MiListaButton />}</>} />}>
       <PageHeader title="Formación" subtitle="Elige un suplemento para ver su ficha, su presentación de formación y su vídeo." />
 
-      {catalogo && (
+      {completa && (
         <section className="rounded-xl bg-surface border border-line shadow-card p-4 flex items-center gap-4">
           <span className="h-11 w-11 shrink-0 rounded-lg bg-accent-wash text-accent inline-flex items-center justify-center"><BookOpen size={20} /></span>
           <div className="flex-1 min-w-0">
@@ -37,7 +37,7 @@ export function Formacion() {
           <Button variant="primary" size="lg" onClick={() => setAbierto(true)}>Ver y descargar</Button>
         </section>
       )}
-      {abierto && catalogo && <VisorDocumento slug={catalogo.slug} titulo="Formación completa" onClose={() => setAbierto(false)} />}
+      {abierto && completa && <VisorDocumento slug={completa.slug} titulo="Formación completa" onClose={() => setAbierto(false)} />}
 
       {lista.length === 0 && <div className="rounded-xl border border-dashed border-line px-6 py-10 text-center text-base text-muted">Ningún suplemento encaja con «{q}».</div>}
 

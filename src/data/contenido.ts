@@ -88,10 +88,12 @@ export const SLUG_TRIPTICO = 'triptico-suprafeel-2026'
 export const SLUG_BIOTINA_HAIR = 'biotina-vs-hair-forte'
 export const SLUG_TARIFA = 'tarifa-suprafeel-2027'
 export const SLUG_DIAGRAMA = 'diagrama-recomendacion'
+/** La presentación de formación con todas las referencias juntas (sale arriba en Formación). */
+export const SLUG_FORMACION_COMPLETA = 'formacion-completa'
 
 /** Documentos para ver y descargar en «Documentos y material», en este orden. Sale solo el que esté subido. */
 export const DOCUMENTOS: { slug: string; titulo: string; texto: string }[] = [
-  { slug: SLUG_CATALOGO, titulo: 'Catálogo Suprafeel 2026', texto: 'Todas las referencias. También se puede pedir impreso.' },
+  { slug: SLUG_CATALOGO, titulo: 'Catálogo Suprafeel 2026', texto: 'El catálogo en PDF. También se puede pedir impreso.' },
   { slug: SLUG_TARIFA, titulo: 'Tarifa 2027 con códigos nacionales', texto: 'PVF, PVPR, EAN y C.N. de cada referencia.' },
   { slug: SLUG_DIAGRAMA, titulo: 'Diagrama de recomendación', texto: 'El diagrama en PDF. La versión interactiva está en Recomendador.' },
   { slug: SLUG_BIOTINA_HAIR, titulo: 'Dosier Biotina vs. Hair Forte', texto: 'Cuándo recomendar cada uno.' },

@@ -33,7 +33,7 @@ const contenidoDePrueba = {
     basicos_con_zinc: [], generales: ['General de prueba'],
   },
   campanas: [{ id: 'c1', titulo: 'Campaña de prueba', imagen: 'campana-prueba', oferta: '1+1', condiciones: ['Condición de prueba'] }],
-  documentos: [{ slug: 'campana-prueba', titulo: 'Cartel de prueba', tipo: 'campana', paginas: 1, portada: '' }, { slug: 'catalogo-suprafeel-2026', titulo: 'Catálogo de prueba', tipo: 'catalogo', paginas: 1, portada: '' }, { slug: 'magnesio', titulo: 'Presentación de prueba', tipo: 'presentacion', paginas: 3, portada: '' }],
+  documentos: [{ slug: 'campana-prueba', titulo: 'Cartel de prueba', tipo: 'campana', paginas: 1, portada: '' }, { slug: 'catalogo-suprafeel-2026', titulo: 'Catálogo de prueba', tipo: 'catalogo', paginas: 1, portada: '' }, { slug: 'formacion-completa', titulo: 'Formación completa', tipo: 'presentacion', paginas: 2, portada: '' }, { slug: 'magnesio', titulo: 'Presentación de prueba', tipo: 'presentacion', paginas: 3, portada: '' }],
 }
 const datosDePrueba: DatosFijos = {
   contenido: contenidoDePrueba,
