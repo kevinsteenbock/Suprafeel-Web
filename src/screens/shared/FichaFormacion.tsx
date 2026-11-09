@@ -146,6 +146,12 @@ export function FichaFormacion() {
 
           <Bloque titulo="Advertencias">
             {f.advertencias.map((a) => <Notice key={a} tone="warn">{a}</Notice>)}
+            {id && contenido.recomendador?.quien_no[id] && (
+              <div className="rounded-xl bg-surface border border-line px-4 py-3">
+                <h3 className="text-sm font-semibold text-ink-soft">No recomendado, o consultar antes si…</h3>
+                <p className="mt-1 text-sm text-ink-soft">{contenido.recomendador.quien_no[id]}</p>
+              </div>
+            )}
             {contenido.recomendador && (
               <div className="rounded-xl bg-chrome border border-line px-4 py-3">
                 <h3 className="text-sm font-semibold text-ink-soft">Advertencias generales</h3>

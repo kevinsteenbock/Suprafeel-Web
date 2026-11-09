@@ -14,7 +14,7 @@ import { MiListaButton } from './Catalogo'
 
 const plano = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
-/** Formación: la lista de suplementos por gama; cada uno abre su ficha. Delante, el catálogo en digital. */
+/** Formación: delante, «Formación completa» (el PDF con todas las referencias); después, cada suplemento por gama. */
 export function Formacion() {
   const base = useBase()
   const { contenido } = useContenido()
@@ -31,13 +31,13 @@ export function Formacion() {
         <section className="rounded-xl bg-surface border border-line shadow-card p-4 flex items-center gap-4">
           <span className="h-11 w-11 shrink-0 rounded-lg bg-accent-wash text-accent inline-flex items-center justify-center"><BookOpen size={20} /></span>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-ink">{catalogo.titulo}</h2>
-            <p className="text-sm text-muted">Todos los suplementos, en la última versión.</p>
+            <h2 className="text-base font-semibold text-ink">Formación completa</h2>
+            <p className="text-sm text-muted">La presentación de formación con todas las referencias, para ver o descargar.</p>
           </div>
-          <Button variant="primary" size="lg" onClick={() => setAbierto(true)}>Ver</Button>
+          <Button variant="primary" size="lg" onClick={() => setAbierto(true)}>Ver y descargar</Button>
         </section>
       )}
-      {abierto && catalogo && <VisorDocumento slug={catalogo.slug} titulo={catalogo.titulo} onClose={() => setAbierto(false)} />}
+      {abierto && catalogo && <VisorDocumento slug={catalogo.slug} titulo="Formación completa" onClose={() => setAbierto(false)} />}
 
       {lista.length === 0 && <div className="rounded-xl border border-dashed border-line px-6 py-10 text-center text-base text-muted">Ningún suplemento encaja con «{q}».</div>}
 

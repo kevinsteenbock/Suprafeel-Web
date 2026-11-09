@@ -27,7 +27,7 @@ export const farmaciaShell: ShellConfig = {
       title: 'Apoyo',
       items: [
         { label: 'Formación', to: '/farmacia/formacion', icon: GraduationCap },
-        { label: 'Material publicitario', to: '/farmacia/material', icon: Presentation },
+        { label: 'Documentos y material', to: '/farmacia/material', icon: Presentation },
         { label: 'Promociones y ofertas', to: '/farmacia/promociones', icon: BadgePercent },
         { label: 'Mi comercial', to: '/farmacia/mi-comercial', icon: UserRound },
       ],
@@ -56,7 +56,7 @@ export const comercialShell: ShellConfig = {
       items: [
         { label: 'Formación', to: '/comercial/formacion', icon: GraduationCap },
         { label: 'Argumentarios de venta', to: '/comercial/argumentarios', icon: ScrollText },
-        { label: 'Material publicitario', to: '/comercial/material', icon: Presentation },
+        { label: 'Documentos y material', to: '/comercial/material', icon: Presentation },
         { label: 'Promociones y ofertas', to: '/comercial/promociones', icon: BadgePercent },
       ],
     },

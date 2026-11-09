@@ -62,7 +62,7 @@ export function SolicitarMaterial() {
   const material = materialPorId(materialId)
   const volver = `${base}/material`
   if (!materialPorId(id)) return <Navigate to={volver} replace />
-  const toolbar = <Toolbar back={volver} crumbs={[{ label: 'Material publicitario', to: volver }, { label: 'Solicitar' }]} />
+  const toolbar = <Toolbar back={volver} crumbs={[{ label: 'Documentos y material', to: volver }, { label: 'Solicitar' }]} />
 
   const elegirFarmacia = (v: string) => {
     setSlug(v)
@@ -118,7 +118,7 @@ export function SolicitarMaterial() {
           <span className="h-10 w-10 rounded-full bg-ok-wash text-ok inline-flex items-center justify-center"><Check size={18} /></span>
           <h1 className="mt-4 text-lg font-semibold text-ink">Solicitud recibida</h1>
           <p className="mt-1.5 text-base text-muted max-w-[420px]">{hecho.correo === 'enviado' ? 'El equipo de Suprafeel ya la tiene y te hemos enviado la confirmación por correo.' : 'El equipo de Suprafeel la verá en su consola. Puedes seguirla en «Tus solicitudes».'}</p>
-          <Link to={volver} className="mt-6"><Button variant="primary" size="lg">Volver a Material publicitario</Button></Link>
+          <Link to={volver} className="mt-6"><Button variant="primary" size="lg">Volver a Documentos y material</Button></Link>
         </div>
       </Screen>
     )
@@ -131,7 +131,7 @@ export function SolicitarMaterial() {
 
         <Field label="Material" required>
           <select aria-label="Material" value={materialId} onChange={(e) => setMaterialId(e.target.value)} className="field text-base text-ink">
-            {MATERIALES.map((m) => <option key={m.id} value={m.id}>{m.titulo}</option>)}
+            {MATERIALES.filter((m) => !m.retirado || m.id === material?.id).map((m) => <option key={m.id} value={m.id}>{m.titulo}</option>)}
           </select>
         </Field>
 

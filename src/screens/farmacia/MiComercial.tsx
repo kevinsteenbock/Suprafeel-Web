@@ -4,7 +4,7 @@ import { CalendarDays, Mail, Phone } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { call, useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { esProgramada, formacionLabel, hoyISO, iniciales, nombreDe, pharmacyById } from '@/data/pharmacies'
+import { formacionLabel, iniciales, nombreDe, pharmacyById } from '@/data/pharmacies'
 import { enviarMensaje, fechaHoraCorta, leerLista, type Contacto, type Mensaje } from '@/data/mensajes'
 import { Toolbar, PageHeader, KeyValue, Notice, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
@@ -19,7 +19,6 @@ function fechaLarga(iso?: string) {
   if (!m) return ''
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
 }
-const conMayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export function useContacto() {
   const { token } = useAuth()
@@ -85,7 +84,7 @@ function Dudas() {
   )
 }
 
-/** Mi comercial: quién lleva la farmacia, cómo contactar, sus formaciones hechas o programadas y sus dudas. */
+/** Mi comercial: quién lleva la farmacia, cómo contactar, la formación ya hecha y sus dudas. */
 export function MiComercial() {
   const { user } = useAuth()
   const { farmacias } = useDatos()
@@ -93,9 +92,7 @@ export function MiComercial() {
   const p = pharmacyById(user?.pharmacy_slug ?? undefined, farmacias) ?? farmacias[0]
   const rep = p?.rep ?? ''
   const [escribiendo, setEscribiendo] = useState<string | null>(null)
-  // La farmacia solo ve las hechas o programadas: lo demás ni llega de Xano.
-  const programada = !!p && esProgramada(p.formacion)
-  const proxima = programada && !!p.formacionFecha && p.formacionFecha >= hoyISO()
+  // Solo se enseña la formación ya hecha: las pendientes y programadas las lleva Aura (doc de cambios, 9 nov).
   const hecha = p?.formacion === 'hecha'
   const tel = contacto?.telefono?.replace(/[^\d+]/g, '')
 
@@ -125,24 +122,14 @@ export function MiComercial() {
             </div>
           )}
 
-          {proxima && p && (
-            <div className="rounded-xl bg-[#7B3A24] text-on-accent px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-              <div className="flex-1 min-w-0 flex flex-col">
-                <span className="label text-on-accent-soft">Próxima formación en tu farmacia</span>
-                <span className="mt-1.5 text-title font-semibold tracking-tight">{conMayuscula(fechaLarga(p.formacionFecha))}{p.formacionHora ? ` · ${p.formacionHora}` : ''}</span>
-              </div>
-              <Button className="h-9 px-4 self-start sm:self-auto bg-surface text-ink border-0 hover:bg-chrome" onClick={() => setEscribiendo(`Quiero cambiar la fecha de la formación del ${fechaLarga(p.formacionFecha)}.`)}>Cambiar la fecha</Button>
-            </div>
-          )}
-
-          {p && (hecha || (programada && !proxima)) && (
+          {p && hecha && (
             <Section title="Formación en el mostrador">
               <div className="rounded-xl bg-surface border border-line shadow-card px-5 py-4 flex items-start gap-4">
                 <div className="flex-1 min-w-0 flex flex-col">
-                  <span className="text-base font-medium text-ink">{hecha ? (p.formacionFecha ? `Hecha el ${fechaLarga(p.formacionFecha)}` : 'Hecha') : p.formacionFecha ? `Programada el ${fechaLarga(p.formacionFecha)}` : 'Programada, sin fecha cerrada'}</span>
-                  <span className="text-sm text-muted mt-1">{hecha ? 'Si se incorpora alguien nuevo al equipo y queréis repetirla, pide formación.' : 'Si no se llegó a hacer, escríbenos y buscamos otra fecha.'}</span>
+                  <span className="text-base font-medium text-ink">{p.formacionFecha ? `Hecha el ${fechaLarga(p.formacionFecha)}` : 'Hecha'}</span>
+                  <span className="text-sm text-muted mt-1">Si se incorpora alguien nuevo al equipo y queréis repetirla, pide formación.</span>
                 </div>
-                <Badge tone={hecha ? 'ok' : 'warn'}>{formacionLabel(p.formacion)}</Badge>
+                <Badge tone="ok">{formacionLabel(p.formacion)}</Badge>
               </div>
             </Section>
           )}

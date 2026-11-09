@@ -47,20 +47,28 @@ export interface Campana {
   condiciones: string[]
 }
 
-export interface Combinable { cuando: string; productos: string[] }
-export interface ResultadoProducto { tipo: 'producto'; producto: string; combinable?: Combinable; avisos?: string[] }
+/** Paso 1 del recomendador: una pantalla por grupo de preguntas; cada opción es una condición. */
+export interface GrupoSeguridad { id: string; texto: string; ayuda?: string; unica?: boolean; opciones: { id: string; texto: string }[] }
+/** Si se cumple alguna condición de `cuando`: «no» = no se recomienda; «consultar» = aviso en ámbar. */
+export interface Regla { cuando: string[]; productos: string[]; nivel: 'no' | 'consultar'; texto: string }
+export interface ResultadoProducto { tipo: 'producto'; producto: string; avisos?: string[] }
 export interface ResultadoBase { tipo: 'base'; producto: string; texto: string }
-/** La flecha discontinua del diagrama: sigue en otra rama. */
-export interface Salto { tipo: 'salto'; rama: string; nota: string }
-export interface Pregunta { tipo: 'pregunta'; texto: string; aviso?: string; si: Salida; no: Salida }
+/** Sigue en otro motivo de consulta. */
+export interface Salto { tipo: 'salto'; motivo: string; nota: string }
 export type Resultado = ResultadoProducto | ResultadoBase
-export type Salida = Pregunta | Resultado | Salto
-export interface Rama { id: string; titulo: string; gama: string; inicio: Pregunta }
+export interface Motivo { id: string; titulo: string; gama: string; pregunta: string; opciones: { texto: string; resultado: Resultado | Salto }[] }
 
 export interface DatosRecomendador {
-  tomas: Record<string, { toma: string; advertencia?: string }>
+  version: 2
+  seguridad: GrupoSeguridad[]
+  reglas: Regla[]
   basicos: { id: string; nombre: string; si: string; no: string }[]
-  ramas: Rama[]
+  motivos: Motivo[]
+  combinables: { productos: string[]; texto: string }[]
+  incompatibles: { productos: string[]; texto: string }[]
+  /** Quién no puede tomarlo, o debe consultar antes: también sale en la ficha. */
+  quien_no: Record<string, string>
+  tomas: Record<string, { toma: string; advertencia?: string }>
   /** Básicos que también llevan zinc: si sale el Zinc junto a ellos, hay que avisar. */
   basicos_con_zinc: string[]
   generales: string[]
@@ -78,6 +86,17 @@ export const CONTENIDO_VACIO: Contenido = { fichas: {}, recomendador: null, camp
 export const SLUG_CATALOGO = 'catalogo-suprafeel-2026'
 export const SLUG_TRIPTICO = 'triptico-suprafeel-2026'
 export const SLUG_BIOTINA_HAIR = 'biotina-vs-hair-forte'
+export const SLUG_TARIFA = 'tarifa-suprafeel-2027'
+export const SLUG_DIAGRAMA = 'diagrama-recomendacion'
+
+/** Documentos para ver y descargar en «Documentos y material», en este orden. Sale solo el que esté subido. */
+export const DOCUMENTOS: { slug: string; titulo: string; texto: string }[] = [
+  { slug: SLUG_CATALOGO, titulo: 'Catálogo Suprafeel 2026', texto: 'Todas las referencias. También se puede pedir impreso.' },
+  { slug: SLUG_TARIFA, titulo: 'Tarifa 2027 con códigos nacionales', texto: 'PVF, PVPR, EAN y C.N. de cada referencia.' },
+  { slug: SLUG_DIAGRAMA, titulo: 'Diagrama de recomendación', texto: 'El diagrama en PDF. La versión interactiva está en Recomendador.' },
+  { slug: SLUG_BIOTINA_HAIR, titulo: 'Dosier Biotina vs. Hair Forte', texto: 'Cuándo recomendar cada uno.' },
+  { slug: SLUG_TRIPTICO, titulo: 'Tríptico-infografía Suprafeel 2026', texto: 'Toda la gama en una infografía.' },
+]
 
 export const documentoDe = (c: Contenido, slug: string) => c.documentos.find((d) => d.slug === slug)
 
@@ -91,7 +110,7 @@ export function normalizaContenido(raw: unknown): Contenido {
   const r = (raw ?? {}) as Partial<Contenido>
   return {
     fichas: r.fichas && typeof r.fichas === 'object' ? r.fichas : {},
-    recomendador: r.recomendador && Array.isArray(r.recomendador.ramas) ? r.recomendador : null,
+    recomendador: r.recomendador && r.recomendador.version === 2 && Array.isArray(r.recomendador.motivos) ? r.recomendador : null,
     campanas: Array.isArray(r.campanas) ? r.campanas : [],
     documentos: Array.isArray(r.documentos) ? r.documentos : [],
   }
