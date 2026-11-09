@@ -1,6 +1,6 @@
 import {
   LayoutGrid, Sparkles, Compass, GraduationCap, Presentation, UserRound, BadgePercent, Inbox, MapPinned, ScrollText,
-  CalendarDays, MapPin,
+  CalendarDays, MapPin, FileSpreadsheet,
   ClipboardList, KeyRound, Briefcase, Package,
 } from 'lucide-react'
 import type { ShellConfig } from './Shell'
@@ -73,6 +73,7 @@ export const adminShell: ShellConfig = {
         { label: 'Resumen', to: '/admin/resumen', icon: ClipboardList },
         { label: 'Bandeja', to: '/admin/bandeja', icon: Inbox },
         { label: 'Zona de la semana', to: '/admin/zona', icon: MapPinned },
+        { label: 'Subir Excel', to: '/admin/excel', icon: FileSpreadsheet },
         { label: 'Cuentas y accesos', to: '/admin/cuentas', icon: KeyRound },
         // La chapa la calcula shellDe() con los comerciales que salen de las farmacias.
         { label: 'Comerciales', to: '/admin/comerciales', icon: Briefcase },

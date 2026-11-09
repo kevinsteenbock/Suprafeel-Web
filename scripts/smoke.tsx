@@ -110,6 +110,7 @@ const routes: [string, string][] = [
   ['/comercial/formacion', 'Formación completa'],
   ['/comercial/ajustes', 'Nombre en el reparto'],
   ['/admin/resumen', 'Pendiente de ti'],
+  ['/admin/excel', 'Elegir Excel'],
   ['/admin/cuentas', 'Cuentas y accesos'],
   ['/admin/cuentas/solicitudes', 'Solicitudes de alta'],
   ['/admin/cuentas/nueva', 'Dar de alta una cuenta'],

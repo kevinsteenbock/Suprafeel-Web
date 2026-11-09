@@ -40,6 +40,7 @@ import { EditarProducto } from './screens/admin/EditarProducto'
 import { NuevoProducto } from './screens/admin/NuevoProducto'
 import { Resumen } from './screens/admin/Resumen'
 import { Comerciales } from './screens/admin/Comerciales'
+import { SubirExcel } from './screens/admin/SubirExcel'
 
 /**
  * Direcciones de pantallas que ya no existen (eran de los datos de ejemplo): llevan a su sitio en la
@@ -119,6 +120,7 @@ export default function App() {
             <Route path="cuentas/:id" element={<Cuenta />} />
             <Route path="bandeja" element={<Bandeja />} />
             <Route path="zona" element={<ZonaSemana />} />
+            <Route path="excel" element={<SubirExcel />} />
             <Route path="argumentarios" element={<Argumentarios />} />
             <Route path="material" element={<Navigate to="/admin/bandeja?tab=material" replace />} />
             <Route path="plv/*" element={<Navigate to="/admin/bandeja?tab=material" replace />} />
