@@ -1,4 +1,4 @@
-// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name y una farmacia solo la suya (pharmacy_slug),
+// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name (con rep_name «*», todas: p. ej. el distribuidor) y una farmacia solo la suya (pharmacy_slug),
 // sin notas internas ni distribuidor, y con la formación solo si está hecha o programada.
 // Sin token, o con uno caducado o anterior al cambio de sesiones, 401 (sf_sesion). Una cuenta sin rol válido, 403.
 query farmacias verb=GET {
@@ -40,6 +40,18 @@ query farmacias verb=GET {
 
         var.update $filas {
           value = $todas
+        }
+      }
+
+      elseif ($sesion.role == "comercial" && $rep == "*") {
+        db.query sf_farmacia {
+          sort = {id: "asc"}
+          output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente", "distribuidor"]
+          return = {type: "list"}
+        } as $todas_comercial
+
+        var.update $filas {
+          value = $todas_comercial
         }
       }
 

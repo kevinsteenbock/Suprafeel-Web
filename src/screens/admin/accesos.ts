@@ -1,5 +1,5 @@
 import type { Usuario } from '@/app/datos'
-import type { Pharmacy } from '@/data/pharmacies'
+import { nombreDeRep, type Pharmacy } from '@/data/pharmacies'
 
 /**
  * Cuentas sacadas de lo que sirve Xano (useDatos): quién tiene acceso a qué. Todo se calcula con
@@ -49,6 +49,6 @@ export const ROL_LABEL: Record<Usuario['role'], string> = { farmacia: 'Farmacia'
 /** A qué está atada una cuenta, para leerlo en una celda. */
 export function ataduraDe(u: Usuario, farmacias: Pharmacy[]): string {
   if (u.role === 'farmacia') return farmacias.find((p) => p.id === u.pharmacy_slug)?.name ?? (u.pharmacy_slug ? `Farmacia «${u.pharmacy_slug}» (no está en la lista)` : 'Sin farmacia')
-  if (u.role === 'comercial') return u.rep_name || 'Sin comercial'
+  if (u.role === 'comercial') return nombreDeRep(u.rep_name) || 'Sin comercial'
   return 'Toda la consola'
 }

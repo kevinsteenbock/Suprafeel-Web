@@ -62,7 +62,7 @@ query "material/solicitudes" verb=POST {
       error = "Esa farmacia no existe"
     }
 
-    precondition ($sesion.role == "farmacia" || $farmacia.rep == ($sesion.rep_name ?? "")) {
+    precondition ($sesion.role == "farmacia" || $farmacia.rep == ($sesion.rep_name ?? "") || ($sesion.rep_name ?? "") == "*") {
       error_type = "accessdenied"
       error = "Esa farmacia no es tuya"
     }

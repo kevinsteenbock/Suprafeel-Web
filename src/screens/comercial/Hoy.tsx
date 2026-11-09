@@ -4,7 +4,7 @@ import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { hoyISO, proximasFormaciones, type Pharmacy } from '@/data/pharmacies'
+import { hoyISO, nombreDeRep, proximasFormaciones, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, SearchField, PageHeader, Stat, StatRow, Section } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
@@ -52,7 +52,7 @@ export function Hoy() {
   const ahora = new Date()
   const hoy = hoyISO(ahora)
   const fecha = capital(ahora.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }))
-  const nombre = nombreDeSaludo(user?.name || user?.rep_name || '')
+  const nombre = nombreDeSaludo(user?.name || nombreDeRep(user?.rep_name))
 
   const agenda = proximasFormaciones(farmacias, ahora)
   const hechas = farmacias.filter((p) => p.formacion === 'hecha').length

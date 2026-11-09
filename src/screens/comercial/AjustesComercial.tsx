@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Screen } from '@/app/Shell'
 import { useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { comercialesDe, iniciales } from '@/data/pharmacies'
+import { comercialesDe, iniciales, nombreDeRep } from '@/data/pharmacies'
 import { Toolbar } from '@/ui/Page'
 import { Avatar } from '@/ui/Avatar'
 import { cn } from '@/lib/cn'
@@ -16,7 +16,7 @@ export function AjustesComercial() {
   const { farmacias } = useDatos()
 
   const nombre = user?.name || user?.rep_name || 'Comercial'
-  const rep = user?.rep_name || ''
+  const rep = nombreDeRep(user?.rep_name)
   const zona = comercialesDe(farmacias)[0]?.zona ?? ''
   const n = farmacias.length
   const rows = ([

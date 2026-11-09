@@ -5,7 +5,7 @@ import { Screen, FooterBar } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { EMAIL_RE, type Role } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { comercialesDe, iniciales } from '@/data/pharmacies'
+import { comercialesDe, iniciales, TODOS_LOS_COMERCIALES } from '@/data/pharmacies'
 import { Toolbar, PageHeader, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
@@ -219,8 +219,9 @@ export function NuevaCuenta() {
         meta: [r.zona, plural(r.farmacias, 'farmacia', 'farmacias')].filter(Boolean).join(' · '),
         buscar: norm([r.rep, r.zona].join(' ')),
         badge: porComercial.has(r.rep) ? 'Ya tiene cuenta' : undefined,
-      })),
-    [reps, porComercial],
+      }))
+      .concat({ key: TODOS_LOS_COMERCIALES, title: 'Todos los comerciales', meta: `Ve las ${plural(farmacias.length, 'farmacia', 'farmacias')}, por ejemplo el distribuidor`, buscar: norm('todos los comerciales distribuidor todas'), badge: undefined }),
+    [reps, porComercial, farmacias.length],
   )
 
   const elegirFarmacia = (k: string) => {
@@ -390,7 +391,9 @@ export function NuevaCuenta() {
               rol === 'farmacia'
                 ? { t: 'Ve solo su farmacia', d: `${farmacia ? farmacia.name : 'La que elijas'}, con el catálogo, el recomendador y la formación.` }
                 : rol === 'comercial'
-                  ? { t: 'Ve solo sus farmacias', d: rep ? `Las ${plural(reps.find((r) => r.rep === rep)?.farmacias ?? 0, 'farmacia', 'farmacias')} que lleva ${rep}, con su ruta y el catálogo.` : 'Las que lleva el comercial que elijas, con su ruta y el catálogo.' }
+                  ? rep === TODOS_LOS_COMERCIALES
+                    ? { t: 'Ve todas las farmacias', d: `Las ${plural(farmacias.length, 'farmacia', 'farmacias')}, igual que un comercial: ruta, catálogo, formación y argumentarios.` }
+                    : { t: 'Ve solo sus farmacias', d: rep ? `Las ${plural(reps.find((r) => r.rep === rep)?.farmacias ?? 0, 'farmacia', 'farmacias')} que lleva ${rep}, con su ruta y el catálogo.` : 'Las que lleva el comercial que elijas, con su ruta y el catálogo.' }
                   : { t: 'Ve toda la consola', d: 'Cuentas y accesos, comerciales, catálogo, cursos, materiales y chat.' },
               { t: 'Pásale el acceso tú', d: 'No enviamos ningún correo: dale el correo y la contraseña por un canal seguro.' },
             ]}

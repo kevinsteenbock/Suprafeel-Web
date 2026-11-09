@@ -57,6 +57,10 @@ export interface Pharmacy {
   notesMeta?: string
 }
 
+/** rep_name de una cuenta de comercial que ve todas las farmacias (p. ej. el distribuidor). */
+export const TODOS_LOS_COMERCIALES = '*'
+export const nombreDeRep = (rep?: string | null) => (rep === TODOS_LOS_COMERCIALES ? 'Todos los comerciales' : rep ?? '')
+
 /** Fila tal como la devuelve Xano en GET /farmacias */
 export interface FilaFarmacia {
   id: number
