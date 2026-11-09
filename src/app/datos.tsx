@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Outlet } from 'react-router'
 import { Plus } from 'lucide-react'
 import { call, Cargando, EMAIL_RE, useAuth, type Role, type User } from './auth'
-import { comercialesDe, farmaciaDeFila, TODOS_LOS_COMERCIALES, pharmacies as compartidas, type FilaFarmacia, type Pharmacy } from '@/data/pharmacies'
+import { comercialesDe, farmaciaDeFila, veRep, pharmacies as compartidas, type FilaFarmacia, type Pharmacy } from '@/data/pharmacies'
 import { CONTENIDO_VACIO, normalizaContenido, type Contenido } from '@/data/contenido'
 import { Button } from '@/ui/Button'
 
@@ -124,7 +124,7 @@ async function leerLista(path: string, token: string): Promise<unknown[]> {
 function comoXano(farmacias: Pharmacy[], user: User | null): Pharmacy[] {
   if (!user) return []
   if (user.role === 'admin') return farmacias
-  if (user.role === 'comercial') return user.rep_name === TODOS_LOS_COMERCIALES ? farmacias : farmacias.filter((p) => !!user.rep_name && p.rep === user.rep_name)
+  if (user.role === 'comercial') return farmacias.filter((p) => veRep(user.rep_name, p.rep))
   return farmacias.filter((p) => !!user.pharmacy_slug && p.id === user.pharmacy_slug)
 }
 

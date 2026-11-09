@@ -59,7 +59,11 @@ export interface Pharmacy {
 
 /** rep_name de una cuenta de comercial que ve todas las farmacias (p. ej. el distribuidor). */
 export const TODOS_LOS_COMERCIALES = '*'
-export const nombreDeRep = (rep?: string | null) => (rep === TODOS_LOS_COMERCIALES ? 'Todos los comerciales' : rep ?? '')
+/** Los comerciales de una cuenta: rep_name puede llevar varios separados por comas («Francesc,Alex»). */
+export const repsDe = (rep?: string | null) => (rep ?? '').split(',').map((r) => r.trim()).filter(Boolean)
+/** Si una cuenta de comercial ve esa farmacia (por su rep). */
+export const veRep = (repName: string | null | undefined, rep: string) => repName === TODOS_LOS_COMERCIALES || repsDe(repName).includes(rep)
+export const nombreDeRep = (rep?: string | null) => (rep === TODOS_LOS_COMERCIALES ? 'Todos los comerciales' : repsDe(rep).join(', '))
 
 /** Fila tal como la devuelve Xano en GET /farmacias */
 export interface FilaFarmacia {

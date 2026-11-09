@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Plus, Search, X, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useDatos, type Usuario } from '@/app/datos'
-import { comercialesDe, TODOS_LOS_COMERCIALES, esProgramada, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
+import { comercialesDe, repsDe, TODOS_LOS_COMERCIALES, esProgramada, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar, type MenuOption } from '@/ui/FilterMenu'
@@ -131,6 +131,7 @@ export function Cuentas() {
   const irACuenta = (u: Usuario) => {
     if (u.role === 'farmacia' && farmacias.some((p) => p.id === u.pharmacy_slug)) navigate(`/admin/cuentas/${u.pharmacy_slug}`)
     else if (u.role === 'comercial' && u.rep_name === TODOS_LOS_COMERCIALES) navigate('/admin/cuentas')
+    else if (u.role === 'comercial' && repsDe(u.rep_name).length > 1) navigate('/admin/cuentas')
     else if (u.role === 'comercial' && u.rep_name) navigate(`/admin/cuentas?comercial=${encodeURIComponent(u.rep_name)}`)
   }
 

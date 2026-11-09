@@ -1,5 +1,5 @@
 import type { Usuario } from '@/app/datos'
-import { nombreDeRep, type Pharmacy } from '@/data/pharmacies'
+import { nombreDeRep, repsDe, type Pharmacy } from '@/data/pharmacies'
 
 /**
  * Cuentas sacadas de lo que sirve Xano (useDatos): quién tiene acceso a qué. Todo se calcula con
@@ -38,8 +38,8 @@ export function accesosPorFarmacia(usuarios: Usuario[]): Map<string, Usuario[]> 
 export function accesosPorComercial(usuarios: Usuario[]): Map<string, Usuario[]> {
   const m = new Map<string, Usuario[]>()
   for (const u of usuarios) {
-    if (u.role !== 'comercial' || !u.rep_name) continue
-    m.set(u.rep_name, [...(m.get(u.rep_name) ?? []), u])
+    if (u.role !== 'comercial') continue
+    for (const r of repsDe(u.rep_name)) m.set(r, [...(m.get(r) ?? []), u])
   }
   return m
 }

@@ -1,4 +1,4 @@
-// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name (con rep_name «*», todas: p. ej. el distribuidor) y una farmacia solo la suya (pharmacy_slug),
+// Farmacias según la sesión: admin ve todas, un comercial las de su rep_name (uno o varios separados por comas; con rep_name «*», todas: p. ej. el distribuidor) y una farmacia solo la suya (pharmacy_slug),
 // sin notas internas ni distribuidor, y con la formación solo si está hecha o programada.
 // Sin token, o con uno caducado o anterior al cambio de sesiones, 401 (sf_sesion). Una cuenta sin rol válido, 403.
 query farmacias verb=GET {
@@ -56,15 +56,31 @@ query farmacias verb=GET {
       }
 
       elseif ($sesion.role == "comercial" && $rep != "") {
+        // rep_name puede llevar varios comerciales separados por comas («Francesc,Alex»): ve las de todos ellos.
+        var $reps {
+          value = $rep|split:","
+        }
+
         db.query sf_farmacia {
-          where = $db.sf_farmacia.rep == $rep
           sort = {id: "asc"}
           output = ["id", "slug", "code", "name", "nombre_comercial", "city", "owner", "address", "postal", "rep", "zona", "refs", "lineal", "formacion", "formacion_fecha", "formacion_hora", "formacion_nota", "telefono", "codigo_cliente", "distribuidor"]
           return = {type: "list"}
-        } as $suyas
+        } as $candidatas
 
-        var.update $filas {
-          value = $suyas
+        foreach ($candidatas) {
+          each as $fila {
+            var $es_suya {
+              value = $reps|in:($fila.rep ?? "")
+            }
+
+            conditional {
+              if ($es_suya) {
+                var.update $filas {
+                  value = $filas|push:$fila
+                }
+              }
+            }
+          }
         }
       }
 

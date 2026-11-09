@@ -6,7 +6,7 @@ import {
 import type { ShellConfig } from './Shell'
 import type { User } from './auth'
 import { novedades as listaNovedades } from '@/data/novedades'
-import { comercialesDe, iniciales, nombreDe, TODOS_LOS_COMERCIALES, type Pharmacy } from '@/data/pharmacies'
+import { comercialesDe, iniciales, nombreDe, repsDe, TODOS_LOS_COMERCIALES, type Pharmacy } from '@/data/pharmacies'
 
 /** Si no hay novedades, la chapa no se enseña (en vez de anunciar un 6 que no existe). */
 const novedades = listaNovedades.length || undefined
@@ -102,8 +102,10 @@ export function shellDe(config: ShellConfig, user: User | null, farmacias: Pharm
   if (!user) return config
   if (user.role === 'comercial') {
     const todas = user.rep_name === TODOS_LOS_COMERCIALES
-    const nombre = (todas ? '' : user.rep_name?.trim()) || user.name
-    return { ...config, workspace: { initials: iniciales(nombre), name: nombre, sub: todas ? `Todos los comerciales · ${cuantas(farmacias.length)}` : cuantas(farmacias.length) } }
+    const reps = repsDe(todas ? '' : user.rep_name)
+    const nombre = (reps.length === 1 ? reps[0] : '') || user.name
+    const sub = todas ? `Todos los comerciales · ${cuantas(farmacias.length)}` : reps.length > 1 ? `${reps.length} comerciales · ${cuantas(farmacias.length)}` : cuantas(farmacias.length)
+    return { ...config, workspace: { initials: iniciales(nombre), name: nombre, sub } }
   }
   if (user.role === 'farmacia') {
     const f = farmacias.find((p) => p.id === user.pharmacy_slug)

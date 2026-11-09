@@ -62,7 +62,20 @@ query "material/solicitudes" verb=POST {
       error = "Esa farmacia no existe"
     }
 
-    precondition ($sesion.role == "farmacia" || $farmacia.rep == ($sesion.rep_name ?? "") || ($sesion.rep_name ?? "") == "*") {
+    // Un comercial pide para las farmacias de su rep_name (uno o varios separados por comas, o «*» para todas).
+    var $mis_reps {
+      value = ($sesion.rep_name ?? "")|split:","
+    }
+
+    var $es_mia {
+      value = $mis_reps|in:($farmacia.rep ?? "")
+    }
+
+    var $rep_sesion {
+      value = $sesion.rep_name ?? ""
+    }
+
+    precondition ($sesion.role == "farmacia" || ($rep_sesion != "" && $es_mia) || $rep_sesion == "*") {
       error_type = "accessdenied"
       error = "Esa farmacia no es tuya"
     }

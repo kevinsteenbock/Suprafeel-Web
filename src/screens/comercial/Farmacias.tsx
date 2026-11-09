@@ -5,7 +5,7 @@ import { Screen } from '@/app/Shell'
 import { useStore } from '@/app/store'
 import { useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { filterPharmacies, TODOS_LOS_COMERCIALES, formacionChapa, formacionLabel, hoyISO, pharmacyFiltersWithCounts, registroDe, type Pharmacy } from '@/data/pharmacies'
+import { filterPharmacies, repsDe, TODOS_LOS_COMERCIALES, formacionChapa, formacionLabel, hoyISO, pharmacyFiltersWithCounts, registroDe, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, PageHeader, Notice } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
@@ -16,6 +16,12 @@ import { Avatar } from '@/ui/Avatar'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
+
+/** Cómo firma el comercial los correos: su nombre en el reparto si lleva uno; si lleva varios o todos, su nombre. */
+const firmaDe = (user: { name?: string; rep_name?: string | null } | null) => {
+  const reps = user?.rep_name === TODOS_LOS_COMERCIALES ? [] : repsDe(user?.rep_name)
+  return (reps.length === 1 ? reps[0] : '') || user?.name || ''
+}
 
 const columnOptions = [
   { key: 'refs', label: 'Referencias' },
@@ -183,7 +189,7 @@ function AddDrawer({ onClose, onManual }: { onClose: () => void; onManual: () =>
   const [q, setQ] = useState('')
   const busca = plano(q.trim()).replace(/^farmacia\s+/, '')
   const hits = busca.length > 2 ? registry.filter((r) => plano(`${r.name} ${r.meta}`).includes(busca)).slice(0, 8) : []
-  const quien = (user?.rep_name === TODOS_LOS_COMERCIALES ? '' : user?.rep_name) || user?.name || ''
+  const quien = firmaDe(user)
   return (
     <Drawer open onClose={onClose} title="Añadir farmacia a tu zona" width={448}>
       <div className={cn('field h-[42px] rounded-lg gap-2.5 is-focus')}>
@@ -221,6 +227,7 @@ function AddDrawer({ onClose, onManual }: { onClose: () => void; onManual: () =>
 
 function ManualDrawer({ onClose, onBack }: { onClose: () => void; onBack: () => void }) {
   const { user } = useAuth()
+  const quien = firmaDe(user)
   const [f, setF] = useState({ nombre: '', razon: '', cif: '', reg: '', dir: '', titular: '', correo: '', tel: '', nota: '' })
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v })
   const ok = f.nombre && f.razon && f.cif && f.reg && f.dir && f.titular && f.correo
@@ -230,7 +237,7 @@ function ManualDrawer({ onClose, onBack }: { onClose: () => void; onBack: () => 
       ['Nombre comercial', f.nombre], ['Razón social', f.razon], ['CIF', f.cif], ['Nº de registro', f.reg], ['Dirección', f.dir],
       ['Titular', f.titular], ['Correo', f.correo], ['Teléfono', f.tel], ['Nota', f.nota],
     ].filter(([, v]) => v.trim()).map(([k, v]) => `${k}: ${v.trim()}`)
-    escribir(`Alta de farmacia · ${f.nombre}`, `Hola:\n\nPido el alta de esta farmacia en Suprafeel Soft:\n\n${lineas.join('\n')}\n\n${(user?.rep_name === TODOS_LOS_COMERCIALES ? "" : user?.rep_name) || user?.name || ""}`)
+    escribir(`Alta de farmacia · ${f.nombre}`, `Hola:\n\nPido el alta de esta farmacia en Suprafeel Soft:\n\n${lineas.join('\n')}\n\n${quien}`)
   }
   return (
     <Drawer
