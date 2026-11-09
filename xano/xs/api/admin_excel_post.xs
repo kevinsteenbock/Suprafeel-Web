@@ -42,7 +42,19 @@ query "admin/excel" verb=POST {
       value = $input.nuevas ?? []
     }
 
-    precondition (($cambios|count) + ($nuevas|count) <= 2000) {
+    var $n_cambios {
+      value = $cambios|count
+    }
+
+    var $n_nuevas {
+      value = $nuevas|count
+    }
+
+    var $n_total {
+      value = $n_cambios + $n_nuevas
+    }
+
+    precondition ($n_total <= 2000) {
       error_type = "inputerror"
       error = "Demasiadas filas en un solo Excel"
     }
@@ -94,19 +106,19 @@ query "admin/excel" verb=POST {
             }
           }
 
-          elseif (!($estados|in:$formacion)) {
+          elseif (($estados|in:$formacion) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Estado de formación desconocido"}
             }
           }
 
-          elseif ($fecha != "" && !("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"|regex_matches:$fecha)) {
+          elseif ($fecha != "" && ("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"|regex_matches:$fecha) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Fecha no válida"}
             }
           }
 
-          elseif ($hora != "" && !("/^[0-9]{2}:[0-9]{2}$/"|regex_matches:$hora)) {
+          elseif ($hora != "" && ("/^[0-9]{2}:[0-9]{2}$/"|regex_matches:$hora) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Hora no válida"}
             }
@@ -169,7 +181,7 @@ query "admin/excel" verb=POST {
         } as $repetida
 
         conditional {
-          if (!("/^[a-z0-9-]{2,80}$/"|regex_matches:$slug)) {
+          if (("/^[a-z0-9-]{2,80}$/"|regex_matches:$slug) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Identificador no válido"}
             }
@@ -187,19 +199,19 @@ query "admin/excel" verb=POST {
             }
           }
 
-          elseif (!($estados|in:$formacion)) {
+          elseif (($estados|in:$formacion) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Estado de formación desconocido"}
             }
           }
 
-          elseif ($fecha != "" && !("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"|regex_matches:$fecha)) {
+          elseif ($fecha != "" && ("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"|regex_matches:$fecha) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Fecha no válida"}
             }
           }
 
-          elseif ($hora != "" && !("/^[0-9]{2}:[0-9]{2}$/"|regex_matches:$hora)) {
+          elseif ($hora != "" && ("/^[0-9]{2}:[0-9]{2}$/"|regex_matches:$hora) == false) {
             var.update $errores {
               value = $errores|push:{slug: $slug, error: "Hora no válida"}
             }
