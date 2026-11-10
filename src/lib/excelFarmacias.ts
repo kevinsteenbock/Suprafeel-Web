@@ -5,8 +5,9 @@
  * se reconocen por su título, no por su posición.
  *
  * Una farmacia que ya existe se reconoce por su nombre, o por código postal y número de la calle, y
- * nunca se duplica. De las que existen solo se tocan formación, referencias, teléfono (si no tenía),
- * distribuidor e información relevante: nombre, dirección y comercial se cambian en su ficha.
+ * nunca se duplica. De las que existen se tocan formación, referencias, teléfono (si no tenía),
+ * distribuidor, información relevante y comercial (si todas sus filas del Excel dicen el mismo; si
+ * no, solo avisa): nombre y dirección se cambian en su ficha.
  */
 import type { Celda, Hoja } from './xlsx'
 import { fechaCorta, iniciales, type Formacion, type Pharmacy } from '@/data/pharmacies'
@@ -22,7 +23,7 @@ export interface DatosFormacion {
   telefono: string
   distribuidor: string
 }
-export interface Cambio extends DatosFormacion { slug: string }
+export interface Cambio extends DatosFormacion { slug: string; /** Comercial nuevo, solo si cambia. */ rep?: string }
 export interface Nueva extends DatosFormacion { slug: string; code: string; name: string; owner: string; address: string; postal: string; city: string; rep: string; zona: string }
 
 export interface FilaCambio { slug: string; nombre: string; campos: { campo: string; antes: string; despues: string }[]; envio: Cambio }
@@ -299,11 +300,18 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     if (tel && !nuevo.telefono && /\d{6}/.test(tel.replace(/\s/g, ''))) nuevo.telefono = tel
 
     if (j.existente) {
-      const repExcel = repDe(ultimo('comercial'))
-      if (textoDe(ultimo('comercial')) && repExcel !== j.existente.rep) {
-        an.avisos.push({ nombre, texto: `En el Excel la lleva «${textoDe(ultimo('comercial'))}» y en la plataforma ${j.existente.rep || 'nadie'}. No se cambia: hazlo en su ficha si hace falta.` })
-      }
       const campos: FilaCambio['campos'] = []
+      // Comercial: si el Excel la apunta a otro (o a uno que la plataforma aún no conoce), se cambia.
+      // Si sale en varias hojas con comerciales distintos, no se adivina: solo se avisa.
+      const repsExcel = [...new Set(j.filas.map((f) => textoDe(f.v.comercial ?? null)).filter(Boolean).map((r) => repDe(r) ?? capitaliza(r)))]
+      let repNuevo: string | undefined
+      if (repsExcel.length > 1) {
+        an.avisos.push({ nombre, texto: `En el Excel sale con comerciales distintos (${repsExcel.join(', ')}). No se cambia: déjalo con uno solo o cámbialo en su ficha.` })
+      } else if (repsExcel.length === 1 && repsExcel[0] !== j.existente.rep) {
+        repNuevo = repsExcel[0]!
+        campos.push({ campo: 'Comercial', antes: j.existente.rep || '—', despues: repNuevo })
+        if (!repDe(repNuevo)) an.avisos.push({ nombre, texto: `Comercial «${repNuevo}» nuevo en la plataforma.` })
+      }
       const etiqueta: Record<keyof DatosFormacion, string> = { formacion: 'Formación', formacion_fecha: 'Fecha', formacion_hora: 'Hora', formacion_nota: 'Información relevante', refs: 'Nº de referencias', lineal: 'Referencias', telefono: 'Teléfono', distribuidor: 'Distribuidor' }
       for (const k of Object.keys(etiqueta) as (keyof DatosFormacion)[]) {
         const a = Array.isArray(previo[k]) ? (previo[k] as string[]).join(', ') : String(previo[k])
@@ -311,7 +319,7 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
         if (a !== d) campos.push({ campo: etiqueta[k], antes: a, despues: d })
       }
       if (campos.length === 0) an.iguales++
-      else an.cambios.push({ slug: j.existente.id, nombre, campos, envio: { slug: j.existente.id, ...nuevo } })
+      else an.cambios.push({ slug: j.existente.id, nombre, campos, envio: { slug: j.existente.id, ...nuevo, ...(repNuevo ? { rep: repNuevo } : {}) } })
     } else {
       const rep = repDe(ultimo('comercial')) ?? capitaliza(textoDe(ultimo('comercial')))
       if (!rep) { error('Falta el comercial'); continue }

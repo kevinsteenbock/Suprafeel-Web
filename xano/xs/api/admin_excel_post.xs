@@ -1,6 +1,7 @@
 // POST /admin/excel: aplica el Excel semanal de farmacias que ya revisó administración en pantalla.
 // La web lee el .xlsx, cruza cada fila con las farmacias que existen y manda solo lo confirmado:
-//   cambios = [{slug, formacion, formacion_fecha, formacion_hora, formacion_nota, refs, lineal, telefono, distribuidor}]
+//   cambios = [{slug, formacion, formacion_fecha, formacion_hora, formacion_nota, refs, lineal, telefono, distribuidor, rep?}]
+//   (rep solo viene si el Excel la pasa a otro comercial)
 //   nuevas  = [{slug, name, owner, address, postal, city, telefono, refs, lineal, rep, zona, distribuidor, formacion, formacion_fecha, formacion_hora, formacion_nota}]
 // Cada fila se valida aquí otra vez; la que no cuadra se salta y vuelve en `errores`. El archivo queda guardado.
 query "admin/excel" verb=POST {
@@ -139,6 +140,20 @@ query "admin/excel" verb=POST {
                 distribuidor   : ($c|get:"distribuidor":"")|to_text|trim
               }
             } as $editada
+
+            var $rep_nuevo {
+              value = ($c|get:"rep":"")|to_text|trim
+            }
+
+            conditional {
+              if (($rep_nuevo|strlen) >= 2 && ($rep_nuevo|strlen) <= 80) {
+                db.edit sf_farmacia {
+                  field_name = "slug"
+                  field_value = $slug
+                  data = {rep: $rep_nuevo}
+                } as $con_rep
+              }
+            }
 
             var.update $aplicadas {
               value = $aplicadas + 1
