@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
-    "deploy": "npm run build && cd dist && rm -f .env.local .gitignore && VERCEL_ORG_ID=team_CrZzoX5SEQNPMvufEVx9ZiS0 VERCEL_PROJECT_ID=prj_32il3LrG0p1tHqsgGzVhUkw401IV vercel deploy --prod --yes",
+    "deploy": "npm run build && cd dist && rm -f .env.local .gitignore && VERCEL_ORG_ID=team_CrZzoX5SEQNPMvufEVx9ZiS0 VERCEL_PROJECT_ID=prj_32il3LrG0p1tHqsgGzVhUkw401IV npx -y vercel@latest deploy --prod --yes",
     "smoke": "esbuild scripts/smoke.tsx --bundle --platform=node --format=esm --outfile=./.smoke.mjs --jsx=automatic --loader:.jpg=dataurl --define:import.meta.env.BASE_URL='\"/\"' --define:import.meta.env.VITE_XANO_API=undefined --alias:@=./src --external:react --external:react-dom --external:react-router --log-level=error && node ./.smoke.mjs",
     "xano:seed": "esbuild scripts/dump-seed.mjs --bundle --platform=node --format=esm --outfile=./.dump-seed.mjs --loader:.jpg=dataurl --define:import.meta.env.BASE_URL='\"/\"' --packages=external --log-level=error && node ./.dump-seed.mjs && rm -f ./.dump-seed.mjs"
   },
