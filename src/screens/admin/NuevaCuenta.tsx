@@ -59,10 +59,13 @@ function Campo({ id, label, required, hint, error, right, children }: { id: stri
 const borde = (error?: string) => (error ? { borderColor: 'var(--color-danger)' } : undefined)
 
 interface Opcion { key: string; title: string; meta: string; buscar: string; badge?: string }
+const NUEVA = '\u0000nueva'
 
 /** Selector con buscador (combobox): escribe para filtrar, flechas y Enter para elegir. */
-function Buscador({ id, opciones, value, onChange, placeholder, error, describedBy, vacio }: {
+function Buscador({ id, opciones, value, onChange, placeholder, error, describedBy, vacio, crear }: {
   id: string; opciones: Opcion[]; value: string; onChange: (key: string) => void; placeholder: string; error?: string; describedBy?: string; vacio: string
+  /** Si se pasa, lo escrito que no coincide con ninguna opción se puede elegir como nuevo. */
+  crear?: { etiqueta: (texto: string) => string; meta: string; onCrear: (texto: string) => void }
 }) {
   const elegida = opciones.find((o) => o.key === value)
   const [q, setQ] = useState(elegida?.title ?? '')
@@ -83,8 +86,13 @@ function Buscador({ id, opciones, value, onChange, placeholder, error, described
 
   const nq = norm(q.trim())
   const todas = !nq || (elegida && q === elegida.title) ? opciones : opciones.filter((o) => o.buscar.includes(nq))
-  const vistas = todas.slice(0, 60)
-  const elegir = (o: Opcion) => { onChange(o.key); setQ(o.title); setOpen(false) }
+  const exacta = opciones.some((o) => norm(o.title) === nq)
+  const nueva: Opcion | null = crear && nq && !(elegida && q === elegida.title) && !exacta ? { key: NUEVA, title: crear.etiqueta(q.trim()), meta: crear.meta, buscar: '' } : null
+  const vistas = [...todas.slice(0, 60), ...(nueva ? [nueva] : [])]
+  const elegir = (o: Opcion) => {
+    if (o.key === NUEVA) { crear?.onCrear(q.trim()); setOpen(false); return }
+    onChange(o.key); setQ(o.title); setOpen(false)
+  }
 
   return (
     <div ref={ref} className="relative">
@@ -135,7 +143,7 @@ function Buscador({ id, opciones, value, onChange, placeholder, error, described
               {o.badge && <Badge tone="ok">{o.badge}</Badge>}
             </li>
           ))}
-          {todas.length > vistas.length && <li className="px-3 pt-1.5 text-xs text-faint">Hay {todas.length - vistas.length} más: escribe para afinar.</li>}
+          {todas.length > 60 && <li className="px-3 pt-1.5 text-xs text-faint">Hay {todas.length - 60} más: escribe para afinar.</li>}
         </ul>
       )}
     </div>
@@ -156,7 +164,9 @@ export function NuevaCuenta() {
 
   // ?farmacia=slug (desde «Dar acceso») · ?rol=comercial&comercial=Nombre (desde Comerciales)
   const slugInicial = farmacias.some((p) => p.id === sp.get('farmacia')) ? sp.get('farmacia')! : ''
-  const repInicial = reps.some((r) => r.rep === sp.get('comercial')) ? sp.get('comercial')! : ''
+  // Un comercial puede no llevar farmacias todavía (los nuevos del Excel): se acepta el nombre tal cual.
+  const repInicial = (sp.get('comercial') ?? '').trim().slice(0, 60)
+  const [extra, setExtra] = useState<string[]>(() => (repInicial && !reps.some((r) => r.rep === repInicial) ? [repInicial] : []))
   const rolInicial: Role = slugInicial ? 'farmacia' : repInicial || sp.get('rol') === 'comercial' ? 'comercial' : sp.get('rol') === 'admin' ? 'admin' : 'farmacia'
 
   const [rol, setRol] = useState<Role>(rolInicial)
@@ -220,8 +230,12 @@ export function NuevaCuenta() {
         buscar: norm([r.rep, r.zona].join(' ')),
         badge: porComercial.has(r.rep) ? 'Ya tiene cuenta' : undefined,
       }))
+      // Los que aún no llevan farmacias: con cuenta ya creada o recién escritos aquí.
+      .concat([...new Set([...porComercial.keys(), ...extra])].filter((x) => x !== TODOS_LOS_COMERCIALES && !reps.some((r) => r.rep === x)).sort((a, b) => a.localeCompare(b, 'es')).map((x) => ({
+        key: x, title: x, meta: 'Sin farmacias todavía', buscar: norm(x), badge: porComercial.has(x) ? 'Ya tiene cuenta' : undefined,
+      })))
       .concat({ key: TODOS_LOS_COMERCIALES, title: 'Todos los comerciales', meta: `Ve las ${plural(farmacias.length, 'farmacia', 'farmacias')}, por ejemplo el distribuidor`, buscar: norm('todos los comerciales distribuidor todas'), badge: undefined }),
-    [reps, porComercial, farmacias.length],
+    [reps, porComercial, extra, farmacias.length],
   )
 
   const elegirFarmacia = (k: string) => {
@@ -333,8 +347,9 @@ export function NuevaCuenta() {
             </Campo>
           )}
           {rol === 'comercial' && (
-            <Campo id={ids.rep} label="Comercial" required error={err('rep')} hint={rep ? (accesosRep.length ? `${rep} ya tiene ${plural(accesosRep.length, 'cuenta', 'cuentas')}: esta será otra más.` : `Verá las farmacias que lleva ${rep}.`) : 'Los comerciales salen de la lista de farmacias.'}>
-              <Buscador id={ids.rep} opciones={opcionesRep} value={rep} onChange={(k) => { setRep(k); if (k) setTocado((t) => ({ ...t, rep: true })) }} placeholder="Elige el comercial" error={err('rep')} describedBy={`${ids.rep}-nota`} vacio="Ningún comercial con ese nombre." />
+            <Campo id={ids.rep} label="Comercial" required error={err('rep')} hint={rep ? (accesosRep.length ? `${rep} ya tiene ${plural(accesosRep.length, 'cuenta', 'cuentas')}: esta será otra más.` : `Verá las farmacias que lleva ${rep}.`) : 'Elige uno de la lista o escribe el nombre de uno nuevo.'}>
+              <Buscador id={ids.rep} opciones={opcionesRep} value={rep} onChange={(k) => { setRep(k); if (k) setTocado((t) => ({ ...t, rep: true })) }} placeholder="Elige o escribe el comercial" error={err('rep')} describedBy={`${ids.rep}-nota`} vacio="Ningún comercial con ese nombre."
+                crear={{ etiqueta: (t) => `Comercial nuevo: «${t}»`, meta: 'Aún no lleva farmacias: se las asignas desde su ficha', onCrear: (t) => { setExtra((l) => (l.includes(t) ? l : [...l, t])); setRep(t); setTocado((x) => ({ ...x, rep: true })) } }} />
             </Campo>
           )}
 
@@ -393,7 +408,7 @@ export function NuevaCuenta() {
                 : rol === 'comercial'
                   ? rep === TODOS_LOS_COMERCIALES
                     ? { t: 'Ve todas las farmacias', d: `Las ${plural(farmacias.length, 'farmacia', 'farmacias')}, igual que un comercial: ruta, catálogo, formación y argumentarios.` }
-                    : { t: 'Ve solo sus farmacias', d: rep ? `Las ${plural(reps.find((r) => r.rep === rep)?.farmacias ?? 0, 'farmacia', 'farmacias')} que lleva ${rep}, con su ruta y el catálogo.` : 'Las que lleva el comercial que elijas, con su ruta y el catálogo.' }
+                    : { t: 'Ve solo sus farmacias', d: rep ? (reps.find((r) => r.rep === rep)?.farmacias ? `Las ${plural(reps.find((r) => r.rep === rep)!.farmacias, 'farmacia', 'farmacias')} que lleva ${rep}, con su ruta y el catálogo.` : `${rep} aún no lleva farmacias: verá las que le asignes desde la ficha de cada una.`) : 'Las que lleva el comercial que elijas, con su ruta y el catálogo.' }
                   : { t: 'Ve toda la consola', d: 'Cuentas y accesos, comerciales, catálogo, cursos, materiales y chat.' },
               { t: 'Pásale el acceso tú', d: 'No enviamos ningún correo: dale el correo y la contraseña por un canal seguro.' },
             ]}

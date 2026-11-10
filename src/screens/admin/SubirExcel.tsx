@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { Download, FileSpreadsheet, Upload } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { call, useAuth } from '@/app/auth'
@@ -11,6 +12,7 @@ import { analizarExcel, type Analisis } from '@/lib/excelFarmacias'
 import { Notice, PageHeader, Section, Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { cn } from '@/lib/cn'
+import { accesosPorComercial } from './accesos'
 
 interface Subido { id: number; created_at: number; nombre: string; resumen?: { aplicadas?: number; nuevas?: number; errores?: number } | null }
 
@@ -53,7 +55,8 @@ function Marca({ activa, onClick, etiqueta }: { activa: boolean; onClick: () => 
  */
 export function SubirExcel() {
   const { token } = useAuth()
-  const { farmacias, recargar } = useDatos()
+  const { farmacias, usuarios, recargar } = useDatos()
+  const conCuenta = accesosPorComercial(usuarios)
   const { notify } = useStore()
   const input = useRef<HTMLInputElement>(null)
   const [archivo, setArchivo] = useState<{ nombre: string; datos: ArrayBuffer } | null>(null)
@@ -160,6 +163,22 @@ export function SubirExcel() {
             <Cifra n={an.avisos.length} texto="avisos" tono={an.avisos.length ? 'warn' : undefined} />
             <Cifra n={an.errores.length} texto="filas con errores" tono={an.errores.length ? 'danger' : undefined} />
           </div>
+
+          {an.comerciales.length > 0 && (
+            <Section title="Comerciales nuevos">
+              <p className="text-sm text-muted">Salen en el Excel sin farmacias. Crea su cuenta para que puedan entrar; después, asígnales farmacias desde la ficha de cada una.</p>
+              <div className="rounded-xl bg-surface border border-line overflow-hidden">
+                {an.comerciales.map((c, i) => (
+                  <div key={c} className={cn('min-h-[52px] px-3.5 py-2 flex items-center gap-3', i < an.comerciales.length - 1 && 'border-b border-line-soft')}>
+                    <span className="flex-1 min-w-0 text-base font-medium text-ink">{c}</span>
+                    {conCuenta.has(c)
+                      ? <span className="text-sm text-muted">Ya tiene cuenta</span>
+                      : <Link to={`/admin/cuentas/nueva?rol=comercial&comercial=${encodeURIComponent(c)}`}><Button>Crear su cuenta</Button></Link>}
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
 
           {an.nuevas.length > 0 && (
             <Section title="Farmacias nuevas">

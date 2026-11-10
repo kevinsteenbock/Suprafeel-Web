@@ -38,6 +38,8 @@ export interface Analisis {
   errores: FilaError[]
   avisos: Aviso[]
   iguales: number
+  /** Comerciales que el Excel apunta en una fila suelta, sin farmacia, y que la plataforma aún no conoce. */
+  comerciales: string[]
 }
 
 /** Sin tildes, en minúsculas y solo letras y números; arregla la «Ð» que deja el Excel en lugar de la «Ñ». */
@@ -145,7 +147,9 @@ const TITULOS: [RegExp, Campo][] = [
 
 interface Leida { hoja: string; fila: number; v: Partial<Record<Campo, Celda>>; refsLista: Celda[] }
 
-function leerHoja(h: Hoja): Leida[] {
+/** Lee las filas de farmacias. Las que solo traen un comercial (así apunta Aura a los que aún no llevan
+ *  farmacias) van a `sueltos`. */
+function leerHoja(h: Hoja, sueltos: string[]): Leida[] {
   const cab = h.filas.findIndex((f, i) => i < 6 && f.some((c) => /^(farmacia|nombre|nombre farmacia)$/.test(plano(c))))
   if (cab < 0) return []
   const cols = new Map<number, Campo>()
@@ -160,7 +164,11 @@ function leerHoja(h: Hoja): Leida[] {
   h.filas.slice(cab + 1).forEach((f, i) => {
     const v: Partial<Record<Campo, Celda>> = {}
     cols.forEach((campo, col) => { v[campo] = f[col] ?? null })
-    if (!plano(v.nombre)) return
+    if (!plano(v.nombre)) {
+      const resto = f.filter((c, col) => cols.get(col) !== 'comercial' && plano(c) !== '')
+      if (plano(v.comercial) && resto.length === 0) sueltos.push(String(v.comercial).trim())
+      return
+    }
     salida.push({ hoja: h.nombre, fila: cab + i + 2, v, refsLista: refsCols.map((c) => f[c] ?? null) })
   })
   return salida
@@ -208,7 +216,8 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     return cand.length === 1 ? cand[0] : undefined
   }
 
-  const leidas = hojas.flatMap(leerHoja)
+  const sueltos: string[] = []
+  const leidas = hojas.flatMap((h) => leerHoja(h, sueltos))
   const juntas = new Map<string, Junta>()
   for (const l of leidas) {
     const existente = buscar(l)
@@ -218,7 +227,10 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     juntas.set(clave, j)
   }
 
-  const an: Analisis = { hojas: hojas.map((h) => h.nombre), filasLeidas: leidas.length, cambios: [], nuevas: [], errores: [], avisos: [], iguales: 0 }
+  const an: Analisis = { hojas: hojas.map((h) => h.nombre), filasLeidas: leidas.length, cambios: [], nuevas: [], errores: [], avisos: [], iguales: 0, comerciales: [] }
+  // Los que aparecen solos y no llevan ninguna farmacia en la plataforma ni en este Excel: hay que crearles la cuenta.
+  const enExcel = new Set(leidas.map((l) => plano(l.v.comercial)))
+  an.comerciales = [...new Set(sueltos.filter((s) => !repDe(s) && !enExcel.has(plano(s))).map((s) => capitaliza(s)))].sort((a, b) => a.localeCompare(b, 'es'))
 
   for (const j of juntas.values()) {
     const nombreExcel = String(j.filas[0]!.v.nombre).replace(/Ð/g, 'Ñ').trim()

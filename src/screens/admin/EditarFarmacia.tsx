@@ -3,7 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { Screen } from '@/app/Shell'
 import { call, useAuth } from '@/app/auth'
 import { useDatos } from '@/app/datos'
-import { comercialesDe, ESTADOS_FORMACION, pharmacyById } from '@/data/pharmacies'
+import { comercialesDe, ESTADOS_FORMACION, pharmacyById, TODOS_LOS_COMERCIALES } from '@/data/pharmacies'
+import { accesosPorComercial } from './accesos'
 import { Notice, Section, Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { Field, Input, Textarea } from '@/ui/Field'
@@ -16,9 +17,10 @@ export function EditarFarmacia() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { token } = useAuth()
-  const { farmacias, recargar } = useDatos()
+  const { farmacias, usuarios, recargar } = useDatos()
   const p = id ? pharmacyById(id, farmacias) : undefined
-  const reps = useMemo(() => comercialesDe(farmacias).map((c) => c.rep), [farmacias])
+  // También los comerciales con cuenta que aún no llevan ninguna farmacia (los nuevos del Excel).
+  const reps = useMemo(() => [...new Set([...comercialesDe(farmacias).map((c) => c.rep), ...accesosPorComercial(usuarios).keys()])].filter((r) => r !== TODOS_LOS_COMERCIALES).sort((a, b) => a.localeCompare(b, 'es')), [farmacias, usuarios])
   const zonas = useMemo(() => [...new Set(farmacias.map((f) => f.zona).filter((z): z is string => !!z))].sort(), [farmacias])
 
   const [d, setD] = useState({
