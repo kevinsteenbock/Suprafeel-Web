@@ -17,7 +17,7 @@ query "admin/usuarios" verb=GET {
 
     db.query user {
       sort = {id: "asc"}
-      output = ["id", "name", "email", "role", "pharmacy_slug", "rep_name", "created_at"]
+      output = ["id", "name", "email", "role", "pharmacy_slug", "rep_name", "zona", "created_at"]
       return = {type: "list"}
     } as $usuarios
   }

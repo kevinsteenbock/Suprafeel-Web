@@ -39,9 +39,16 @@ export interface Analisis {
   errores: FilaError[]
   avisos: Aviso[]
   iguales: number
-  /** Comerciales que el Excel apunta en una fila suelta, sin farmacia, y que la plataforma aún no conoce. */
-  comerciales: string[]
+  /** Comerciales que el Excel apunta en una fila suelta, sin farmacia (con su zona si la trae), y que aún no llevan farmacias. */
+  comerciales: ComercialSuelto[]
+  /** Hojas que no se han podido leer porque su fila de títulos no tiene «Farmacia» ni «Comercial». */
+  hojasSinTitulos: string[]
 }
+
+export interface ComercialSuelto { nombre: string; zona: string }
+
+/** Lo que la plataforma ya sabe de los comerciales que tienen cuenta: su nombre y la zona de su ficha. */
+export interface ComercialConocido { rep: string; zona: string }
 
 /** Sin tildes, en minúsculas y solo letras y números; arregla la «Ð» que deja el Excel en lugar de la «Ñ». */
 export const plano = (s: unknown) =>
@@ -129,11 +136,12 @@ export function productoDe(v: Celda): string | null {
   return ALIAS[p] ?? PORNOMBRE.get(p) ?? null
 }
 
-type Campo = 'nombre' | 'titular' | 'comercial' | 'ciudad' | 'cp' | 'direccion' | 'telefono' | 'refs' | 'estado' | 'fecha' | 'hora' | 'distribuidor' | 'nota'
+type Campo = 'nombre' | 'titular' | 'comercial' | 'zona' | 'ciudad' | 'cp' | 'direccion' | 'telefono' | 'refs' | 'estado' | 'fecha' | 'hora' | 'distribuidor' | 'nota'
 const TITULOS: [RegExp, Campo][] = [
-  [/^(farmacia|nombre|nombre farmacia)$/, 'nombre'],
+  [/^(farmacia|farmacias|nombre|nombre (de la )?farmacia|razon social|cliente)$/, 'nombre'],
   [/^titular/, 'titular'],
   [/^comercial/, 'comercial'],
+  [/^(zona|region|comunidad|comunidad autonoma|area)$/, 'zona'],
   [/^(poblacion|ciudad|localidad)$/, 'ciudad'],
   [/^(cp|c p|codigo postal)$/, 'cp'],
   [/^direccion/, 'direccion'],
@@ -148,11 +156,17 @@ const TITULOS: [RegExp, Campo][] = [
 
 interface Leida { hoja: string; fila: number; v: Partial<Record<Campo, Celda>>; refsLista: Celda[] }
 
+const esTitulo = (c: Celda, campo: Campo) => TITULOS.find(([re]) => re.test(plano(c)))?.[1] === campo
+
 /** Lee las filas de farmacias. Las que solo traen un comercial (así apunta Aura a los que aún no llevan
- *  farmacias) van a `sueltos`. */
-function leerHoja(h: Hoja, sueltos: string[]): Leida[] {
-  const cab = h.filas.findIndex((f, i) => i < 6 && f.some((c) => /^(farmacia|nombre|nombre farmacia)$/.test(plano(c))))
-  if (cab < 0) return []
+ *  farmacias) van a `sueltos`; una hoja con «Comercial» y sin columna de farmacia es una lista de
+ *  comerciales, y todas sus filas van a `sueltos`. Devuelve null si la hoja no tiene fila de títulos. */
+function leerHoja(h: Hoja, sueltos: ComercialSuelto[]): Leida[] | null {
+  // Los títulos pueden no estar en la primera fila (un título de hoja encima, filas en blanco…).
+  let cab = h.filas.findIndex((f, i) => i < 15 && f.some((c) => esTitulo(c, 'nombre')))
+  const soloComerciales = cab < 0
+  if (soloComerciales) cab = h.filas.findIndex((f, i) => i < 15 && f.some((c) => esTitulo(c, 'comercial')))
+  if (cab < 0) return null
   const cols = new Map<number, Campo>()
   const refsCols: number[] = []
   h.filas[cab]!.forEach((c, i) => {
@@ -162,12 +176,17 @@ function leerHoja(h: Hoja, sueltos: string[]): Leida[] {
     if (campo && ![...cols.values()].includes(campo)) cols.set(i, campo)
   })
   const salida: Leida[] = []
+  const suelto = (v: Partial<Record<Campo, Celda>>) => sueltos.push({ nombre: String(v.comercial).trim(), zona: textoDe(v.zona ?? null) })
   h.filas.slice(cab + 1).forEach((f, i) => {
     const v: Partial<Record<Campo, Celda>> = {}
     cols.forEach((campo, col) => { v[campo] = f[col] ?? null })
+    if (soloComerciales) {
+      if (plano(v.comercial)) suelto(v)
+      return
+    }
     if (!plano(v.nombre)) {
-      const resto = f.filter((c, col) => cols.get(col) !== 'comercial' && plano(c) !== '')
-      if (plano(v.comercial) && resto.length === 0) sueltos.push(String(v.comercial).trim())
+      const resto = f.filter((c, col) => cols.get(col) !== 'comercial' && cols.get(col) !== 'zona' && plano(c) !== '')
+      if (plano(v.comercial) && resto.length === 0) suelto(v)
       return
     }
     salida.push({ hoja: h.nombre, fila: cab + i + 2, v, refsLista: refsCols.map((c) => f[c] ?? null) })
@@ -185,7 +204,7 @@ const textoDe = (v: Celda) => (v === null ? '' : String(v).replace(/\.0+$/, '').
 /** Lo que dice el Excel de una farmacia, ya juntando las hojas en que sale. */
 interface Junta { filas: Leida[]; existente?: Pharmacy; clave: string }
 
-export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = new Date()): Analisis {
+export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = new Date(), conocidos: ComercialConocido[] = []): Analisis {
   const año = hoy.getFullYear()
   const porSlug = new Map(farmacias.map((p) => [p.id, p]))
   const porCalle = new Map<string, Pharmacy[]>()
@@ -194,13 +213,17 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     porCalle.set(k, [...(porCalle.get(k) ?? []), p])
   }
   // Comercial del Excel («JORDI P», «GIJON») → el nombre que ya usa la plataforma («Jordi P.», «Dani Gijón»).
-  const reps = [...new Set(farmacias.map((p) => p.rep).filter(Boolean))]
+  // Los que tienen cuenta y aún ninguna farmacia (los nuevos) también cuentan: así «AMAIA» es «Amaia».
+  const reps = [...new Set([...farmacias.map((p) => p.rep), ...conocidos.map((c) => c.rep)].filter((r) => r && r !== '*'))]
+  const conFarmacias = new Set(farmacias.map((p) => p.rep).filter(Boolean))
   const repDe = (v: Celda): string | undefined => {
     const p = plano(v)
     if (!p) return undefined
     return reps.find((r) => plano(r) === p) ?? reps.find((r) => plano(r).split(' ').includes(p)) ?? reps.find((r) => plano(r).startsWith(p + ' '))
   }
   const zonaDe = (rep: string) => {
+    const ficha = conocidos.find((c) => c.rep === rep && c.zona)?.zona
+    if (ficha) return ficha
     const cuenta = new Map<string, number>()
     for (const p of farmacias) if (p.rep === rep && p.zona) cuenta.set(p.zona, (cuenta.get(p.zona) ?? 0) + 1)
     return [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
@@ -217,8 +240,14 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     return cand.length === 1 ? cand[0] : undefined
   }
 
-  const sueltos: string[] = []
-  const leidas = hojas.flatMap((h) => leerHoja(h, sueltos))
+  const sueltos: ComercialSuelto[] = []
+  const hojasSinTitulos: string[] = []
+  const leidas = hojas.flatMap((h) => {
+    const l = leerHoja(h, sueltos)
+    // Las hojas vacías no cuentan como «sin títulos».
+    if (l === null && h.filas.some((f) => f.some((c) => plano(c) !== ''))) hojasSinTitulos.push(h.nombre)
+    return l ?? []
+  })
   const juntas = new Map<string, Junta>()
   for (const l of leidas) {
     const existente = buscar(l)
@@ -228,10 +257,19 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     juntas.set(clave, j)
   }
 
-  const an: Analisis = { hojas: hojas.map((h) => h.nombre), filasLeidas: leidas.length, cambios: [], nuevas: [], errores: [], avisos: [], iguales: 0, comerciales: [] }
-  // Los que aparecen solos y no llevan ninguna farmacia en la plataforma ni en este Excel: hay que crearles la cuenta.
+  const an: Analisis = { hojas: hojas.map((h) => h.nombre), filasLeidas: leidas.length, cambios: [], nuevas: [], errores: [], avisos: [], iguales: 0, comerciales: [], hojasSinTitulos }
+  // Los que aparecen solos y no llevan ninguna farmacia en la plataforma ni en este Excel: se enseñan para
+  // crearles la cuenta (o, si ya la tienen, para ver que están). Con el nombre que ya usa la plataforma.
   const enExcel = new Set(leidas.map((l) => plano(l.v.comercial)))
-  an.comerciales = [...new Set(sueltos.filter((s) => !repDe(s) && !enExcel.has(plano(s))).map((s) => capitaliza(s)))].sort((a, b) => a.localeCompare(b, 'es'))
+  const vistos = new Map<string, ComercialSuelto>()
+  for (const s of sueltos) {
+    const conocido = repDe(s.nombre)
+    if ((conocido && conFarmacias.has(conocido)) || enExcel.has(plano(s.nombre))) continue
+    const nombre = conocido ?? capitaliza(s.nombre)
+    const previo = vistos.get(nombre)
+    vistos.set(nombre, { nombre, zona: previo?.zona || s.zona })
+  }
+  an.comerciales = [...vistos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 
   for (const j of juntas.values()) {
     const nombreExcel = String(j.filas[0]!.v.nombre).replace(/Ð/g, 'Ñ').trim()

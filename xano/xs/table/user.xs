@@ -1,5 +1,6 @@
 // Cuentas de Suprafeel Soft (tabla 64, la de autenticación). sesion_desde: los tokens emitidos antes no valen
 // (lo comprueba la función sf_sesion); ponerlo a ahora cierra todas las sesiones abiertas de la cuenta.
+// zona: de dónde es un comercial (Cataluña, País Vasco…); la pone administración en la ficha de la cuenta.
 table user {
   auth = true
 
@@ -21,6 +22,7 @@ table user {
     text role filters=trim
     text pharmacy_slug?
     text rep_name?
+    text zona? filters=trim
     timestamp? sesion_desde?
   }
 

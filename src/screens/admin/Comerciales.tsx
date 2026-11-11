@@ -1,9 +1,9 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Plus, Search, X, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useDatos, type Usuario } from '@/app/datos'
-import { comercialesDe, iniciales, type ResumenComercial } from '@/data/pharmacies'
+import { comercialesDe, iniciales, repsDe, TODOS_LOS_COMERCIALES, type ResumenComercial } from '@/data/pharmacies'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar } from '@/ui/FilterMenu'
@@ -11,7 +11,8 @@ import { Avatar } from '@/ui/Avatar'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain, Bar } from '@/ui/Table'
 import { cn } from '@/lib/cn'
-import { accesosPorComercial, norm, plural } from './accesos'
+import { accesosPorComercial, norm, plural, zonaPorComercial } from './accesos'
+import { EditarComercial } from './EditarComercial'
 import { AccesoCelda, Principal, porFilaInicial, vistaInicial } from './AccesoCelda'
 
 const columnOptions = [
@@ -32,6 +33,8 @@ export function Comerciales() {
   const gridStyle = useGridCols(vista)
 
   const acceso = sp.get('acceso') ?? 'all'
+  const zonaFiltro = sp.get('zona') ?? 'all'
+  const [ficha, setFicha] = useState<Usuario[] | null>(null)
   const orden = sp.get('orden') ?? 'farmacias'
   const q = sp.get('q') ?? ''
   const setParam = (k: string, v: string, porDefecto: string) => {
@@ -45,9 +48,16 @@ export function Comerciales() {
   const porComercial = accesosPorComercial(usuarios)
   const deFarmacias = comercialesDe(farmacias)
   const soloCuenta = [...porComercial.keys()]
-    .filter((rep) => !deFarmacias.some((r) => r.rep === rep))
+    .filter((rep) => rep !== TODOS_LOS_COMERCIALES && !deFarmacias.some((r) => r.rep === rep))
     .map((rep): ResumenComercial => ({ rep, zona: '', farmacias: 0, refs: 0, hechas: 0, previstas: 0, pendientes: 0, rechazadas: 0 }))
-  const reps: Rep[] = [...deFarmacias, ...soloCuenta].map((r) => ({ ...r, cuentas: porComercial.get(r.rep) ?? [] }))
+  // La zona que se puso en la ficha de su cuenta manda sobre la de sus farmacias.
+  const zonas = zonaPorComercial(farmacias, usuarios)
+  const reps: Rep[] = [...deFarmacias, ...soloCuenta].map((r) => ({ ...r, zona: zonas.get(r.rep) ?? r.zona, cuentas: porComercial.get(r.rep) ?? [] }))
+  const SIN_ZONA = '__sin'
+  const opcionesZona = [...new Set(reps.map((r) => r.zona).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'))
+  const sinZona = reps.filter((r) => !r.zona).length
+  // Solo las cuentas que son de este comercial y de nadie más (la de un jefe de equipo se edita desde Cuentas).
+  const propias = (r: Rep) => r.cuentas.filter((u) => repsDe(u.rep_name).length === 1)
   const conAcceso = reps.filter((r) => r.cuentas.length).length
   const asignadas = deFarmacias.reduce((a, r) => a + r.farmacias, 0)
   const sinRep = farmacias.filter((p) => !p.rep).length
@@ -55,6 +65,7 @@ export function Comerciales() {
   const nq = norm(q.trim())
   const lista = reps
     .filter((r) => acceso === 'all' || (acceso === 'con') === r.cuentas.length > 0)
+    .filter((r) => zonaFiltro === 'all' || (zonaFiltro === SIN_ZONA ? !r.zona : r.zona === zonaFiltro))
     .filter((r) => !nq || norm([r.rep, r.zona, ...r.cuentas.map((u) => u.email)].join(' ')).includes(nq))
     .sort((a, b) =>
       orden === 'az' ? a.rep.localeCompare(b.rep, 'es')
@@ -78,7 +89,7 @@ export function Comerciales() {
     },
     previstas: { th: <Th key="h3" className="w-[92px] shrink-0" align="right">Programadas</Th>, td: (r) => <Td key="c3" className="w-[92px] shrink-0" align="right">{r.previstas || '—'}</Td> },
     pendientes: { th: <Th key="h4" className="w-[80px] shrink-0" align="right">Pendientes</Th>, td: (r) => <Td key="c4" className={cn('w-[80px] shrink-0', r.pendientes > 0 && 'text-accent font-medium')} align="right">{r.pendientes || '—'}</Td> },
-    acceso: { th: <Th key="h5" className="w-[180px] shrink-0" align="right">Acceso</Th>, td: (r) => <AccesoCelda key="c5" className="w-[180px] shrink-0" cuentas={r.cuentas} onDar={() => darAcceso(r)} /> },
+    acceso: { th: <Th key="h5" className="w-[240px] shrink-0" align="right">Acceso</Th>, td: (r) => <AccesoCelda key="c5" className="w-[240px] shrink-0" cuentas={r.cuentas} onDar={() => darAcceso(r)} onEditar={propias(r).length ? () => setFicha(propias(r)) : undefined} /> },
   }
   const cols = visibleColumns(vista)
 
@@ -129,6 +140,17 @@ export function Comerciales() {
           ]}
           onChange={(v) => setParam('acceso', v, 'all')}
         />
+        <FilterMenuButton
+          label="Zona"
+          width={220}
+          value={zonaFiltro}
+          options={[
+            { key: 'all', label: 'Todas', count: reps.length },
+            ...opcionesZona.map((z) => ({ key: z, label: z, count: reps.filter((r) => r.zona === z).length })),
+            ...(sinZona ? [{ key: SIN_ZONA, label: 'Sin zona', count: sinZona }] : []),
+          ]}
+          onChange={(v) => setParam('zona', v, 'all')}
+        />
       </FilterBar>
 
       {vista.mode === 'list' ? (
@@ -154,11 +176,12 @@ export function Comerciales() {
                 <span style={{ width: `${pct(r)}%` }} className="h-full rounded-[3px] bg-ok" />
               </span>
               <span className="text-sm text-muted">{plural(r.farmacias, 'farmacia', 'farmacias')} · {r.hechas} hechas · {r.previstas} previstas · {r.pendientes} pendientes</span>
-              <AccesoCelda cuentas={r.cuentas} onDar={() => darAcceso(r)} align="between" />
+              <AccesoCelda cuentas={r.cuentas} onDar={() => darAcceso(r)} onEditar={propias(r).length ? () => setFicha(propias(r)) : undefined} align="between" />
             </div>
           ))}
         </div>
       )}
+      <EditarComercial key={ficha?.map((u) => u.id).join('-') ?? '0'} cuentas={ficha ?? []} open={!!ficha} onClose={() => setFicha(null)} />
     </Screen>
   )
 }

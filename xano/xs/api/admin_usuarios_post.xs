@@ -1,5 +1,5 @@
 // Alta de una cuenta, solo para admin. Sustituye al antiguo POST auth/signup (era público y aceptaba role = admin).
-// body { name, email, password (mín. 10), role: farmacia | comercial | admin, pharmacy_slug?, rep_name? }
+// body { name, email, password (mín. 10), role: farmacia | comercial | admin, pharmacy_slug?, rep_name?, zona? }
 // Devuelve la cuenta creada sin contraseña. Datos malos o correo repetido → 400 con el motivo en español.
 query "admin/usuarios" verb=POST {
   api_group = "suprafeel"
@@ -15,6 +15,7 @@ query "admin/usuarios" verb=POST {
     text? role? filters=trim|lower
     text? pharmacy_slug? filters=trim|lower
     text? rep_name? filters=trim
+    text? zona? filters=trim
   }
 
   stack {
@@ -114,6 +115,7 @@ query "admin/usuarios" verb=POST {
         role         : $role
         pharmacy_slug: ($role == "farmacia") ? $slug : null
         rep_name     : ($role == "comercial") ? $rep : null
+        zona         : ($role == "comercial") ? ($input.zona ?? "") : null
         sesion_desde : now
       }
     } as $nuevo
@@ -121,7 +123,7 @@ query "admin/usuarios" verb=POST {
     db.get user {
       field_name = "id"
       field_value = $nuevo.id
-      output = ["id", "name", "email", "role", "pharmacy_slug", "rep_name", "created_at"]
+      output = ["id", "name", "email", "role", "pharmacy_slug", "rep_name", "zona", "created_at"]
     } as $usuario
   }
 

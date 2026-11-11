@@ -26,6 +26,8 @@ export interface Usuario {
   pharmacy_slug: string
   /** El comercial que es (mismo texto que Pharmacy.rep) cuando role = 'comercial' ('' si no) */
   rep_name: string
+  /** De dónde es un comercial (Cataluña, País Vasco…), puesta en su ficha ('' si no consta) */
+  zona: string
   /** Alta en Xano, en milisegundos desde 1970 (0 si no consta) */
   created_at: number
 }
@@ -38,6 +40,14 @@ export interface NuevoUsuario {
   role: Role
   pharmacy_slug?: string
   rep_name?: string
+  zona?: string
+}
+
+/** Ficha editable de una cuenta de comercial: nombre, qué farmacias ve (rep_name) y su zona. */
+export interface CambioCuenta {
+  name: string
+  rep_name: string
+  zona: string
 }
 
 export type EstadoDatos = 'cargando' | 'listo' | 'error'
@@ -59,6 +69,8 @@ export interface Datos {
   recargar: () => Promise<void>
   /** Crea una cuenta en Xano (solo admin) y recarga la lista. Si falla, lanza un Error con el mensaje de Xano. */
   crearUsuario: (input: NuevoUsuario) => Promise<Usuario>
+  /** Cambia la ficha de una cuenta de comercial (solo admin) y recarga la lista. Si falla, lanza un Error con el mensaje de Xano. */
+  editarUsuario: (id: number, cambio: CambioCuenta) => Promise<Usuario>
 }
 
 /** Datos fijos para renderizar sin red (el test de humo). Se filtran por rol igual que en Xano. */
@@ -89,6 +101,7 @@ function usuarioDeFila(raw: unknown): Usuario | null {
     role: u.role as Role,
     pharmacy_slug: str(u.pharmacy_slug),
     rep_name: str(u.rep_name),
+    zona: str(u.zona),
     created_at: created,
   }
 }
@@ -221,6 +234,7 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
         role: input.role,
         pharmacy_slug: input.role === 'farmacia' ? input.pharmacy_slug?.trim() || undefined : undefined,
         rep_name: input.role === 'comercial' ? input.rep_name?.trim() || undefined : undefined,
+        zona: input.role === 'comercial' ? input.zona?.trim() || undefined : undefined,
       }
       if (!body.name) throw new Error('Escribe el nombre de la cuenta.')
       if (!EMAIL_RE.test(body.email)) throw new Error('Escribe un correo válido, por ejemplo nombre@farmacia.es.')
@@ -238,6 +252,7 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
           role: body.role,
           pharmacy_slug: body.pharmacy_slug ?? '',
           rep_name: body.rep_name ?? '',
+          zona: body.zona ?? '',
           created_at: Date.now(),
         }
         setUsuariosXano((l) => [...l, nuevo])
@@ -275,9 +290,44 @@ export function DatosProvider({ children, datos }: { children: ReactNode; datos?
     [datos, status, token, logout, usuariosXano],
   )
 
+  const editarUsuario = useCallback(
+    async (id: number, cambio: CambioCuenta): Promise<Usuario> => {
+      const body = { name: cambio.name.trim(), rep_name: cambio.rep_name.trim(), zona: cambio.zona.trim() }
+      if (body.name.length < 2) throw new Error('Escribe el nombre de la cuenta.')
+      if (!body.rep_name) throw new Error('Elige qué farmacias ve.')
+      const antes = usuariosXano.find((u) => u.id === id)
+      if (!antes) throw new Error('Esa cuenta ya no está en la lista. Recarga la página.')
+      const editada: Usuario = { ...antes, ...body }
+
+      // Sin red (test de humo): se queda en memoria.
+      if (datos) {
+        setUsuariosXano((l) => l.map((u) => (u.id === id ? editada : u)))
+        return editada
+      }
+
+      if (status !== 'in' || !token) throw new Error(CADUCADA)
+      let r
+      try {
+        r = await call(`/admin/usuarios/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, token)
+      } catch {
+        throw new Error(SIN_CONEXION)
+      }
+      if (r.res.status === 401) {
+        logout()
+        throw new Error(CADUCADA)
+      }
+      if (r.res.status === 404 && !r.body?.message) throw new Error('La administración aún no puede editar cuentas: falta subir el cambio a Xano.')
+      if (!r.res.ok) throw new Error(motivo(r.res.status, r.body, 'No hemos podido guardar la cuenta. Inténtalo de nuevo en un momento.'))
+      const guardada = usuarioDeFila(r.body) ?? editada
+      setUsuariosXano((l) => l.map((u) => (u.id === id ? guardada : u)))
+      return guardada
+    },
+    [datos, status, token, logout, usuariosXano],
+  )
+
   const value = useMemo<Datos & { detalle: string }>(
-    () => ({ estado: datos ? 'listo' : estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, detalle }),
-    [datos, estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, detalle],
+    () => ({ estado: datos ? 'listo' : estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, editarUsuario, detalle }),
+    [datos, estado, farmacias, usuarios, contenido, contenidoFalla, recargar, crearUsuario, editarUsuario, detalle],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

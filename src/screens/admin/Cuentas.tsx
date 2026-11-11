@@ -1,9 +1,9 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Plus, Search, X, ArrowUpDown } from 'lucide-react'
 import { Screen } from '@/app/Shell'
 import { useDatos, type Usuario } from '@/app/datos'
-import { comercialesDe, repsDe, TODOS_LOS_COMERCIALES, esProgramada, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
+import { comercialesDe, esProgramada, formacionChapa, hoyISO, iniciales, type Pharmacy } from '@/data/pharmacies'
 import { Toolbar, PageHeader } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { FilterMenuButton, FilterBar, type MenuOption } from '@/ui/FilterMenu'
@@ -12,7 +12,8 @@ import { Avatar } from '@/ui/Avatar'
 import { VistaButton, useVista, useGridCols, visibleColumns } from '@/ui/Vista'
 import { TableCard, THead, Th, Tr, Td, TdMain } from '@/ui/Table'
 import { cn } from '@/lib/cn'
-import { accesosPorFarmacia, ataduraDe, fechaAlta, norm, plural, ROL_LABEL } from './accesos'
+import { accesosPorComercial, accesosPorFarmacia, ataduraDe, fechaAlta, norm, plural, ROL_LABEL } from './accesos'
+import { EditarComercial } from './EditarComercial'
 import { AccesoCelda, FilaLista, Principal, principal, porFilaInicial, vistaInicial } from './AccesoCelda'
 
 /** Acciones de fila (la usa una lista de filas). */
@@ -65,6 +66,7 @@ export function Cuentas() {
   const { vista, setVista, resetVista } = useVista({ mode: vistaInicial(), perRow: porFilaInicial(4), columns: columnOptions })
   const gridStyle = useGridCols(vista)
   const hoy = hoyISO()
+  const [editando, setEditando] = useState<Usuario | null>(null)
 
   // Los filtros viven en la URL: así Resumen y Comerciales pueden traer aquí una lista ya filtrada.
   const ver = sp.get('ver') === 'cuentas' ? 'cuentas' : 'farmacias'
@@ -106,6 +108,8 @@ export function Cuentas() {
   )
 
   const reps = comercialesDe(farmacias)
+  // Los comerciales con cuenta y aún sin farmacias (los nuevos) también salen en el filtro, con 0.
+  const soloCuenta = [...accesosPorComercial(usuarios).keys()].filter((r) => r !== '*' && !reps.some((x) => x.rep === r)).sort((a, b) => a.localeCompare(b, 'es'))
   const sinRep = farmacias.filter((p) => !p.rep).length
   const opcionesAcceso: MenuOption[] = [
     { key: 'all', label: 'Todas', count: n },
@@ -115,8 +119,9 @@ export function Cuentas() {
   const opcionesComercial: MenuOption[] = [
     { key: 'all', label: 'Todos', count: n },
     ...reps.map((r) => ({ key: r.rep, label: r.rep, count: r.farmacias })),
+    ...soloCuenta.map((r) => ({ key: r, label: r, count: 0 })),
     ...(sinRep ? [{ key: SIN_REP, label: 'Sin comercial', count: sinRep }] : []),
-    ...(comercial !== 'all' && comercial !== SIN_REP && !reps.some((r) => r.rep === comercial) ? [{ key: comercial, label: comercial, count: 0 }] : []),
+    ...(comercial !== 'all' && comercial !== SIN_REP && !reps.some((r) => r.rep === comercial) && !soloCuenta.includes(comercial) ? [{ key: comercial, label: comercial, count: 0 }] : []),
   ]
   const opcionesFormacion: MenuOption[] = [
     { key: 'all', label: 'Todas', count: n },
@@ -130,9 +135,8 @@ export function Cuentas() {
   ).slice().sort((a, b) => (orden === 'az' ? a.name.localeCompare(b.name, 'es') : b.created_at - a.created_at))
   const irACuenta = (u: Usuario) => {
     if (u.role === 'farmacia' && farmacias.some((p) => p.id === u.pharmacy_slug)) navigate(`/admin/cuentas/${u.pharmacy_slug}`)
-    else if (u.role === 'comercial' && u.rep_name === TODOS_LOS_COMERCIALES) navigate('/admin/cuentas')
-    else if (u.role === 'comercial' && repsDe(u.rep_name).length > 1) navigate('/admin/cuentas')
-    else if (u.role === 'comercial' && u.rep_name) navigate(`/admin/cuentas?comercial=${encodeURIComponent(u.rep_name)}`)
+    // Una cuenta de comercial abre su ficha: nombre, zona y qué farmacias ve.
+    else if (u.role === 'comercial') setEditando(u)
   }
 
   const filtrado = acceso !== 'all' || comercial !== 'all' || formacion !== 'all' || !!q
@@ -278,6 +282,7 @@ export function Cuentas() {
           </div>
         </>
       )}
+      <EditarComercial key={editando?.id ?? 0} cuentas={editando ? [editando] : []} open={!!editando} onClose={() => setEditando(null)} />
     </Screen>
   )
 }

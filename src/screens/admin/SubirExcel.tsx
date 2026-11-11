@@ -13,6 +13,7 @@ import { Notice, PageHeader, Section, Toolbar } from '@/ui/Page'
 import { Button } from '@/ui/Button'
 import { cn } from '@/lib/cn'
 import { accesosPorComercial } from './accesos'
+import { repsDe } from '@/data/pharmacies'
 
 interface Subido { id: number; created_at: number; nombre: string; resumen?: { aplicadas?: number; nuevas?: number; errores?: number } | null }
 
@@ -83,9 +84,13 @@ export function SubirExcel() {
     try {
       const datos = await f.arrayBuffer()
       const hojas = await leerXlsx(datos)
-      const r = analizarExcel(hojas, farmacias)
-      if (r.filasLeidas === 0) setError('No encuentro farmacias en el Excel: la primera fila de cada hoja tiene que tener una columna «Farmacia» o «Nombre».')
-      else { setArchivo({ nombre: f.name, datos }); setAn(r) }
+      // Los comerciales con cuenta (también los que aún no llevan farmacias) y la zona de su ficha.
+      const conocidos = usuarios.filter((u) => u.role === 'comercial' && repsDe(u.rep_name).length === 1 && u.rep_name !== '*').map((u) => ({ rep: u.rep_name, zona: u.zona }))
+      const r = analizarExcel(hojas, farmacias, new Date(), conocidos)
+      // Un Excel con comerciales y sin farmacias todavía (p. ej. los de una zona nueva) también vale.
+      if (r.filasLeidas === 0 && r.comerciales.length === 0) {
+        setError(`No encuentro farmacias ni comerciales en el Excel (${r.hojas.length === 1 ? 'hoja' : 'hojas'}: ${r.hojas.map((h) => `«${h}»`).join(', ')}). En la fila de títulos de cada hoja tiene que haber una columna «Farmacia» (o «Nombre») o, si de momento solo son comerciales, una columna «Comercial».`)
+      } else { setArchivo({ nombre: f.name, datos }); setAn(r) }
     } catch {
       setError('No se ha podido leer el Excel. Guárdalo otra vez como .xlsx y vuelve a probar.')
     } finally {
@@ -164,16 +169,27 @@ export function SubirExcel() {
             <Cifra n={an.errores.length} texto="filas con errores" tono={an.errores.length ? 'danger' : undefined} />
           </div>
 
+          {an.hojasSinTitulos.length > 0 && (
+            <Notice tone="warn">No se han leído {an.hojasSinTitulos.length === 1 ? 'la hoja' : 'las hojas'} {an.hojasSinTitulos.map((h) => `«${h}»`).join(', ')}: no encuentro la fila de títulos con «Farmacia» o «Comercial».</Notice>
+          )}
+
+          {an.filasLeidas === 0 && (
+            <Notice tone="ok">Este Excel solo trae comerciales, todavía sin farmacias. No hay farmacias que guardar: crea la cuenta de los que aún no la tienen.</Notice>
+          )}
+
           {an.comerciales.length > 0 && (
-            <Section title="Comerciales nuevos">
-              <p className="text-sm text-muted">Salen en el Excel sin farmacias. Crea su cuenta para que puedan entrar; después, asígnales farmacias desde la ficha de cada una.</p>
+            <Section title="Comerciales sin farmacias todavía">
+              <p className="text-sm text-muted">Salen en el Excel sin farmacias. Crea la cuenta de los que aún no la tienen para que puedan entrar; sus farmacias llegarán con el Excel de cada semana.</p>
               <div className="rounded-xl bg-surface border border-line overflow-hidden">
                 {an.comerciales.map((c, i) => (
-                  <div key={c} className={cn('min-h-[52px] px-3.5 py-2 flex items-center gap-3', i < an.comerciales.length - 1 && 'border-b border-line-soft')}>
-                    <span className="flex-1 min-w-0 text-base font-medium text-ink">{c}</span>
-                    {conCuenta.has(c)
+                  <div key={c.nombre} className={cn('min-h-[52px] px-3.5 py-2 flex items-center gap-3', i < an.comerciales.length - 1 && 'border-b border-line-soft')}>
+                    <span className="flex-1 min-w-0 flex flex-col">
+                      <span className="text-base font-medium text-ink">{c.nombre}</span>
+                      {c.zona && <span className="text-sm text-muted">{c.zona}</span>}
+                    </span>
+                    {conCuenta.has(c.nombre)
                       ? <span className="text-sm text-muted">Ya tiene cuenta</span>
-                      : <Link to={`/admin/cuentas/nueva?rol=comercial&comercial=${encodeURIComponent(c)}`}><Button>Crear su cuenta</Button></Link>}
+                      : <Link to={`/admin/cuentas/nueva?rol=comercial&comercial=${encodeURIComponent(c.nombre)}${c.zona ? `&zona=${encodeURIComponent(c.zona)}` : ''}`}><Button>Crear su cuenta</Button></Link>}
                   </div>
                 ))}
               </div>

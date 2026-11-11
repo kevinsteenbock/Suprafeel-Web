@@ -49,13 +49,21 @@ export const vistaInicial = (): 'list' | 'cards' => (estrecha() ? 'cards' : 'lis
 export const porFilaInicial = (n: PerRow): PerRow => (estrecha() ? 'fit' : n)
 
 /** Estado de acceso: «Con acceso» y el correo de quien entra, o «Sin acceso» y el botón para darlo. */
-export function AccesoCelda({ cuentas, onDar, className, align = 'end' }: { cuentas: Usuario[]; onDar: () => void; className?: string; align?: 'end' | 'between' }) {
+export function AccesoCelda({ cuentas, onDar, onEditar, className, align = 'end' }: { cuentas: Usuario[]; onDar: () => void; /** Abre la ficha de la cuenta (nombre, zona…). */ onEditar?: () => void; className?: string; align?: 'end' | 'between' }) {
   if (cuentas.length > 0) {
     const extra = cuentas.length > 1 ? ` +${cuentas.length - 1}` : ''
-    return (
-      <div className={cn('flex min-w-0', align === 'end' ? 'flex-col items-end' : 'items-center justify-between gap-2', className)}>
+    const datos = (
+      <div className={cn('flex min-w-0', align === 'end' ? 'flex-col items-end' : 'items-center justify-between gap-2', !onEditar && className, onEditar && 'flex-1')}>
         <Badge tone="ok">Con acceso</Badge>
         <span title={cuentas.map((u) => u.email).join('\n')} className={cn('text-xs text-faint truncate max-w-full', align === 'end' && 'mt-[3px]')}>{cuentas[0]!.email}{extra}</span>
+      </div>
+    )
+    if (!onEditar) return datos
+    return (
+      <div className={cn('flex items-center gap-2 min-w-0', className)}>
+        {align === 'end' && <Button size="sm" onClick={(e) => { e.stopPropagation(); onEditar() }}>Ficha</Button>}
+        {datos}
+        {align === 'between' && <Button size="sm" onClick={(e) => { e.stopPropagation(); onEditar() }}>Ficha</Button>}
       </div>
     )
   }

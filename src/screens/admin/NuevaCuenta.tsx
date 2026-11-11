@@ -11,7 +11,7 @@ import { Button } from '@/ui/Button'
 import { Badge } from '@/ui/Badge'
 import { Avatar } from '@/ui/Avatar'
 import { cn } from '@/lib/cn'
-import { accesosPorComercial, accesosPorFarmacia, norm, plural } from './accesos'
+import { accesosPorComercial, accesosPorFarmacia, norm, plural, zonaPorComercial, zonasConocidas } from './accesos'
 
 export function Steps({ title, steps }: { title: string; steps: { t: string; d: string }[] }) {
   return (
@@ -156,7 +156,7 @@ export function NuevaCuenta() {
   const { notify } = useStore()
   const { farmacias, usuarios, crearUsuario } = useDatos()
   const uid = useId()
-  const ids = { rol: `${uid}-rol`, name: `${uid}-nombre`, email: `${uid}-correo`, password: `${uid}-clave`, farmacia: `${uid}-farmacia`, rep: `${uid}-comercial` }
+  const ids = { rol: `${uid}-rol`, zona: `${uid}-zona`, name: `${uid}-nombre`, email: `${uid}-correo`, password: `${uid}-clave`, farmacia: `${uid}-farmacia`, rep: `${uid}-comercial` }
 
   const reps = useMemo(() => comercialesDe(farmacias), [farmacias])
   const porFarmacia = useMemo(() => accesosPorFarmacia(usuarios), [usuarios])
@@ -177,6 +177,11 @@ export function NuevaCuenta() {
   const [copiada, setCopiada] = useState(false)
   const [slug, setSlug] = useState(slugInicial)
   const [rep, setRep] = useState(repInicial)
+  // Zona del comercial: la del enlace (?zona=, desde Subir Excel) o la que ya tiene; se puede cambiar.
+  const zonaDe = useMemo(() => zonaPorComercial(farmacias, usuarios), [farmacias, usuarios])
+  const zonas = useMemo(() => zonasConocidas(farmacias, usuarios), [farmacias, usuarios])
+  const [zona, setZona] = useState(() => (sp.get('zona') ?? '').trim().slice(0, 60) || zonaDe.get(repInicial) || '')
+  const elegirRep = (k: string) => { setRep(k); if (k) { setTocado((t) => ({ ...t, rep: true })); if (!zona && zonaDe.get(k)) setZona(zonaDe.get(k)!) } }
   const [intentado, setIntentado] = useState(false)
   const [tocado, setTocado] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
@@ -280,6 +285,7 @@ export function NuevaCuenta() {
         role: rol,
         pharmacy_slug: rol === 'farmacia' ? slug : undefined,
         rep_name: rol === 'comercial' ? rep : undefined,
+        zona: rol === 'comercial' ? zona.trim() : undefined,
       })
       notify(`Cuenta creada · ${u.email} ya puede entrar`)
       navigate(rol === 'farmacia' ? `/admin/cuentas/${slug}` : rol === 'comercial' ? '/admin/comerciales' : '/admin/cuentas?ver=cuentas')
@@ -348,8 +354,16 @@ export function NuevaCuenta() {
           )}
           {rol === 'comercial' && (
             <Campo id={ids.rep} label="Comercial" required error={err('rep')} hint={rep ? (accesosRep.length ? `${rep} ya tiene ${plural(accesosRep.length, 'cuenta', 'cuentas')}: esta será otra más.` : `Verá las farmacias que lleva ${rep}.`) : 'Elige uno de la lista o escribe el nombre de uno nuevo.'}>
-              <Buscador id={ids.rep} opciones={opcionesRep} value={rep} onChange={(k) => { setRep(k); if (k) setTocado((t) => ({ ...t, rep: true })) }} placeholder="Elige o escribe el comercial" error={err('rep')} describedBy={`${ids.rep}-nota`} vacio="Ningún comercial con ese nombre."
+              <Buscador id={ids.rep} opciones={opcionesRep} value={rep} onChange={elegirRep} placeholder="Elige o escribe el comercial" error={err('rep')} describedBy={`${ids.rep}-nota`} vacio="Ningún comercial con ese nombre."
                 crear={{ etiqueta: (t) => `Comercial nuevo: «${t}»`, meta: 'Aún no lleva farmacias: se las asignas desde su ficha', onCrear: (t) => { setExtra((l) => (l.includes(t) ? l : [...l, t])); setRep(t); setTocado((x) => ({ ...x, rep: true })) } }} />
+            </Campo>
+          )}
+          {rol === 'comercial' && (
+            <Campo id={ids.zona} label="Zona" hint="De dónde es: Cataluña, País Vasco… Elige una o escribe una nueva.">
+              <div className="field max-w-[460px]">
+                <input id={ids.zona} list={`${ids.zona}-lista`} className="flex-1 min-w-0 bg-transparent text-base text-ink" value={zona} onChange={(e) => setZona(e.target.value)} autoComplete="off" placeholder="Zona del comercial" aria-describedby={`${ids.zona}-nota`} />
+              </div>
+              <datalist id={`${ids.zona}-lista`}>{zonas.map((z) => <option key={z} value={z} />)}</datalist>
             </Campo>
           )}
 
