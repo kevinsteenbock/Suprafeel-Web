@@ -45,7 +45,7 @@ export interface Analisis {
   hojasSinTitulos: string[]
 }
 
-export interface ComercialSuelto { nombre: string; zona: string }
+export interface ComercialSuelto { nombre: string; zona: string; email: string }
 
 /** Lo que la plataforma ya sabe de los comerciales que tienen cuenta: su nombre y la zona de su ficha. */
 export interface ComercialConocido { rep: string; zona: string }
@@ -136,7 +136,7 @@ export function productoDe(v: Celda): string | null {
   return ALIAS[p] ?? PORNOMBRE.get(p) ?? null
 }
 
-type Campo = 'nombre' | 'titular' | 'comercial' | 'zona' | 'ciudad' | 'cp' | 'direccion' | 'telefono' | 'refs' | 'estado' | 'fecha' | 'hora' | 'distribuidor' | 'nota'
+type Campo = 'nombre' | 'titular' | 'comercial' | 'zona' | 'ciudad' | 'cp' | 'direccion' | 'telefono' | 'email' | 'refs' | 'estado' | 'fecha' | 'hora' | 'distribuidor' | 'nota'
 const TITULOS: [RegExp, Campo][] = [
   [/^(farmacia|farmacias|nombre|nombre (de la )?farmacia|razon social|cliente)$/, 'nombre'],
   [/^titular/, 'titular'],
@@ -146,6 +146,7 @@ const TITULOS: [RegExp, Campo][] = [
   [/^(cp|c p|codigo postal)$/, 'cp'],
   [/^direccion/, 'direccion'],
   [/^(telefono|tel|tlf)/, 'telefono'],
+  [/^(correo|email|e mail|mail)/, 'email'],
   [/^(n|no|num|numero|n o)? ?(de )?referencias$/, 'refs'],
   [/^estado/, 'estado'],
   [/^(dia|fecha)/, 'fecha'],
@@ -154,18 +155,24 @@ const TITULOS: [RegExp, Campo][] = [
   [/^(informacion relevante|info relevante|notas?|observaciones)/, 'nota'],
 ]
 
+const DEL_COMERCIAL = new Set<Campo>(['comercial', 'zona', 'telefono', 'email'])
+
 interface Leida { hoja: string; fila: number; v: Partial<Record<Campo, Celda>>; refsLista: Celda[] }
 
 const esTitulo = (c: Celda, campo: Campo) => TITULOS.find(([re]) => re.test(plano(c)))?.[1] === campo
 
-/** Lee las filas de farmacias. Las que solo traen un comercial (así apunta Aura a los que aún no llevan
- *  farmacias) van a `sueltos`; una hoja con «Comercial» y sin columna de farmacia es una lista de
+/** Lee las filas de farmacias. Las que traen un comercial y ningún dato de farmacia (así apunta Aura a
+ *  los que aún no llevan farmacias, a veces con su empresa, teléfono, correo y zona) van a `sueltos`; una
+ *  hoja con «Comercial» y sin columna de farmacia, o con la columna de farmacia vacía, es una lista de
  *  comerciales, y todas sus filas van a `sueltos`. Devuelve null si la hoja no tiene fila de títulos. */
 function leerHoja(h: Hoja, sueltos: ComercialSuelto[]): Leida[] | null {
   // Los títulos pueden no estar en la primera fila (un título de hoja encima, filas en blanco…).
   let cab = h.filas.findIndex((f, i) => i < 15 && f.some((c) => esTitulo(c, 'nombre')))
-  const soloComerciales = cab < 0
-  if (soloComerciales) cab = h.filas.findIndex((f, i) => i < 15 && f.some((c) => esTitulo(c, 'comercial')))
+  // Columna «Farmacia» puesta pero sin ninguna farmacia debajo: es una lista de comerciales.
+  const colNombre = cab < 0 ? -1 : h.filas[cab]!.findIndex((c) => esTitulo(c, 'nombre'))
+  const sinFarmacias = cab >= 0 && h.filas.slice(cab + 1).every((f) => plano(f[colNombre] ?? null) === '')
+  const soloComerciales = cab < 0 || sinFarmacias
+  if (cab < 0) cab = h.filas.findIndex((f, i) => i < 15 && f.some((c) => esTitulo(c, 'comercial')))
   if (cab < 0) return null
   const cols = new Map<number, Campo>()
   const refsCols: number[] = []
@@ -176,7 +183,10 @@ function leerHoja(h: Hoja, sueltos: ComercialSuelto[]): Leida[] | null {
     if (campo && ![...cols.values()].includes(campo)) cols.set(i, campo)
   })
   const salida: Leida[] = []
-  const suelto = (v: Partial<Record<Campo, Celda>>) => sueltos.push({ nombre: String(v.comercial).trim(), zona: textoDe(v.zona ?? null) })
+  const suelto = (v: Partial<Record<Campo, Celda>>) => {
+    const email = textoDe(v.email ?? null).toLowerCase()
+    sueltos.push({ nombre: String(v.comercial).trim(), zona: textoDe(v.zona ?? null), email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '' })
+  }
   h.filas.slice(cab + 1).forEach((f, i) => {
     const v: Partial<Record<Campo, Celda>> = {}
     cols.forEach((campo, col) => { v[campo] = f[col] ?? null })
@@ -185,8 +195,9 @@ function leerHoja(h: Hoja, sueltos: ComercialSuelto[]): Leida[] | null {
       return
     }
     if (!plano(v.nombre)) {
-      const resto = f.filter((c, col) => cols.get(col) !== 'comercial' && cols.get(col) !== 'zona' && plano(c) !== '')
-      if (plano(v.comercial) && resto.length === 0) suelto(v)
+      // Solo cuentan los datos de farmacia: empresa, teléfono o correo del comercial no la convierten en farmacia.
+      const deFarmacia = f.some((c, col) => { const k = cols.get(col); return !!k && !DEL_COMERCIAL.has(k) && plano(c) !== '' })
+      if (plano(v.comercial) && !deFarmacia) suelto(v)
       return
     }
     salida.push({ hoja: h.nombre, fila: cab + i + 2, v, refsLista: refsCols.map((c) => f[c] ?? null) })
@@ -267,7 +278,7 @@ export function analizarExcel(hojas: Hoja[], farmacias: Pharmacy[], hoy: Date = 
     if ((conocido && conFarmacias.has(conocido)) || enExcel.has(plano(s.nombre))) continue
     const nombre = conocido ?? capitaliza(s.nombre)
     const previo = vistos.get(nombre)
-    vistos.set(nombre, { nombre, zona: previo?.zona || s.zona })
+    vistos.set(nombre, { nombre, zona: previo?.zona || s.zona, email: previo?.email || s.email })
   }
   an.comerciales = [...vistos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 

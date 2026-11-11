@@ -171,7 +171,7 @@ export function NuevaCuenta() {
 
   const [rol, setRol] = useState<Role>(rolInicial)
   const [name, setName] = useState(() => farmacias.find((p) => p.id === slugInicial)?.owner ?? '')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => { const e = (sp.get('email') ?? '').trim().toLowerCase().slice(0, 120); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : '' })
   const [password, setPassword] = useState('')
   const [ver, setVer] = useState(false)
   const [copiada, setCopiada] = useState(false)

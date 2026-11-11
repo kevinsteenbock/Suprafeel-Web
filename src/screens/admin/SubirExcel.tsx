@@ -189,7 +189,7 @@ export function SubirExcel() {
                     </span>
                     {conCuenta.has(c.nombre)
                       ? <span className="text-sm text-muted">Ya tiene cuenta</span>
-                      : <Link to={`/admin/cuentas/nueva?rol=comercial&comercial=${encodeURIComponent(c.nombre)}${c.zona ? `&zona=${encodeURIComponent(c.zona)}` : ''}`}><Button>Crear su cuenta</Button></Link>}
+                      : <Link to={`/admin/cuentas/nueva?rol=comercial&comercial=${encodeURIComponent(c.nombre)}${c.zona ? `&zona=${encodeURIComponent(c.zona)}` : ''}${c.email ? `&email=${encodeURIComponent(c.email)}` : ''}`}><Button>Crear su cuenta</Button></Link>}
                   </div>
                 ))}
               </div>
